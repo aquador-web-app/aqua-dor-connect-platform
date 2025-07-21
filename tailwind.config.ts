@@ -61,7 +61,22 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// A'qua D'or Brand Colors
+				brand: {
+					navy: 'hsl(var(--brand-navy))',
+					orange: 'hsl(var(--brand-orange))',
+					sky: 'hsl(var(--brand-sky))',
+					white: 'hsl(var(--brand-white))'
 				}
+			},
+			backgroundImage: {
+				'gradient-hero': 'var(--gradient-hero)',
+				'gradient-card': 'var(--gradient-card)'
+			},
+			boxShadow: {
+				'luxury': 'var(--shadow-luxury)',
+				'card-custom': 'var(--shadow-card)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
