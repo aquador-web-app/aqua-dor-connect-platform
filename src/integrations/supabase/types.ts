@@ -14,7 +14,292 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      class_sessions: {
+        Row: {
+          class_id: string
+          created_at: string
+          id: string
+          instructor_id: string
+          max_participants: number
+          notes: string | null
+          session_date: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          id?: string
+          instructor_id: string
+          max_participants?: number
+          notes?: string | null
+          session_date: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          id?: string
+          instructor_id?: string
+          max_participants?: number
+          notes?: string | null
+          session_date?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_sessions_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_sessions_instructor_id_fkey"
+            columns: ["instructor_id"]
+            isOneToOne: false
+            referencedRelation: "instructors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      classes: {
+        Row: {
+          capacity: number
+          created_at: string
+          description: string | null
+          duration_minutes: number
+          id: string
+          instructor_id: string | null
+          is_active: boolean | null
+          level: string
+          name: string
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          instructor_id?: string | null
+          is_active?: boolean | null
+          level: string
+          name: string
+          price: number
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          instructor_id?: string | null
+          is_active?: boolean | null
+          level?: string
+          name?: string
+          price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "classes_instructor_id_fkey"
+            columns: ["instructor_id"]
+            isOneToOne: false
+            referencedRelation: "instructors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      enrollments: {
+        Row: {
+          class_id: string
+          enrollment_date: string
+          id: string
+          notes: string | null
+          payment_status: string | null
+          progress_level: number | null
+          status: string | null
+          student_id: string
+        }
+        Insert: {
+          class_id: string
+          enrollment_date?: string
+          id?: string
+          notes?: string | null
+          payment_status?: string | null
+          progress_level?: number | null
+          status?: string | null
+          student_id: string
+        }
+        Update: {
+          class_id?: string
+          enrollment_date?: string
+          id?: string
+          notes?: string | null
+          payment_status?: string | null
+          progress_level?: number | null
+          status?: string | null
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enrollments_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gallery_items: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          is_featured: boolean | null
+          media_type: string
+          media_url: string
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          media_type: string
+          media_url: string
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          media_type?: string
+          media_url?: string
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      instructors: {
+        Row: {
+          availability: Json | null
+          bio: string | null
+          certifications: string[] | null
+          created_at: string
+          experience_years: number | null
+          hourly_rate: number | null
+          id: string
+          is_active: boolean | null
+          profile_id: string
+          specializations: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          availability?: Json | null
+          bio?: string | null
+          certifications?: string[] | null
+          created_at?: string
+          experience_years?: number | null
+          hourly_rate?: number | null
+          id?: string
+          is_active?: boolean | null
+          profile_id: string
+          specializations?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          availability?: Json | null
+          bio?: string | null
+          certifications?: string[] | null
+          created_at?: string
+          experience_years?: number | null
+          hourly_rate?: number | null
+          id?: string
+          is_active?: boolean | null
+          profile_id?: string
+          specializations?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instructors_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          date_of_birth: string | null
+          email: string
+          emergency_contact: string | null
+          full_name: string | null
+          id: string
+          medical_notes: string | null
+          phone: string | null
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          email: string
+          emergency_contact?: string | null
+          full_name?: string | null
+          id?: string
+          medical_notes?: string | null
+          phone?: string | null
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          email?: string
+          emergency_contact?: string | null
+          full_name?: string | null
+          id?: string
+          medical_notes?: string | null
+          phone?: string | null
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
