@@ -1,10 +1,14 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Waves, User, GraduationCap, Settings } from "lucide-react";
+import { Menu, X, Waves, User, GraduationCap, Settings, Sun, Moon, Globe } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+  const { language, setLanguage, t } = useLanguage();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -25,33 +29,44 @@ const Header = () => {
             to="/about" 
             className="text-foreground hover:text-secondary transition-colors"
           >
-            À Propos
+            {t('nav.about')}
           </Link>
           <Link 
             to="/instructors" 
             className="text-foreground hover:text-secondary transition-colors"
           >
-            Instructeurs
+            {t('nav.instructors')}
           </Link>
           <Link 
-            to="/classes" 
+            to="/courses" 
             className="text-foreground hover:text-secondary transition-colors"
           >
-            Cours
+            {t('nav.courses')}
           </Link>
           <Link 
             to="/gallery" 
             className="text-foreground hover:text-secondary transition-colors"
           >
-            Galerie
+            {t('nav.gallery')}
           </Link>
           <Link 
             to="/contact" 
             className="text-foreground hover:text-secondary transition-colors"
           >
-            Contact
+            {t('nav.contact')}
           </Link>
         </nav>
+
+        {/* Theme & Language Controls */}
+        <div className="hidden md:flex items-center space-x-2">
+          <Button variant="ghost" size="sm" onClick={toggleTheme}>
+            {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => setLanguage(language === 'fr' ? 'en' : 'fr')}>
+            <Globe className="h-4 w-4 mr-1" />
+            {language.toUpperCase()}
+          </Button>
+        </div>
 
         {/* Portal Access Buttons */}
         <div className="hidden md:flex items-center space-x-2">
@@ -73,8 +88,8 @@ const Header = () => {
               <span>Admin</span>
             </Link>
           </Button>
-          <Button className="bg-gradient-accent">
-            S'inscrire
+          <Button className="bg-gradient-accent" asChild>
+            <Link to="/auth">{t('nav.register')}</Link>
           </Button>
         </div>
 
@@ -111,11 +126,11 @@ const Header = () => {
               Instructeurs
             </Link>
             <Link 
-              to="/classes" 
+              to="/courses" 
               className="block py-2 text-foreground hover:text-secondary transition-colors"
               onClick={toggleMenu}
             >
-              Cours
+              {t('nav.courses')}
             </Link>
             <Link 
               to="/gallery" 
