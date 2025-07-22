@@ -1,9 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Play, Award, Users, Waves } from "lucide-react";
-
 const HeroSection = () => {
-  return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+  return <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background with gradient overlay */}
       <div className="absolute inset-0 bg-gradient-hero">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1530549387789-4c1017266635?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')] bg-cover bg-center opacity-30"></div>
@@ -56,11 +54,7 @@ const HeroSection = () => {
             <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-4 text-lg">
               S'inscrire Maintenant
             </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="border-white text-white hover:bg-white hover:text-primary px-8 py-4 text-lg"
-            >
+            <Button size="lg" variant="outline" className="border-white hover:bg-white px-8 py-4 text-lg text-slate-900">
               <Play className="h-5 w-5 mr-2" />
               Voir nos Cours
             </Button>
@@ -74,8 +68,6 @@ const HeroSection = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default HeroSection;
