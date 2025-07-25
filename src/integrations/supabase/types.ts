@@ -252,6 +252,50 @@ export type Database = {
           },
         ]
       }
+      email_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          recipient_email: string
+          sent_at: string | null
+          status: string
+          subject: string
+          template_type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          recipient_email: string
+          sent_at?: string | null
+          status?: string
+          subject: string
+          template_type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          recipient_email?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          template_type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       enrollments: {
         Row: {
           class_id: string
@@ -491,6 +535,8 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          barcode: string | null
+          barcode_generated_at: string | null
           created_at: string
           date_of_birth: string | null
           email: string
@@ -500,12 +546,13 @@ export type Database = {
           medical_notes: string | null
           phone: string | null
           referral_code: string | null
-          role: string
           updated_at: string
           user_id: string
         }
         Insert: {
           avatar_url?: string | null
+          barcode?: string | null
+          barcode_generated_at?: string | null
           created_at?: string
           date_of_birth?: string | null
           email: string
@@ -515,12 +562,13 @@ export type Database = {
           medical_notes?: string | null
           phone?: string | null
           referral_code?: string | null
-          role?: string
           updated_at?: string
           user_id: string
         }
         Update: {
           avatar_url?: string | null
+          barcode?: string | null
+          barcode_generated_at?: string | null
           created_at?: string
           date_of_birth?: string | null
           email?: string
@@ -530,7 +578,6 @@ export type Database = {
           medical_notes?: string | null
           phone?: string | null
           referral_code?: string | null
-          role?: string
           updated_at?: string
           user_id?: string
         }
@@ -700,6 +747,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_barcode: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       generate_referral_code: {
         Args: Record<PropertyKey, never>
         Returns: string
