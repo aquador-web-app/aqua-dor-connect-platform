@@ -1,8 +1,18 @@
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Database, Users, DollarSign, Calendar, Settings, BarChart3, Bell, Shield } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Database, Users, DollarSign, Calendar, Settings, BarChart3, Bell, Shield, Scan, Gift, FileText } from "lucide-react";
+import { BarcodeScanner } from "@/components/dashboard/BarcodeScanner";
+import { ReferralDashboard } from "@/components/dashboard/ReferralDashboard";
+import { ParentChildManager } from "@/components/dashboard/ParentChildManager";
+import { ContentManager } from "@/components/dashboard/ContentManager";
+import { useAuth } from "@/hooks/useAuth";
 
 const AdminPortal = () => {
+  const { canManagePayments, canManageContent } = useAuth();
+  const [activeTab, setActiveTab] = useState("overview");
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container py-8">
@@ -11,7 +21,17 @@ const AdminPortal = () => {
           <p className="text-muted-foreground">Tableau de bord de gestion A'qua D'or</p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+            <TabsTrigger value="scanner">Scanner</TabsTrigger>
+            <TabsTrigger value="referrals">Parrainages</TabsTrigger>
+            <TabsTrigger value="families">Familles</TabsTrigger>
+            <TabsTrigger value="content">Contenu</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card className="hover:shadow-elegant transition-all duration-300">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
@@ -115,7 +135,26 @@ const AdminPortal = () => {
               <Button className="w-full" variant="outline">Config</Button>
             </CardContent>
           </Card>
-        </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="scanner" className="mt-6">
+            <BarcodeScanner />
+          </TabsContent>
+
+          <TabsContent value="referrals" className="mt-6">
+            {canManagePayments() ? <ReferralDashboard /> : <div>Accès refusé</div>}
+          </TabsContent>
+
+          <TabsContent value="families" className="mt-6">
+            <ParentChildManager />
+          </TabsContent>
+
+          <TabsContent value="content" className="mt-6">
+            {canManageContent() ? <ContentManager /> : <div>Accès refusé</div>}
+          </TabsContent>
+
+        </Tabs>
       </div>
     </div>
   );
