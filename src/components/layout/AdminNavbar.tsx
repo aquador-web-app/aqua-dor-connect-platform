@@ -15,7 +15,7 @@ export function AdminNavbar() {
   };
 
   const handlePreviewHome = () => {
-    window.open("/", "_blank");
+    navigate("/");
   };
 
   return (
