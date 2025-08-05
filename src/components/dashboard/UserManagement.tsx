@@ -78,11 +78,19 @@ export function UserManagement() {
 
   const updateUserRole = async (userId: string, newRole: string) => {
     try {
-      const { error } = await supabase
+      // First delete existing role, then insert new one to avoid duplicate constraint
+      const { error: deleteError } = await supabase
         .from('user_roles')
-        .upsert({ user_id: userId, role: newRole as any });
+        .delete()
+        .eq('user_id', userId);
 
-      if (error) throw error;
+      if (deleteError) throw deleteError;
+
+      const { error: insertError } = await supabase
+        .from('user_roles')
+        .insert({ user_id: userId, role: newRole as any });
+
+      if (insertError) throw insertError;
 
       toast({
         title: "Succès",
