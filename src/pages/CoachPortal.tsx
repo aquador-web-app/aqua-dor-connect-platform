@@ -6,6 +6,7 @@ import { Users, Calendar, BarChart3, MessageSquare, FileText, Settings, Scan } f
 import { BarcodeScanner } from "@/components/dashboard/BarcodeScanner";
 import { AttendanceChart } from "@/components/dashboard/AttendanceChart";
 import { StatCard } from "@/components/dashboard/StatCard";
+import { InstructorAnalytics } from "@/components/dashboard/InstructorAnalytics";
 import { useAuth } from "@/hooks/useAuth";
 
 const CoachPortal = () => {
@@ -49,8 +50,9 @@ const CoachPortal = () => {
         </div>
         
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+            <TabsTrigger value="analytics">Analytiques</TabsTrigger>
             <TabsTrigger value="students">Mes Élèves</TabsTrigger>
             <TabsTrigger value="scanner">Scanner</TabsTrigger>
             <TabsTrigger value="reports">Rapports</TabsTrigger>
@@ -102,6 +104,10 @@ const CoachPortal = () => {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="analytics" className="mt-6">
+            <InstructorAnalytics />
           </TabsContent>
 
           <TabsContent value="students" className="mt-6">
