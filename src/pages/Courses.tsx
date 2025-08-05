@@ -13,8 +13,9 @@ interface CourseClass {
   capacity: number;
   price: number;
   duration_minutes: number;
-  instructor?: {
-    profile: {
+  instructor_id: string;
+  instructors?: {
+    profiles: {
       full_name: string;
     };
   };
@@ -26,6 +27,26 @@ const Courses = () => {
 
   useEffect(() => {
     fetchClasses();
+    
+    // Set up real-time subscription
+    const channel = supabase
+      .channel('classes-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'classes'
+        },
+        () => {
+          fetchClasses();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchClasses = async () => {
@@ -40,8 +61,9 @@ const Courses = () => {
           capacity,
           price,
           duration_minutes,
-          instructors (
-            profiles (
+          instructor_id,
+          instructors!inner (
+            profiles!inner (
               full_name
             )
           )
@@ -210,14 +232,14 @@ const Courses = () => {
                     </div>
                     <div className="flex items-center space-x-2 col-span-2">
                       <DollarSign className="h-4 w-4 text-primary" />
-                      <span className="font-semibold">{courseClass.price}€ / session</span>
+                      <span className="font-semibold">{courseClass.price} HTG / session</span>
                     </div>
                   </div>
                   
-                  {courseClass.instructor && (
+                  {courseClass.instructors && (
                     <div className="text-sm text-muted-foreground">
                       <Award className="h-4 w-4 inline mr-1" />
-                      Instructeur: {courseClass.instructor.profile.full_name}
+                      Instructeur: {courseClass.instructors.profiles.full_name}
                     </div>
                   )}
                   
