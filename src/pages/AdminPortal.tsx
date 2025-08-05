@@ -2,11 +2,16 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Database, Users, DollarSign, Calendar, Settings, BarChart3, Bell, Shield, Scan, Gift, FileText } from "lucide-react";
+import { Database, Users, DollarSign, Calendar, Settings, BarChart3, Bell, Shield, Scan, Gift, FileText, UserCheck, GraduationCap } from "lucide-react";
 import { BarcodeScanner } from "@/components/dashboard/BarcodeScanner";
 import { ReferralDashboard } from "@/components/dashboard/ReferralDashboard";
 import { ParentChildManager } from "@/components/dashboard/ParentChildManager";
 import { ContentManager } from "@/components/dashboard/ContentManager";
+import { UserManagement } from "@/components/dashboard/UserManagement";
+import { InstructorManagement } from "@/components/dashboard/InstructorManagement";
+import { ClassScheduler } from "@/components/dashboard/ClassScheduler";
+import { PaymentOverview } from "@/components/dashboard/PaymentOverview";
+import { NotificationManager } from "@/components/dashboard/NotificationManager";
 import { useAuth } from "@/hooks/useAuth";
 
 const AdminPortal = () => {
@@ -22,125 +27,170 @@ const AdminPortal = () => {
         </div>
         
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
-            <TabsTrigger value="scanner">Scanner</TabsTrigger>
-            <TabsTrigger value="referrals">Parrainages</TabsTrigger>
-            <TabsTrigger value="families">Familles</TabsTrigger>
-            <TabsTrigger value="content">Contenu</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-9 text-xs">
+            <TabsTrigger value="overview" className="text-xs">Vue d'ensemble</TabsTrigger>
+            <TabsTrigger value="users" className="text-xs">Utilisateurs</TabsTrigger>
+            <TabsTrigger value="instructors" className="text-xs">Instructeurs</TabsTrigger>
+            <TabsTrigger value="scheduler" className="text-xs">Planificateur</TabsTrigger>
+            <TabsTrigger value="payments" className="text-xs">Paiements</TabsTrigger>
+            <TabsTrigger value="referrals" className="text-xs">Parrainages</TabsTrigger>
+            <TabsTrigger value="families" className="text-xs">Familles</TabsTrigger>
+            <TabsTrigger value="content" className="text-xs">Contenu</TabsTrigger>
+            <TabsTrigger value="notifications" className="text-xs">Notifications</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="hover:shadow-elegant transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Users className="h-5 w-5 text-secondary" />
-                <span>Utilisateurs</span>
-              </CardTitle>
-              <CardDescription>Gestion des élèves et instructeurs</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full">Gérer</Button>
-            </CardContent>
-          </Card>
-          
-          <Card className="hover:shadow-elegant transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <DollarSign className="h-5 w-5 text-accent" />
-                <span>Finances</span>
-              </CardTitle>
-              <CardDescription>Revenus et paiements</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full" variant="outline">Finances</Button>
-            </CardContent>
-          </Card>
-          
-          <Card className="hover:shadow-elegant transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Calendar className="h-5 w-5 text-primary" />
-                <span>Plannings</span>
-              </CardTitle>
-              <CardDescription>Horaires et réservations</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full" variant="outline">Calendrier</Button>
-            </CardContent>
-          </Card>
-          
-          <Card className="hover:shadow-elegant transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <BarChart3 className="h-5 w-5 text-secondary" />
-                <span>Analytics</span>
-              </CardTitle>
-              <CardDescription>Statistiques détaillées</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full" variant="outline">Rapports</Button>
-            </CardContent>
-          </Card>
-          
-          <Card className="hover:shadow-elegant transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Database className="h-5 w-5 text-accent" />
-                <span>CRM</span>
-              </CardTitle>
-              <CardDescription>Gestion de la relation client</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full" variant="outline">CRM</Button>
-            </CardContent>
-          </Card>
-          
-          <Card className="hover:shadow-elegant transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Bell className="h-5 w-5 text-primary" />
-                <span>Notifications</span>
-              </CardTitle>
-              <CardDescription>Alertes système</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full" variant="outline">Alertes</Button>
-            </CardContent>
-          </Card>
-          
-          <Card className="hover:shadow-elegant transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Shield className="h-5 w-5 text-secondary" />
-                <span>Sécurité</span>
-              </CardTitle>
-              <CardDescription>Accès et permissions</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full" variant="outline">Sécurité</Button>
-            </CardContent>
-          </Card>
-          
-          <Card className="hover:shadow-elegant transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Settings className="h-5 w-5 text-accent" />
-                <span>Configuration</span>
-              </CardTitle>
-              <CardDescription>Paramètres généraux</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full" variant="outline">Config</Button>
-            </CardContent>
-          </Card>
+              <Card 
+                className="hover:shadow-elegant transition-all duration-300 cursor-pointer"
+                onClick={() => setActiveTab("users")}
+              >
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Users className="h-5 w-5 text-secondary" />
+                    <span>Utilisateurs</span>
+                  </CardTitle>
+                  <CardDescription>Gestion des comptes utilisateurs</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button className="w-full">Gérer</Button>
+                </CardContent>
+              </Card>
+              
+              <Card 
+                className="hover:shadow-elegant transition-all duration-300 cursor-pointer"
+                onClick={() => setActiveTab("instructors")}
+              >
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <GraduationCap className="h-5 w-5 text-primary" />
+                    <span>Instructeurs</span>
+                  </CardTitle>
+                  <CardDescription>Gestion des coachs</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button className="w-full" variant="outline">Instructeurs</Button>
+                </CardContent>
+              </Card>
+              
+              <Card 
+                className="hover:shadow-elegant transition-all duration-300 cursor-pointer"
+                onClick={() => setActiveTab("scheduler")}
+              >
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Calendar className="h-5 w-5 text-accent" />
+                    <span>Plannings</span>
+                  </CardTitle>
+                  <CardDescription>Horaires et réservations</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button className="w-full" variant="outline">Calendrier</Button>
+                </CardContent>
+              </Card>
+              
+              <Card 
+                className="hover:shadow-elegant transition-all duration-300 cursor-pointer"
+                onClick={() => setActiveTab("payments")}
+              >
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <DollarSign className="h-5 w-5 text-secondary" />
+                    <span>Paiements</span>
+                  </CardTitle>
+                  <CardDescription>Revenus et transactions</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button className="w-full" variant="outline">Finances</Button>
+                </CardContent>
+              </Card>
+              
+              <Card 
+                className="hover:shadow-elegant transition-all duration-300 cursor-pointer"
+                onClick={() => setActiveTab("referrals")}
+              >
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Gift className="h-5 w-5 text-primary" />
+                    <span>Parrainages</span>
+                  </CardTitle>
+                  <CardDescription>Programme de parrainage</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button className="w-full" variant="outline">Parrainages</Button>
+                </CardContent>
+              </Card>
+              
+              <Card 
+                className="hover:shadow-elegant transition-all duration-300 cursor-pointer"
+                onClick={() => setActiveTab("families")}
+              >
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <UserCheck className="h-5 w-5 text-accent" />
+                    <span>Familles</span>
+                  </CardTitle>
+                  <CardDescription>Relations parent-enfant</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button className="w-full" variant="outline">Familles</Button>
+                </CardContent>
+              </Card>
+              
+              <Card 
+                className="hover:shadow-elegant transition-all duration-300 cursor-pointer"
+                onClick={() => setActiveTab("content")}
+              >
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <FileText className="h-5 w-5 text-secondary" />
+                    <span>Contenu</span>
+                  </CardTitle>
+                  <CardDescription>Gestion du contenu site</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button className="w-full" variant="outline">CMS</Button>
+                </CardContent>
+              </Card>
+              
+              <Card 
+                className="hover:shadow-elegant transition-all duration-300 cursor-pointer"
+                onClick={() => setActiveTab("notifications")}
+              >
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Bell className="h-5 w-5 text-primary" />
+                    <span>Notifications</span>
+                  </CardTitle>
+                  <CardDescription>Communications utilisateurs</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button className="w-full" variant="outline">Notifications</Button>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
-          <TabsContent value="scanner" className="mt-6">
-            <BarcodeScanner />
+          <TabsContent value="users" className="mt-6">
+            <UserManagement />
           </TabsContent>
+
+          <TabsContent value="instructors" className="mt-6">
+            <InstructorManagement />
+          </TabsContent>
+
+          <TabsContent value="scheduler" className="mt-6">
+            <ClassScheduler />
+          </TabsContent>
+
+          <TabsContent value="payments" className="mt-6">
+            {canManagePayments() ? <PaymentOverview /> : <div>Accès refusé</div>}
+          </TabsContent>
+
+          <TabsContent value="notifications" className="mt-6">
+            <NotificationManager />
+          </TabsContent>
+
 
           <TabsContent value="referrals" className="mt-6">
             {canManagePayments() ? <ReferralDashboard /> : <div>Accès refusé</div>}
