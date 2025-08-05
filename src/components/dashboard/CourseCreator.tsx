@@ -31,7 +31,7 @@ interface CourseForm {
 const initialForm: CourseForm = {
   name: "",
   description: "",
-  level: "débutant",
+  level: "beginner",
   price: 0,
   capacity: 10,
   duration_minutes: 60,
@@ -187,10 +187,11 @@ export function CourseCreator() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="débutant">Débutant</SelectItem>
-                  <SelectItem value="intermédiaire">Intermédiaire</SelectItem>
-                  <SelectItem value="avancé">Avancé</SelectItem>
-                  <SelectItem value="expert">Expert</SelectItem>
+                  <SelectItem value="beginner">Débutant</SelectItem>
+                  <SelectItem value="intermediate">Intermédiaire</SelectItem>
+                  <SelectItem value="advanced">Avancé</SelectItem>
+                  <SelectItem value="lifesaving">Sauvetage</SelectItem>
+                  <SelectItem value="competition">Compétition</SelectItem>
                 </SelectContent>
               </Select>
             </div>
