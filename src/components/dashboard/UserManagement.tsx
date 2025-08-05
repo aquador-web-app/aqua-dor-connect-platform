@@ -37,21 +37,31 @@ export function UserManagement() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // Fetch profiles first
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select(`
-          *,
-          user_roles!inner(role)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (profilesError) throw profilesError;
 
-      const usersWithRoles = data?.map(user => ({
-        ...user,
-        role: (user as any).user_roles[0]?.role || 'student',
-        is_active: true // Add status management
-      })) || [];
+      // Fetch user roles
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+
+      if (rolesError) throw rolesError;
+
+      // Combine the data
+      const usersWithRoles = profiles?.map(profile => {
+        const userRole = userRoles?.find(role => role.user_id === profile.user_id);
+        return {
+          ...profile,
+          role: userRole?.role || 'student',
+          is_active: true // Default to active, you can add a field for this later
+        };
+      }) || [];
 
       setUsers(usersWithRoles);
     } catch (error) {
@@ -101,21 +111,34 @@ export function UserManagement() {
     return matchesSearch && matchesRole && matchesStatus;
   });
 
-  const getRoleBadgeColor = (role: string) => {
+  const getRoleBadgeVariant = (role: string) => {
     switch (role) {
-      case 'admin': return 'bg-red-100 text-red-800';
-      case 'co_admin': return 'bg-orange-100 text-orange-800';
-      case 'instructor': return 'bg-blue-100 text-blue-800';
-      case 'parent': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'admin': return 'destructive';
+      case 'co_admin': return 'secondary';
+      case 'instructor': return 'default';
+      case 'parent': return 'outline';
+      default: return 'secondary';
     }
   };
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        <div className="h-8 bg-muted rounded animate-pulse"></div>
-        <div className="h-64 bg-muted rounded animate-pulse"></div>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-8 w-64 bg-muted rounded animate-pulse"></div>
+            <div className="h-4 w-48 bg-muted rounded animate-pulse"></div>
+          </div>
+          <div className="h-10 w-40 bg-muted rounded animate-pulse"></div>
+        </div>
+        <div className="space-y-4">
+          <div className="flex gap-4">
+            <div className="h-10 flex-1 bg-muted rounded animate-pulse"></div>
+            <div className="h-10 w-48 bg-muted rounded animate-pulse"></div>
+            <div className="h-10 w-48 bg-muted rounded animate-pulse"></div>
+          </div>
+          <div className="bg-muted rounded-lg h-96 animate-pulse"></div>
+        </div>
       </div>
     );
   }
@@ -189,67 +212,109 @@ export function UserManagement() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nom</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Rôle</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead>Date d'inscription</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">
-                    {user.full_name || 'Nom non défini'}
-                  </TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <Badge className={getRoleBadgeColor(user.role)}>
-                      {user.role}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Switch
-                      checked={user.is_active}
-                      onCheckedChange={(checked) => {
-                        // Update user status
-                        console.log('Toggle status for user:', user.id, checked);
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    {new Date(user.created_at).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <Select
-                        value={user.role}
-                        onValueChange={(newRole) => updateUserRole(user.user_id, newRole)}
-                      >
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="admin">Admin</SelectItem>
-                          <SelectItem value="co_admin">Co-Admin</SelectItem>
-                          <SelectItem value="instructor">Instructeur</SelectItem>
-                          <SelectItem value="parent">Parent</SelectItem>
-                          <SelectItem value="student">Étudiant</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          {filteredUsers.length === 0 ? (
+            <div className="text-center py-12">
+              <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Aucun utilisateur trouvé</h3>
+              <p className="text-muted-foreground">
+                {searchTerm || roleFilter !== "all" || statusFilter !== "all" 
+                  ? "Essayez de modifier vos filtres de recherche"
+                  : "Aucun utilisateur n'est encore enregistré dans le système"
+                }
+              </p>
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12"></TableHead>
+                    <TableHead>Nom</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Rôle</TableHead>
+                    <TableHead>Statut</TableHead>
+                    <TableHead>Date d'inscription</TableHead>
+                    <TableHead className="w-48">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredUsers.map((user) => (
+                    <TableRow key={user.id} className="hover:bg-muted/50">
+                      <TableCell>
+                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                          <span className="text-sm font-semibold text-primary">
+                            {(user.full_name || user.email)[0].toUpperCase()}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        <div>
+                          <div className="font-semibold">
+                            {user.full_name || 'Nom non défini'}
+                          </div>
+                          {user.phone && (
+                            <div className="text-sm text-muted-foreground">
+                              {user.phone}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">{user.email}</div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={getRoleBadgeVariant(user.role)}>
+                          {user.role === 'co_admin' ? 'Co-Admin' : 
+                           user.role === 'instructor' ? 'Instructeur' :
+                           user.role === 'parent' ? 'Parent' :
+                           user.role === 'admin' ? 'Admin' : 'Étudiant'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            checked={user.is_active}
+                            onCheckedChange={(checked) => {
+                              // Update user status
+                              console.log('Toggle status for user:', user.id, checked);
+                            }}
+                          />
+                          <span className="text-sm text-muted-foreground">
+                            {user.is_active ? 'Actif' : 'Inactif'}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {new Date(user.created_at).toLocaleDateString('fr-FR')}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Select
+                            value={user.role}
+                            onValueChange={(newRole) => updateUserRole(user.user_id, newRole)}
+                          >
+                            <SelectTrigger className="w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="admin">Admin</SelectItem>
+                              <SelectItem value="co_admin">Co-Admin</SelectItem>
+                              <SelectItem value="instructor">Instructeur</SelectItem>
+                              <SelectItem value="parent">Parent</SelectItem>
+                              <SelectItem value="student">Étudiant</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Button variant="ghost" size="sm">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
