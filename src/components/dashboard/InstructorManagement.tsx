@@ -7,9 +7,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Search, Star, Calendar, BookOpen, Edit } from "lucide-react";
+import { Users, Search, Star, Calendar, BookOpen, Edit, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { CourseAssignmentModal } from "./CourseAssignmentModal";
 
 interface InstructorData {
   id: string;
@@ -23,12 +24,15 @@ interface InstructorData {
   total_classes: number;
   average_rating: number;
   created_at: string;
+  assigned_courses: number;
 }
 
 export function InstructorManagement() {
   const [instructors, setInstructors] = useState<InstructorData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showAssignmentModal, setShowAssignmentModal] = useState(false);
+  const [selectedInstructor, setSelectedInstructor] = useState<{ id: string; name: string } | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -68,9 +72,19 @@ export function InstructorManagement() {
 
       if (reviewError) throw reviewError;
 
+      // Get assigned courses count
+      const { data: courseData, error: courseError } = await supabase
+        .from('classes')
+        .select('instructor_id')
+        .in('instructor_id', instructorIds)
+        .eq('is_active', true);
+
+      if (courseError) throw courseError;
+
       // Process data
       const instructorsWithStats = instructorData?.map(instructor => {
         const totalClasses = classData?.filter(c => c.instructor_id === instructor.id).length || 0;
+        const assignedCourses = courseData?.filter(c => c.instructor_id === instructor.id).length || 0;
         const ratings = reviewData?.filter(r => r.instructor_id === instructor.id) || [];
         const averageRating = ratings.length > 0 
           ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length 
@@ -82,6 +96,7 @@ export function InstructorManagement() {
           email: instructor.profiles.email,
           total_classes: totalClasses,
           average_rating: averageRating,
+          assigned_courses: assignedCourses,
         };
       }) || [];
 
@@ -123,6 +138,15 @@ export function InstructorManagement() {
     }
   };
 
+  const handleCourseAssignment = (instructorId: string, instructorName: string) => {
+    setSelectedInstructor({ id: instructorId, name: instructorName });
+    setShowAssignmentModal(true);
+  };
+
+  const handleAssignmentComplete = () => {
+    fetchInstructors();
+  };
+
   const filteredInstructors = instructors.filter(instructor =>
     instructor.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     instructor.email?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -133,6 +157,30 @@ export function InstructorManagement() {
       <div className="space-y-4">
         <div className="h-8 bg-muted rounded animate-pulse"></div>
         <div className="h-64 bg-muted rounded animate-pulse"></div>
+      </div>
+    );
+  }
+
+  if (instructors.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Gestion des Instructeurs</h2>
+            <p className="text-muted-foreground">Gérer les coachs et leurs assignations</p>
+          </div>
+        </div>
+
+        <Card className="text-center py-12">
+          <CardContent>
+            <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-medium mb-2">Aucun instructeur trouvé</h3>
+            <p className="text-muted-foreground mb-4">
+              Il n'y a actuellement aucun instructeur dans le système. 
+              Commencez par promouvoir des utilisateurs au rôle d'instructeur.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -220,6 +268,7 @@ export function InstructorManagement() {
                 <TableHead>Nom</TableHead>
                 <TableHead>Experience</TableHead>
                 <TableHead>Taux Horaire</TableHead>
+                <TableHead>Cours Assignés</TableHead>
                 <TableHead>Classes Données</TableHead>
                 <TableHead>Note Moyenne</TableHead>
                 <TableHead>Spécialisations</TableHead>
@@ -244,7 +293,13 @@ export function InstructorManagement() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-1">
-                      <BookOpen className="h-4 w-4 text-muted-foreground" />
+                      <BookOpen className="h-4 w-4 text-blue-500" />
+                      <span className="font-medium">{instructor.assigned_courses}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-1">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span>{instructor.total_classes}</span>
                     </div>
                   </TableCell>
@@ -278,6 +333,13 @@ export function InstructorManagement() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleCourseAssignment(instructor.id, instructor.full_name)}
+                      >
+                        <UserPlus className="h-4 w-4" />
+                      </Button>
                       <Button variant="ghost" size="sm">
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -292,6 +354,19 @@ export function InstructorManagement() {
           </Table>
         </CardContent>
       </Card>
+
+      {showAssignmentModal && selectedInstructor && (
+        <CourseAssignmentModal
+          isOpen={showAssignmentModal}
+          onClose={() => {
+            setShowAssignmentModal(false);
+            setSelectedInstructor(null);
+          }}
+          instructorId={selectedInstructor.id}
+          instructorName={selectedInstructor.name}
+          onAssignmentComplete={handleAssignmentComplete}
+        />
+      )}
     </div>
   );
 }
