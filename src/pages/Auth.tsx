@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { User, Session } from '@supabase/supabase-js';
 import { Link } from "react-router-dom";
-import aquaDorLogo from "@/assets/aqua-dor-logo.png";
+import aquaDorLogo from "/lovable-uploads/3f4900f5-5570-4e13-84b8-a4cd1545aefe.png";
 
 const Auth = () => {
   const [user, setUser] = useState<User | null>(null);
