@@ -1,142 +1,136 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Search, Users, UserPlus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface Student {
+  id: string;
+  full_name: string;
+  email: string;
+  avatar_url?: string;
+}
 
 interface Course {
   id: string;
   name: string;
-  description: string;
-  level: string;
-  price: number;
-  capacity: number;
-  duration_minutes: number;
 }
 
 interface CourseAssignmentModalProps {
+  course: Course | null;
   isOpen: boolean;
   onClose: () => void;
-  instructorId: string;
-  instructorName: string;
-  onAssignmentComplete: () => void;
+  onSuccess: () => void;
 }
 
-export function CourseAssignmentModal({ 
-  isOpen, 
-  onClose, 
-  instructorId, 
-  instructorName,
-  onAssignmentComplete 
-}: CourseAssignmentModalProps) {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [selectedCourse, setSelectedCourse] = useState<string>("");
+export function CourseAssignmentModal({ course, isOpen, onClose, onSuccess }: CourseAssignmentModalProps) {
+  const [students, setStudents] = useState<Student[]>([]);
+  const [enrolledStudents, setEnrolledStudents] = useState<Student[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [createNew, setCreateNew] = useState(false);
-  const [newCourse, setNewCourse] = useState({
-    name: "",
-    description: "",
-    level: "beginner",
-    price: 0,
-    capacity: 10,
-    duration_minutes: 60
-  });
   const { toast } = useToast();
 
   useEffect(() => {
-    if (isOpen) {
-      fetchCourses();
+    if (isOpen && course) {
+      fetchStudents();
+      fetchEnrolledStudents();
     }
-  }, [isOpen]);
+  }, [isOpen, course]);
 
-  const fetchCourses = async () => {
+  const fetchStudents = async () => {
     try {
-      const { data, error } = await supabase
-        .from('classes')
-        .select('*')
-        .eq('is_active', true);
+      // Get all students (users with student role)
+      const { data: studentRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'student');
 
-      if (error) throw error;
-      setCourses(data || []);
+      if (rolesError) throw rolesError;
+
+      const studentUserIds = studentRoles?.map(r => r.user_id) || [];
+
+      if (studentUserIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, full_name, email, avatar_url')
+          .in('user_id', studentUserIds);
+
+        if (profilesError) throw profilesError;
+        setStudents(profiles || []);
+      }
     } catch (error) {
-      console.error('Error fetching courses:', error);
+      console.error('Error fetching students:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de charger les cours",
+        description: "Impossible de charger les étudiants",
         variant: "destructive",
       });
     }
   };
 
-  const handleAssignToCourse = async () => {
-    if (!selectedCourse && !createNew) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez sélectionner un cours",
-        variant: "destructive",
-      });
-      return;
+  const fetchEnrolledStudents = async () => {
+    if (!course) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('enrollments')
+        .select(`
+          student_id,
+          profiles!enrollments_student_id_fkey (
+            id,
+            full_name,
+            email,
+            avatar_url
+          )
+        `)
+        .eq('class_id', course.id);
+
+      if (error) throw error;
+
+      const enrolled = data?.map(e => e.profiles).filter(Boolean) || [];
+      setEnrolledStudents(enrolled as Student[]);
+    } catch (error) {
+      console.error('Error fetching enrolled students:', error);
     }
+  };
+
+  const handleAssignStudents = async () => {
+    if (!course || selectedStudents.length === 0) return;
 
     setLoading(true);
     try {
-      let courseId = selectedCourse;
+      const enrollments = selectedStudents.map(studentId => ({
+        student_id: studentId,
+        class_id: course.id,
+        status: 'active',
+        payment_status: 'pending'
+      }));
 
-      // Create new course if needed
-      if (createNew) {
-        const { data: newCourseData, error: createError } = await supabase
-          .from('classes')
-          .insert({
-            name: newCourse.name,
-            description: newCourse.description,
-            level: newCourse.level,
-            price: newCourse.price,
-            capacity: newCourse.capacity,
-            duration_minutes: newCourse.duration_minutes,
-            instructor_id: instructorId,
-            is_active: true
-          })
-          .select()
-          .single();
+      const { error } = await supabase
+        .from('enrollments')
+        .insert(enrollments);
 
-        if (createError) throw createError;
-        courseId = newCourseData.id;
-      } else {
-        // Update existing course with instructor
-        const { error: updateError } = await supabase
-          .from('classes')
-          .update({ instructor_id: instructorId })
-          .eq('id', selectedCourse);
-
-        if (updateError) throw updateError;
-      }
+      if (error) throw error;
 
       toast({
         title: "Succès",
-        description: `${instructorName} a été assigné au cours avec succès`,
+        description: `${selectedStudents.length} étudiant(s) assigné(s) au cours`,
       });
 
-      onAssignmentComplete();
-      onClose();
-      setSelectedCourse("");
-      setCreateNew(false);
-      setNewCourse({
-        name: "",
-        description: "",
-        level: "beginner",
-        price: 0,
-        capacity: 10,
-        duration_minutes: 60
-      });
+      setSelectedStudents([]);
+      fetchEnrolledStudents();
+      onSuccess();
     } catch (error) {
-      console.error('Error assigning course:', error);
+      console.error('Error assigning students:', error);
       toast({
         title: "Erreur",
-        description: "Impossible d'assigner le cours",
+        description: "Impossible d'assigner les étudiants",
         variant: "destructive",
       });
     } finally {
@@ -144,140 +138,160 @@ export function CourseAssignmentModal({
     }
   };
 
+  const handleRemoveStudent = async (studentId: string) => {
+    if (!course) return;
+
+    try {
+      const { error } = await supabase
+        .from('enrollments')
+        .delete()
+        .eq('class_id', course.id)
+        .eq('student_id', studentId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Succès",
+        description: "Étudiant retiré du cours",
+      });
+
+      fetchEnrolledStudents();
+      onSuccess();
+    } catch (error) {
+      console.error('Error removing student:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de retirer l'étudiant",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const filteredStudents = students.filter(student => {
+    const matchesSearch = student.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         student.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    const notEnrolled = !enrolledStudents.some(enrolled => enrolled.id === student.id);
+    return matchesSearch && notEnrolled;
+  });
+
+  if (!course) return null;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden">
         <DialogHeader>
-          <DialogTitle>Assigner un cours à {instructorName}</DialogTitle>
+          <DialogTitle>Gérer les inscriptions</DialogTitle>
           <DialogDescription>
-            Sélectionnez un cours existant ou créez-en un nouveau pour cet instructeur.
+            Assigner des étudiants au cours: {course.name}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="flex gap-2">
-            <Button
-              variant={!createNew ? "default" : "outline"}
-              onClick={() => setCreateNew(false)}
-              className="flex-1"
-            >
-              Cours existant
-            </Button>
-            <Button
-              variant={createNew ? "default" : "outline"}
-              onClick={() => setCreateNew(true)}
-              className="flex-1"
-            >
-              Nouveau cours
-            </Button>
+        <div className="space-y-6 overflow-y-auto">
+          {/* Currently Enrolled Students */}
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <Users className="h-4 w-4" />
+              <Label className="text-sm font-semibold">Étudiants inscrits ({enrolledStudents.length})</Label>
+            </div>
+            
+            {enrolledStudents.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Aucun étudiant inscrit pour le moment</p>
+            ) : (
+              <div className="space-y-2 max-h-32 overflow-y-auto">
+                {enrolledStudents.map((student) => (
+                  <div key={student.id} className="flex items-center justify-between p-2 border rounded">
+                    <div className="flex items-center space-x-2">
+                      <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+                        <span className="text-xs font-semibold text-primary">
+                          {student.full_name?.[0]?.toUpperCase() || student.email[0].toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium">{student.full_name || 'Nom non défini'}</div>
+                        <div className="text-xs text-muted-foreground">{student.email}</div>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveStudent(student.id)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {!createNew ? (
-            <div className="space-y-2">
-              <Label htmlFor="course-select">Sélectionner un cours</Label>
-              <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-                <SelectTrigger id="course-select">
-                  <SelectValue placeholder="Choisir un cours..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {courses.map((course) => (
-                    <SelectItem key={course.id} value={course.id}>
-                      {course.name} - {course.level} - {course.price}€
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {courses.length === 0 && (
+          {/* Available Students to Add */}
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <UserPlus className="h-4 w-4" />
+              <Label className="text-sm font-semibold">Ajouter des étudiants</Label>
+            </div>
+            
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Rechercher des étudiants..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {filteredStudents.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  Aucun cours disponible. Créez un nouveau cours.
+                  {searchTerm ? "Aucun étudiant trouvé" : "Tous les étudiants sont déjà inscrits"}
                 </p>
+              ) : (
+                filteredStudents.map((student) => (
+                  <div key={student.id} className="flex items-center space-x-2 p-2 border rounded">
+                    <Checkbox
+                      checked={selectedStudents.includes(student.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedStudents([...selectedStudents, student.id]);
+                        } else {
+                          setSelectedStudents(selectedStudents.filter(id => id !== student.id));
+                        }
+                      }}
+                    />
+                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-xs font-semibold text-primary">
+                        {student.full_name?.[0]?.toUpperCase() || student.email[0].toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-medium">{student.full_name || 'Nom non défini'}</div>
+                      <div className="text-xs text-muted-foreground">{student.email}</div>
+                    </div>
+                  </div>
+                ))
               )}
             </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="course-name">Nom du cours</Label>
-                  <Input
-                    id="course-name"
-                    value={newCourse.name}
-                    onChange={(e) => setNewCourse({ ...newCourse, name: e.target.value })}
-                    placeholder="ex: Natation débutant"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="course-level">Niveau</Label>
-                  <Select 
-                    value={newCourse.level} 
-                    onValueChange={(value) => setNewCourse({ ...newCourse, level: value })}
-                  >
-                    <SelectTrigger id="course-level">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="beginner">Débutant</SelectItem>
-                      <SelectItem value="intermediate">Intermédiaire</SelectItem>
-                      <SelectItem value="advanced">Avancé</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="course-description">Description</Label>
-                <Textarea
-                  id="course-description"
-                  value={newCourse.description}
-                  onChange={(e) => setNewCourse({ ...newCourse, description: e.target.value })}
-                  placeholder="Description du cours..."
-                  rows={3}
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="course-price">Prix (€)</Label>
-                  <Input
-                    id="course-price"
-                    type="number"
-                    value={newCourse.price}
-                    onChange={(e) => setNewCourse({ ...newCourse, price: Number(e.target.value) })}
-                    min="0"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="course-capacity">Capacité</Label>
-                  <Input
-                    id="course-capacity"
-                    type="number"
-                    value={newCourse.capacity}
-                    onChange={(e) => setNewCourse({ ...newCourse, capacity: Number(e.target.value) })}
-                    min="1"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="course-duration">Durée (min)</Label>
-                  <Input
-                    id="course-duration"
-                    type="number"
-                    value={newCourse.duration_minutes}
-                    onChange={(e) => setNewCourse({ ...newCourse, duration_minutes: Number(e.target.value) })}
-                    min="15"
-                    step="15"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button variant="outline" onClick={onClose}>
-              Annuler
-            </Button>
-            <Button onClick={handleAssignToCourse} disabled={loading}>
-              {loading ? "Assignation..." : "Assigner"}
-            </Button>
           </div>
+        </div>
+
+        <div className="flex justify-end space-x-2 pt-4 border-t">
+          <Button variant="outline" onClick={onClose}>
+            Fermer
+          </Button>
+          {selectedStudents.length > 0 && (
+            <Button onClick={handleAssignStudents} disabled={loading}>
+              {loading ? (
+                "Attribution..."
+              ) : (
+                <>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Assigner ({selectedStudents.length})
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>

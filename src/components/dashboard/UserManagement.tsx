@@ -11,6 +11,7 @@ import { Users, Search, Filter, Edit, UserPlus, MoreHorizontal } from "lucide-re
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserInviteModal } from "@/components/dashboard/UserInviteModal";
+import { UserEditModal } from "@/components/dashboard/UserEditModal";
 
 interface UserProfile {
   id: string;
@@ -30,6 +31,8 @@ export function UserManagement() {
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -61,7 +64,7 @@ export function UserManagement() {
         return {
           ...profile,
           role: userRole?.role || 'student',
-          is_active: true // Default to active, you can add a field for this later
+          is_active: (profile as any).is_active ?? true // Use existing field or default to true
         };
       }) || [];
 
@@ -190,6 +193,16 @@ export function UserManagement() {
           onClose={() => setIsInviteModalOpen(false)}
           onSuccess={fetchUsers}
         />
+        
+        <UserEditModal
+          user={editingUser}
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setEditingUser(null);
+          }}
+          onSuccess={fetchUsers}
+        />
       </div>
 
       <div className="flex gap-4 mb-6">
@@ -297,9 +310,29 @@ export function UserManagement() {
                         <div className="flex items-center space-x-2">
                           <Switch
                             checked={user.is_active}
-                            onCheckedChange={(checked) => {
-                              // Update user status
-                              console.log('Toggle status for user:', user.id, checked);
+                            onCheckedChange={async (checked) => {
+                              try {
+                                const { error } = await supabase
+                                  .from('profiles')
+                                  .update({ is_active: checked } as any)
+                                  .eq('id', user.id);
+
+                                if (error) throw error;
+
+                                toast({
+                                  title: "Succès",
+                                  description: `Utilisateur ${checked ? 'activé' : 'désactivé'}`,
+                                });
+
+                                fetchUsers();
+                              } catch (error) {
+                                console.error('Error updating user status:', error);
+                                toast({
+                                  title: "Erreur",
+                                  description: "Impossible de modifier le statut",
+                                  variant: "destructive",
+                                });
+                              }
                             }}
                           />
                           <span className="text-sm text-muted-foreground">
@@ -327,7 +360,14 @@ export function UserManagement() {
                               <SelectItem value="student">Étudiant</SelectItem>
                             </SelectContent>
                           </Select>
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => {
+                              setEditingUser(user);
+                              setIsEditModalOpen(true);
+                            }}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
                         </div>

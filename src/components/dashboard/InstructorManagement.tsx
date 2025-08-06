@@ -355,18 +355,7 @@ export function InstructorManagement() {
         </CardContent>
       </Card>
 
-      {showAssignmentModal && selectedInstructor && (
-        <CourseAssignmentModal
-          isOpen={showAssignmentModal}
-          onClose={() => {
-            setShowAssignmentModal(false);
-            setSelectedInstructor(null);
-          }}
-          instructorId={selectedInstructor.id}
-          instructorName={selectedInstructor.name}
-          onAssignmentComplete={handleAssignmentComplete}
-        />
-      )}
+      {/* Instructor assignment modal would go here */}
     </div>
   );
 }

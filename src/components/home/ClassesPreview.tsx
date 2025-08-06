@@ -159,29 +159,7 @@ const ClassesPreview = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
           {displayClasses.map((classItem) => (
             <Card key={classItem.id} className="group overflow-hidden hover:shadow-elegant transition-all duration-300">
-              <div className="aspect-video overflow-hidden">
-                <img 
-                  src={getClassImage(classItem.level)} 
-                  alt={classItem.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
               <CardHeader>
-                <div className="flex items-center justify-between mb-2">
-                  <Badge 
-                    variant="secondary" 
-                    className={getLevelColor(classItem.level)}
-                  >
-                    {getLevelText(classItem.level)}
-                  </Badge>
-                  <div className="flex items-center text-accent">
-                    <Star className="h-4 w-4 fill-current" />
-                    <Star className="h-4 w-4 fill-current" />
-                    <Star className="h-4 w-4 fill-current" />
-                    <Star className="h-4 w-4 fill-current" />
-                    <Star className="h-4 w-4 fill-current" />
-                  </div>
-                </div>
                 <CardTitle className="text-xl">{classItem.name}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -202,7 +180,7 @@ const ClassesPreview = () => {
                 
                 <div className="flex items-center justify-between pt-4">
                   <div className="text-2xl font-bold text-primary">
-                    ${classItem.price} USD
+                    ${Number(classItem.price).toFixed(2)} USD
                   </div>
                   <Button className="bg-gradient-accent">
                     Réserver

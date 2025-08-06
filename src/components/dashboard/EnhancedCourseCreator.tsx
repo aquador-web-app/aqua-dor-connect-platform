@@ -203,35 +203,17 @@ export function EnhancedCourseCreator() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="level">{t('course.level')}</Label>
-                  <Select value={form.level} onValueChange={(value) => setForm({...form, level: value})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="beginner">{t('course.beginner')}</SelectItem>
-                      <SelectItem value="intermediate">{t('course.intermediate')}</SelectItem>
-                      <SelectItem value="advanced">{t('course.advanced')}</SelectItem>
-                      <SelectItem value="lifesaving">{t('course.lifesaving')}</SelectItem>
-                      <SelectItem value="competition">{t('course.competition')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="price">{t('course.price')} (USD) *</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    value={form.price}
-                    onChange={(e) => setForm({...form, price: Number(e.target.value)})}
-                    min="0"
-                    step="0.01"
-                    required
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="price">{t('course.price')} (USD) *</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  value={form.price}
+                  onChange={(e) => setForm({...form, price: Number(e.target.value)})}
+                  min="0"
+                  step="0.01"
+                  required
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">

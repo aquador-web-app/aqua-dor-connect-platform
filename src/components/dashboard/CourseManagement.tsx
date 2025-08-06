@@ -13,7 +13,8 @@ import { Edit, Trash, Eye, EyeOff, Clock, Users, DollarSign } from "lucide-react
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { CourseCreator } from "./CourseCreator";
+import { EnhancedCourseCreator } from "./EnhancedCourseCreator";
+import { CourseAssignmentModal } from "./CourseAssignmentModal";
 
 interface Course {
   id: string;
@@ -38,6 +39,8 @@ export function CourseManagement() {
   const [loading, setLoading] = useState(true);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [assignmentCourse, setAssignmentCourse] = useState<Course | null>(null);
+  const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
   const { toast } = useToast();
   const { t } = useLanguage();
 
@@ -221,7 +224,9 @@ export function CourseManagement() {
           <h2 className="text-2xl font-bold">{t('admin.courseManagement')}</h2>
           <p className="text-muted-foreground">Créez et gérez les cours de natation</p>
         </div>
-        <CourseCreator />
+        <div className="flex space-x-2">
+          <EnhancedCourseCreator />
+        </div>
       </div>
 
       <Card>
@@ -236,7 +241,6 @@ export function CourseManagement() {
             <TableHeader>
               <TableRow>
                 <TableHead>{t('course.title')}</TableHead>
-                <TableHead>{t('course.level')}</TableHead>
                 <TableHead>{t('course.price')}</TableHead>
                 <TableHead>{t('course.duration')}</TableHead>
                 <TableHead>{t('course.capacity')}</TableHead>
@@ -258,14 +262,11 @@ export function CourseManagement() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge className={getLevelBadgeColor(course.level)}>
-                      {t(`course.${course.level}`)}
-                    </Badge>
+                <span className="text-sm text-muted-foreground">-</span>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-1">
-                      <DollarSign className="h-4 w-4 text-muted-foreground" />
-                      <span>${course.price} USD</span>
+                      <span>${Number(course.price).toFixed(2)} USD</span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -287,6 +288,17 @@ export function CourseManagement() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setAssignmentCourse(course);
+                          setIsAssignmentModalOpen(true);
+                        }}
+                        title="Gérer les inscriptions"
+                      >
+                        <Users className="h-4 w-4" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -419,6 +431,17 @@ export function CourseManagement() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Course Assignment Modal */}
+      <CourseAssignmentModal
+        course={assignmentCourse}
+        isOpen={isAssignmentModalOpen}
+        onClose={() => {
+          setIsAssignmentModalOpen(false);
+          setAssignmentCourse(null);
+        }}
+        onSuccess={fetchCourses}
+      />
     </div>
   );
 }
