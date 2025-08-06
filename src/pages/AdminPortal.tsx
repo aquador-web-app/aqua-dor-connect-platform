@@ -1,13 +1,12 @@
+
 import { useState } from "react";
 import { AdminNavbar } from "@/components/layout/AdminNavbar";
 import { AdminSidebar } from "@/components/layout/AdminSidebar";
 import { OverviewDashboard } from "@/components/dashboard/OverviewDashboard";
 import { UserManagement } from "@/components/dashboard/UserManagement";
 import { InstructorManagement } from "@/components/dashboard/InstructorManagement";
-import { CourseCreator } from "@/components/dashboard/CourseCreator";
-import { CalendarBookingSystem } from "@/components/dashboard/CalendarBookingSystem";
+import { CourseManagement } from "@/components/dashboard/CourseManagement";
 import { EnhancedCalendar } from "@/components/dashboard/EnhancedCalendar";
-
 import { PaymentOverview } from "@/components/dashboard/PaymentOverview";
 import { ContentManager } from "@/components/dashboard/ContentManager";
 import { NotificationManager } from "@/components/dashboard/NotificationManager";
@@ -30,17 +29,7 @@ function AdminPortal() {
       case "instructors":
         return <InstructorManagement />;
       case "courses":
-        return (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-2xl font-bold">Gestion des Cours</h2>
-                <p className="text-muted-foreground">Créez et gérez les cours de natation</p>
-              </div>
-              <CourseCreator />
-            </div>
-          </div>
-        );
+        return <CourseManagement />;
       case "calendar":
         return (
           <div className="space-y-6">
