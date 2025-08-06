@@ -147,12 +147,12 @@ export function ReferralDashboard() {
         />
         <StatCard
           title="Commissions Totales"
-          value={`${stats.totalCommissions.toFixed(2)} HTG`}
+          value={`$${stats.totalCommissions.toFixed(2)} USD`}
           icon={DollarSign}
         />
         <StatCard
           title="En Attente"
-          value={`${stats.pendingCommissions.toFixed(2)} HTG`}
+          value={`$${stats.pendingCommissions.toFixed(2)} USD`}
           icon={Gift}
         />
       </div>
@@ -240,7 +240,7 @@ export function ReferralDashboard() {
                     </td>
                     <td className="py-3 px-4">
                       <span className="font-medium">
-                        {referral.commission_amount.toFixed(2)} HTG
+                        ${referral.commission_amount.toFixed(2)} USD
                       </span>
                     </td>
                     <td className="py-3 px-4">

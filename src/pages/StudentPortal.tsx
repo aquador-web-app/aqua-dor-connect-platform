@@ -205,7 +205,7 @@ const StudentPortal = () => {
           />
           <StatCard
             title="Total payé"
-            value={`${stats.totalPaid} HTG`}
+            value={`$${stats.totalPaid} USD`}
             icon={CreditCard}
           />
         </div>

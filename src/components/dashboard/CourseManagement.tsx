@@ -265,7 +265,7 @@ export function CourseManagement() {
                   <TableCell>
                     <div className="flex items-center space-x-1">
                       <DollarSign className="h-4 w-4 text-muted-foreground" />
-                      <span>{formatPrice(course.price)} HTG</span>
+                      <span>${course.price} USD</span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -377,7 +377,7 @@ export function CourseManagement() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="editPrice">{t('course.price')} (HTG)</Label>
+                  <Label htmlFor="editPrice">{t('course.price')} (USD)</Label>
                   <Input
                     id="editPrice"
                     type="number"

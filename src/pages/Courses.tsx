@@ -232,7 +232,7 @@ const Courses = () => {
                     </div>
                     <div className="flex items-center space-x-2 col-span-2">
                       <DollarSign className="h-4 w-4 text-primary" />
-                      <span className="font-semibold">{courseClass.price} HTG / session</span>
+                      <span className="font-semibold">${courseClass.price} USD / session</span>
                     </div>
                   </div>
                   

@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Users, Search, Filter, Edit, UserPlus, MoreHorizontal } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { UserInviteModal } from "@/components/dashboard/UserInviteModal";
 
 interface UserProfile {
   id: string;
@@ -28,6 +29,7 @@ export function UserManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -178,23 +180,16 @@ export function UserManagement() {
           <h2 className="text-2xl font-bold">Gestion des Utilisateurs</h2>
           <p className="text-muted-foreground">Gérer tous les comptes utilisateurs</p>
         </div>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button>
-              <UserPlus className="h-4 w-4 mr-2" />
-              Nouvel Utilisateur
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Créer un Nouvel Utilisateur</DialogTitle>
-              <DialogDescription>
-                Inviter un nouvel utilisateur à rejoindre la plateforme
-              </DialogDescription>
-            </DialogHeader>
-            {/* Add user creation form here */}
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => setIsInviteModalOpen(true)}>
+          <UserPlus className="h-4 w-4 mr-2" />
+          Nouvel Utilisateur
+        </Button>
+        
+        <UserInviteModal 
+          isOpen={isInviteModalOpen} 
+          onClose={() => setIsInviteModalOpen(false)}
+          onSuccess={fetchUsers}
+        />
       </div>
 
       <div className="flex gap-4 mb-6">

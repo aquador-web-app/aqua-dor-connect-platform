@@ -142,7 +142,7 @@ export function CourseCreator() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="price">{t('course.price')} (HTG) *</Label>
+              <Label htmlFor="price">{t('course.price')} (USD) *</Label>
               <Input
                 id="price"
                 type="number"

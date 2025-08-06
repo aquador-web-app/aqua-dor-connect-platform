@@ -229,7 +229,7 @@ export function CalendarBooking() {
                                     {session.classes.level}
                                   </Badge>
                                   <span className="text-sm font-medium">
-                                    {session.classes.price} HTG
+                                    ${session.classes.price} USD
                                   </span>
                                 </div>
                               </div>

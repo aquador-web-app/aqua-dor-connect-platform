@@ -28,7 +28,7 @@ const fallbackClasses = [
     duration_minutes: 45,
     capacity: 6,
     level: "beginner",
-    price: 2500,
+    price: 25,
     image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80"
   },
   {
@@ -38,7 +38,7 @@ const fallbackClasses = [
     duration_minutes: 60,
     capacity: 8,
     level: "intermediate",
-    price: 3000,
+    price: 30,
     image: "https://images.unsplash.com/photo-1571902943202-507ec2618e8f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80"
   },
   {
@@ -48,7 +48,7 @@ const fallbackClasses = [
     duration_minutes: 90,
     capacity: 4,
     level: "advanced",
-    price: 4500,
+    price: 45,
     image: "https://images.unsplash.com/photo-1571079570759-5d1b5750b596?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80"
   }
 ];
@@ -202,7 +202,7 @@ const ClassesPreview = () => {
                 
                 <div className="flex items-center justify-between pt-4">
                   <div className="text-2xl font-bold text-primary">
-                    {classItem.price} HTG
+                    ${classItem.price} USD
                   </div>
                   <Button className="bg-gradient-accent">
                     Réserver

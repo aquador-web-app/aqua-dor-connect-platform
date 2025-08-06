@@ -240,9 +240,9 @@ export function CalendarBookingSystem() {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-FR', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'HTG'
+      currency: 'USD'
     }).format(price);
   };
 
