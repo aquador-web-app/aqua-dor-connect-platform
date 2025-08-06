@@ -36,6 +36,21 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const getRedirectPath = (role: string) => {
+    switch (role) {
+      case 'admin':
+      case 'co_admin':
+        return '/admin-portal';
+      case 'instructor':
+        return '/coach-portal';
+      case 'student':
+      case 'parent':
+        return '/student-portal';
+      default:
+        return '/';
+    }
+  };
+
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -44,23 +59,50 @@ const Auth = () => {
         setUser(session?.user ?? null);
         setLoading(false);
         
-        // Redirect authenticated users
+        // Redirect authenticated users based on role
         if (session?.user) {
-          setTimeout(() => {
-            navigate('/');
+          setTimeout(async () => {
+            try {
+              const { data: roleData } = await supabase
+                .from('user_roles')
+                .select('role')
+                .eq('user_id', session.user.id)
+                .single();
+              
+              const role = roleData?.role || 'student';
+              const redirectPath = getRedirectPath(role);
+              navigate(redirectPath);
+            } catch (error) {
+              console.error('Error fetching user role:', error);
+              navigate('/');
+            }
           }, 1000);
         }
       }
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
       
       if (session?.user) {
-        navigate('/');
+        try {
+          // Check user role and redirect accordingly
+          const { data: roleData } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .single();
+          
+          const role = roleData?.role || 'student';
+          const redirectPath = getRedirectPath(role);
+          navigate(redirectPath);
+        } catch (error) {
+          console.error('Error fetching user role:', error);
+          navigate('/');
+        }
       }
     });
 

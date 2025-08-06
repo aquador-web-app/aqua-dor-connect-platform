@@ -6,7 +6,8 @@ import { UserManagement } from "@/components/dashboard/UserManagement";
 import { InstructorManagement } from "@/components/dashboard/InstructorManagement";
 import { CourseCreator } from "@/components/dashboard/CourseCreator";
 import { CalendarBookingSystem } from "@/components/dashboard/CalendarBookingSystem";
-import { ClassScheduler } from "@/components/dashboard/ClassScheduler";
+import { EnhancedCalendar } from "@/components/dashboard/EnhancedCalendar";
+
 import { PaymentOverview } from "@/components/dashboard/PaymentOverview";
 import { ContentManager } from "@/components/dashboard/ContentManager";
 import { NotificationManager } from "@/components/dashboard/NotificationManager";
@@ -38,7 +39,6 @@ function AdminPortal() {
               </div>
               <CourseCreator />
             </div>
-            <ClassScheduler />
           </div>
         );
       case "calendar":
@@ -48,7 +48,7 @@ function AdminPortal() {
               <h2 className="text-2xl font-bold">Calendrier et Réservations</h2>
               <p className="text-muted-foreground">Gérez les sessions de cours et les réservations</p>
             </div>
-            <CalendarBookingSystem />
+            <EnhancedCalendar />
           </div>
         );
       case "payments":

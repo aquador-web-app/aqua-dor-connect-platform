@@ -19,6 +19,8 @@ export type Database = {
           class_session_id: string | null
           created_at: string
           id: string
+          marked_at: string | null
+          marked_by: string | null
           notes: string | null
           status: string
           student_id: string | null
@@ -27,6 +29,8 @@ export type Database = {
           class_session_id?: string | null
           created_at?: string
           id?: string
+          marked_at?: string | null
+          marked_by?: string | null
           notes?: string | null
           status?: string
           student_id?: string | null
@@ -35,6 +39,8 @@ export type Database = {
           class_session_id?: string | null
           created_at?: string
           id?: string
+          marked_at?: string | null
+          marked_by?: string | null
           notes?: string | null
           status?: string
           student_id?: string | null
@@ -669,6 +675,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      reservations: {
+        Row: {
+          created_at: string
+          duration_minutes: number
+          id: string
+          notes: string | null
+          purpose: string | null
+          reservation_date: string
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          notes?: string | null
+          purpose?: string | null
+          reservation_date: string
+          status?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          notes?: string | null
+          purpose?: string | null
+          reservation_date?: string
+          status?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       reviews: {
         Row: {

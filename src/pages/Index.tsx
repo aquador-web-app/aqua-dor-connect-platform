@@ -4,7 +4,7 @@ import HeroSection from "@/components/home/HeroSection";
 import FeaturesSection from "@/components/home/FeaturesSection";
 import ClassesPreview from "@/components/home/ClassesPreview";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
-import { CalendarBookingSystem } from "@/components/dashboard/CalendarBookingSystem";
+import { EnhancedCalendar } from "@/components/dashboard/EnhancedCalendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -32,7 +32,7 @@ const Index = () => {
             </TabsList>
             
             <TabsContent value="booking" className="mt-8">
-              <CalendarBookingSystem />
+              <EnhancedCalendar />
             </TabsContent>
             
             <TabsContent value="info" className="mt-8">

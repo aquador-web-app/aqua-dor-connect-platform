@@ -68,28 +68,10 @@ const Header = () => {
           </Button>
         </div>
 
-        {/* Portal Access Buttons */}
+        {/* Single Sign In Button */}
         <div className="hidden md:flex items-center space-x-2">
-          <Button variant="outline" size="sm" asChild>
-            <Link to="/student-portal" className="flex items-center space-x-1">
-              <User className="h-4 w-4" />
-              <span>Élève</span>
-            </Link>
-          </Button>
-          <Button variant="outline" size="sm" asChild>
-            <Link to="/coach-portal" className="flex items-center space-x-1">
-              <GraduationCap className="h-4 w-4" />
-              <span>Coach</span>
-            </Link>
-          </Button>
-          <Button variant="outline" size="sm" asChild>
-            <Link to="/admin-portal" className="flex items-center space-x-1">
-              <Settings className="h-4 w-4" />
-              <span>Admin</span>
-            </Link>
-          </Button>
           <Button className="bg-gradient-accent" asChild>
-            <Link to="/auth">{t('nav.register')}</Link>
+            <Link to="/auth">Se Connecter</Link>
           </Button>
         </div>
 
@@ -148,26 +130,8 @@ const Header = () => {
             </Link>
             
             <div className="pt-4 space-y-2">
-              <Button variant="outline" size="sm" className="w-full justify-start" asChild>
-                <Link to="/student-portal" className="flex items-center space-x-2">
-                  <User className="h-4 w-4" />
-                  <span>Portail Élève</span>
-                </Link>
-              </Button>
-              <Button variant="outline" size="sm" className="w-full justify-start" asChild>
-                <Link to="/coach-portal" className="flex items-center space-x-2">
-                  <GraduationCap className="h-4 w-4" />
-                  <span>Portail Coach</span>
-                </Link>
-              </Button>
-              <Button variant="outline" size="sm" className="w-full justify-start" asChild>
-                <Link to="/admin-portal" className="flex items-center space-x-2">
-                  <Settings className="h-4 w-4" />
-                  <span>Portail Admin</span>
-                </Link>
-              </Button>
-              <Button className="w-full bg-gradient-accent">
-                S'inscrire Maintenant
+              <Button className="w-full bg-gradient-accent" asChild>
+                <Link to="/auth">Se Connecter</Link>
               </Button>
             </div>
           </nav>

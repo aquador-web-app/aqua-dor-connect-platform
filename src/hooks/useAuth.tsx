@@ -37,6 +37,7 @@ interface AuthContextType {
   canViewPayments: () => boolean;
   canManagePayments: () => boolean;
   refetch: () => Promise<void>;
+  redirectToRoleBasedPortal: (userRole: string) => string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -151,6 +152,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const redirectToRoleBasedPortal = (userRole: string) => {
+    switch (userRole) {
+      case 'admin':
+      case 'co_admin':
+        return '/admin-portal';
+      case 'instructor':
+        return '/coach-portal';
+      case 'student':
+      case 'parent':
+        return '/student-portal';
+      default:
+        return '/';
+    }
+  };
+
   return (
     <AuthContext.Provider value={{ 
       user, 
@@ -169,7 +185,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       canManageContent,
       canViewPayments,
       canManagePayments,
-      refetch
+      refetch,
+      redirectToRoleBasedPortal
     }}>
       {children}
     </AuthContext.Provider>
