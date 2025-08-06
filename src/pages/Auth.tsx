@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { User, Session } from '@supabase/supabase-js';
 import { Link } from "react-router-dom";
+import aquaDorLogo from "@/assets/aqua-dor-logo.png";
 
 const Auth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -241,7 +242,11 @@ const Auth = () => {
           {/* Header */}
           <div className="text-center mb-8">
             <Link to="/" className="flex items-center justify-center space-x-2 mb-6">
-              <Waves className="h-10 w-10 text-secondary" />
+              <img 
+                src={aquaDorLogo} 
+                alt="A'qua D'or Logo" 
+                className="h-10 w-10 object-contain"
+              />
               <span className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
                 A'qua D'or
               </span>
