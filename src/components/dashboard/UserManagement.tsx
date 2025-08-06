@@ -78,6 +78,26 @@ export function UserManagement() {
 
   const updateUserRole = async (userId: string, newRole: string) => {
     try {
+      // Check if current user is admin
+      const { data: userRole } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+
+      if (userRole?.role !== 'admin') {
+        throw new Error('Unauthorized: Only admins can update user roles');
+      }
+
+      // Log the security event
+      await supabase.rpc('log_security_event', {
+        p_action: 'role_change',
+        p_resource_type: 'user_roles',
+        p_resource_id: userId,
+        p_old_values: { user_id: userId },
+        p_new_values: { user_id: userId, role: newRole }
+      });
+
       // First delete existing role, then insert new one to avoid duplicate constraint
       const { error: deleteError } = await supabase
         .from('user_roles')

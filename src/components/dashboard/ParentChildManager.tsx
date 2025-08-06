@@ -164,10 +164,16 @@ export function ParentChildManager() {
     try {
       if (!profile) return;
 
+      // Generate secure temporary password
+      const { data: passwordData, error: passwordError } = await supabase
+        .rpc('generate_secure_password', { length: 12 });
+        
+      if (passwordError) throw passwordError;
+
       // Create user account for child
       const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email: newChild.email,
-        password: Math.random().toString(36).slice(-8), // Temporary password
+        password: passwordData,
         email_confirm: true
       });
 
