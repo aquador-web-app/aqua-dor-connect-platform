@@ -17,6 +17,8 @@ import Auth from "./pages/Auth";
 import StudentPortal from "./pages/StudentPortal";
 import CoachPortal from "./pages/CoachPortal";
 import AdminPortal from "./pages/AdminPortal";
+import AdminLogin from "./pages/AdminLogin";
+import CoachLogin from "./pages/CoachLogin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,10 +40,12 @@ const App = () => (
                 <Route path="/gallery" element={<Gallery />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/admin-login" element={<AdminLogin />} />
+                <Route path="/coach-login" element={<CoachLogin />} />
                 <Route 
                   path="/student-portal" 
                   element={
-                    <ProtectedRoute allowedRoles={["student"]}>
+                    <ProtectedRoute allowedRoles={["student", "parent"]}>
                       <StudentPortal />
                     </ProtectedRoute>
                   } 
@@ -49,7 +53,7 @@ const App = () => (
                 <Route 
                   path="/coach-portal" 
                   element={
-                    <ProtectedRoute allowedRoles={["instructor"]}>
+                    <ProtectedRoute allowedRoles={["instructor", "admin", "co_admin"]}>
                       <CoachPortal />
                     </ProtectedRoute>
                   } 
@@ -57,7 +61,7 @@ const App = () => (
                 <Route 
                   path="/admin-portal" 
                   element={
-                    <ProtectedRoute allowedRoles={["admin"]}>
+                    <ProtectedRoute allowedRoles={["admin", "co_admin"]}>
                       <AdminPortal />
                     </ProtectedRoute>
                   } 

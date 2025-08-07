@@ -86,13 +86,13 @@ const Header = () => {
           {/* Dashboard Login Buttons */}
           <div className="hidden md:flex items-center space-x-2">
             <Button variant="outline" size="sm" asChild>
-              <Link to="/admin-portal">{t('auth.adminPortal')}</Link>
+              <Link to="/admin-login">Admin</Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
-              <Link to="/coach-portal">{t('auth.coachPortal')}</Link>
+              <Link to="/coach-login">Coach</Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
-              <Link to="/student-portal">{t('auth.studentPortal')}</Link>
+              <Link to="/auth">Étudiant</Link>
             </Button>
           </div>
 
