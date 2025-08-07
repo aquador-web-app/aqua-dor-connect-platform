@@ -4,6 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Clock, Users, Award, DollarSign } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CourseClass {
   id: string;
@@ -22,6 +25,7 @@ interface CourseClass {
 }
 
 const Courses = () => {
+  const { t } = useLanguage();
   const [classes, setClasses] = useState<CourseClass[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -92,11 +96,11 @@ const Courses = () => {
 
   const getLevelText = (level: string) => {
     switch (level) {
-      case 'beginner': return 'Débutant';
-      case 'intermediate': return 'Intermédiaire';
-      case 'advanced': return 'Avancé';
-      case 'lifesaving': return 'Sauvetage';
-      case 'competition': return 'Compétition';
+      case 'beginner': return t('courses.levels.beginner');
+      case 'intermediate': return t('courses.levels.intermediate');
+      case 'advanced': return t('courses.levels.advanced');
+      case 'lifesaving': return t('courses.levels.lifesaving');
+      case 'competition': return t('courses.levels.competition');
       default: return level;
     }
   };
@@ -110,22 +114,23 @@ const Courses = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
+    <div className="min-h-screen">
+      <Header />
+      <div className="bg-gradient-subtle">
       <div className="container py-16">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-primary bg-clip-text text-transparent">
-            Nos Cours
+            {t('courses.title')}
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Découvrez nos programmes d'apprentissage adaptés à tous les niveaux, 
-            du débutant au nageur de compétition.
+            {t('courses.subtitle')}
           </p>
         </div>
 
         {classes.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-lg text-muted-foreground mb-8">
-              Nos cours seront bientôt disponibles. En attendant, voici un aperçu de nos programmes:
+              {t('courses.emptyState')}
             </p>
             
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -186,11 +191,11 @@ const Courses = () => {
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div className="flex items-center space-x-2">
                         <Clock className="h-4 w-4 text-accent" />
-                        <span>{course.duration} min</span>
+                        <span>{course.duration} {t('courses.duration')}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Users className="h-4 w-4 text-secondary" />
-                        <span>Max {course.capacity}</span>
+                        <span>{t('courses.maxCapacity')} {course.capacity}</span>
                       </div>
                       <div className="flex items-center space-x-2 col-span-2">
                         <DollarSign className="h-4 w-4 text-primary" />
@@ -199,7 +204,7 @@ const Courses = () => {
                     </div>
                     
                     <Button className="w-full">
-                      S'inscrire au cours
+                      {t('courses.register')}
                     </Button>
                   </CardContent>
                 </Card>
@@ -224,11 +229,11 @@ const Courses = () => {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div className="flex items-center space-x-2">
                       <Clock className="h-4 w-4 text-accent" />
-                      <span>{courseClass.duration_minutes} min</span>
+                      <span>{courseClass.duration_minutes} {t('courses.duration')}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Users className="h-4 w-4 text-secondary" />
-                      <span>Max {courseClass.capacity}</span>
+                      <span>{t('courses.maxCapacity')} {courseClass.capacity}</span>
                     </div>
                     <div className="flex items-center space-x-2 col-span-2">
                       <DollarSign className="h-4 w-4 text-primary" />
@@ -239,12 +244,12 @@ const Courses = () => {
                   {courseClass.instructors && (
                     <div className="text-sm text-muted-foreground">
                       <Award className="h-4 w-4 inline mr-1" />
-                      Instructeur: {courseClass.instructors.profiles.full_name}
+                      {t('courses.instructor')} {courseClass.instructors.profiles.full_name}
                     </div>
                   )}
                   
                   <Button className="w-full">
-                    S'inscrire au cours
+                    {t('courses.register')}
                   </Button>
                 </CardContent>
               </Card>
@@ -252,6 +257,8 @@ const Courses = () => {
           </div>
         )}
       </div>
+      </div>
+      <Footer />
     </div>
   );
 };

@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Star, Phone, Mail, Award } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Instructor {
   id: string;
@@ -22,6 +25,7 @@ interface Instructor {
 }
 
 const Instructors = () => {
+  const { t } = useLanguage();
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -78,22 +82,23 @@ const Instructors = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
+    <div className="min-h-screen">
+      <Header />
+      <div className="bg-gradient-subtle">
       <div className="container py-16">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-primary bg-clip-text text-transparent">
-            Nos Instructeurs
+            {t('instructors.title')}
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Rencontrez notre équipe d'instructeurs certifiés et passionnés, 
-            dédiés à vous accompagner dans votre apprentissage aquatique.
+            {t('instructors.subtitle')}
           </p>
         </div>
 
         {instructors.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-lg text-muted-foreground">
-              Nos instructeurs seront bientôt présentés ici. Restez connectés!
+              {t('instructors.emptyState')}
             </p>
           </div>
         ) : (
@@ -115,7 +120,7 @@ const Instructors = () => {
                   </CardTitle>
                   <CardDescription className="flex items-center justify-center space-x-1">
                     <Award className="h-4 w-4" />
-                    <span>{instructor.experience_years} ans d'expérience</span>
+                    <span>{instructor.experience_years} {t('instructors.experience')}</span>
                   </CardDescription>
                 </CardHeader>
                 
@@ -128,7 +133,7 @@ const Instructors = () => {
                   
                   {instructor.specializations.length > 0 && (
                     <div>
-                      <h4 className="font-semibold mb-2">Spécialisations:</h4>
+                      <h4 className="font-semibold mb-2">{t('instructors.specializations')}</h4>
                       <div className="flex flex-wrap gap-1">
                         {instructor.specializations.map((spec, index) => (
                           <Badge key={index} variant="secondary" className="text-xs">
@@ -141,7 +146,7 @@ const Instructors = () => {
                   
                   {instructor.certifications.length > 0 && (
                     <div>
-                      <h4 className="font-semibold mb-2">Certifications:</h4>
+                      <h4 className="font-semibold mb-2">{t('instructors.certifications')}</h4>
                       <div className="flex flex-wrap gap-1">
                         {instructor.certifications.map((cert, index) => (
                           <Badge key={index} variant="outline" className="text-xs">
@@ -156,13 +161,13 @@ const Instructors = () => {
                     {instructor.profile.email && (
                       <Button variant="outline" size="sm" className="justify-start">
                         <Mail className="h-4 w-4 mr-2" />
-                        Contacter
+                        {t('instructors.contact')}
                       </Button>
                     )}
                     
                     {instructor.hourly_rate && (
                       <div className="text-center p-2 bg-accent/10 rounded-md">
-                        <span className="text-sm text-muted-foreground">Tarif: </span>
+                        <span className="text-sm text-muted-foreground">{t('instructors.rate')} </span>
                         <span className="font-semibold text-accent">
                           {instructor.hourly_rate}€/h
                         </span>
@@ -175,6 +180,8 @@ const Instructors = () => {
           </div>
         )}
       </div>
+      </div>
+      <Footer />
     </div>
   );
 };

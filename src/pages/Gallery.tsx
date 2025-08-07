@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Play, Image as ImageIcon, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface GalleryItem {
   id: string;
@@ -17,6 +20,7 @@ interface GalleryItem {
 }
 
 const Gallery = () => {
+  const { t } = useLanguage();
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'image' | 'video'>('all');
@@ -119,14 +123,16 @@ const Gallery = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
+    <div className="min-h-screen">
+      <Header />
+      <div className="bg-gradient-subtle">
       <div className="container py-16">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-primary bg-clip-text text-transparent">
-            Galerie
+            {t('gallery.title')}
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-            Découvrez les moments forts de notre école de natation à travers photos et vidéos.
+            {t('gallery.subtitle')}
           </p>
           
           {/* Filter Buttons */}
@@ -136,7 +142,7 @@ const Gallery = () => {
               onClick={() => setFilter('all')}
               className="px-6"
             >
-              Tout
+              {t('gallery.filters.all')}
             </Button>
             <Button
               variant={filter === 'image' ? 'default' : 'outline'}
@@ -144,7 +150,7 @@ const Gallery = () => {
               className="px-6"
             >
               <ImageIcon className="h-4 w-4 mr-2" />
-              Photos
+              {t('gallery.filters.photos')}
             </Button>
             <Button
               variant={filter === 'video' ? 'default' : 'outline'}
@@ -152,7 +158,7 @@ const Gallery = () => {
               className="px-6"
             >
               <Play className="h-4 w-4 mr-2" />
-              Vidéos
+              {t('gallery.filters.videos')}
             </Button>
           </div>
         </div>
@@ -160,7 +166,7 @@ const Gallery = () => {
         {displayItems.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-lg text-muted-foreground">
-              Aucun élément trouvé pour cette catégorie.
+              {t('gallery.emptyState')}
             </p>
           </div>
         ) : (
@@ -195,14 +201,14 @@ const Gallery = () => {
                           ) : (
                             <ImageIcon className="h-3 w-3 mr-1" />
                           )}
-                          {item.media_type === 'video' ? 'Vidéo' : 'Photo'}
+                          {item.media_type === 'video' ? t('gallery.types.video') : t('gallery.types.photo')}
                         </Badge>
                       </div>
                       
                       {/* Featured Badge */}
                       {item.is_featured && (
                         <div className="absolute top-3 left-3">
-                          <Badge variant="destructive">À la une</Badge>
+                          <Badge variant="destructive">{t('gallery.featured')}</Badge>
                         </div>
                       )}
                     </div>
@@ -229,7 +235,7 @@ const Gallery = () => {
                           controls
                           className="w-full h-full object-cover"
                         >
-                          Votre navigateur ne supporte pas la lecture vidéo.
+                          {t('gallery.videoNotSupported')}
                         </video>
                       ) : (
                         <img
@@ -253,6 +259,8 @@ const Gallery = () => {
           </div>
         )}
       </div>
+      </div>
+      <Footer />
     </div>
   );
 };

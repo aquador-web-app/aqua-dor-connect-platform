@@ -43,7 +43,7 @@ const HeroSection = () => {
           <Button 
             size="lg" 
             variant="outline" 
-            className="text-lg px-8 py-3 border-white text-white hover:bg-white hover:text-foreground"
+            className="text-lg px-8 py-3 border-white/20 text-white hover:bg-white/10 hover:border-white hover:backdrop-blur-sm"
             asChild
           >
             <Link to="/about">{t('hero.cta.learn')}</Link>

@@ -1,19 +1,26 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users, Award, Heart, Target } from "lucide-react";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const About = () => {
+  const { t } = useLanguage();
+
   return (
-    <div className="min-h-screen bg-gradient-subtle">
+    <div className="min-h-screen">
+      <Header />
+      <div className="bg-gradient-subtle">
       <div className="container py-16">
         <div className="max-w-4xl mx-auto">
           {/* Hero Section */}
           <div className="text-center mb-16">
             <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-primary bg-clip-text text-transparent">
-              À Propos d'A'qua D'or
+              {t('about.title')}
             </h1>
             <p className="text-xl text-muted-foreground leading-relaxed">
-              École de natation de référence en Haïti, nous transformons la peur de l'eau en confiance et passion aquatique depuis plus de 10 ans.
+              {t('about.subtitle')}
             </p>
           </div>
 
@@ -23,12 +30,12 @@ const About = () => {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-3">
                   <Target className="h-6 w-6 text-secondary" />
-                  <span>Notre Mission</span>
+                  <span>{t('about.mission.title')}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground leading-relaxed">
-                  Démocratiser l'apprentissage de la natation en Haïti en offrant des cours personnalisés, sécurisés et adaptés à tous les âges. Nous créons un environnement bienveillant où chaque élève peut développer ses compétences aquatiques à son rythme.
+                  {t('about.mission.description')}
                 </p>
               </CardContent>
             </Card>
@@ -37,16 +44,16 @@ const About = () => {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-3">
                   <Heart className="h-6 w-6 text-accent" />
-                  <span>Nos Valeurs</span>
+                  <span>{t('about.values.title')}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <Badge variant="secondary" className="mr-2">Sécurité</Badge>
-                  <Badge variant="secondary" className="mr-2">Excellence</Badge>
-                  <Badge variant="secondary" className="mr-2">Bienveillance</Badge>
-                  <Badge variant="secondary" className="mr-2">Innovation</Badge>
-                  <Badge variant="secondary" className="mr-2">Communauté</Badge>
+                  <Badge variant="secondary" className="mr-2">{t('about.values.safety')}</Badge>
+                  <Badge variant="secondary" className="mr-2">{t('about.values.excellence')}</Badge>
+                  <Badge variant="secondary" className="mr-2">{t('about.values.kindness')}</Badge>
+                  <Badge variant="secondary" className="mr-2">{t('about.values.innovation')}</Badge>
+                  <Badge variant="secondary" className="mr-2">{t('about.values.community')}</Badge>
                 </div>
               </CardContent>
             </Card>
@@ -58,7 +65,7 @@ const About = () => {
               <CardHeader>
                 <Users className="h-8 w-8 text-secondary mx-auto mb-2" />
                 <CardTitle className="text-3xl font-bold text-primary">500+</CardTitle>
-                <CardDescription>Élèves formés</CardDescription>
+                <CardDescription>{t('about.stats.students')}</CardDescription>
               </CardHeader>
             </Card>
 
@@ -66,7 +73,7 @@ const About = () => {
               <CardHeader>
                 <Award className="h-8 w-8 text-accent mx-auto mb-2" />
                 <CardTitle className="text-3xl font-bold text-primary">15</CardTitle>
-                <CardDescription>Instructeurs certifiés</CardDescription>
+                <CardDescription>{t('about.stats.instructors')}</CardDescription>
               </CardHeader>
             </Card>
 
@@ -74,7 +81,7 @@ const About = () => {
               <CardHeader>
                 <Target className="h-8 w-8 text-secondary mx-auto mb-2" />
                 <CardTitle className="text-3xl font-bold text-primary">10+</CardTitle>
-                <CardDescription>Années d'expérience</CardDescription>
+                <CardDescription>{t('about.stats.experience')}</CardDescription>
               </CardHeader>
             </Card>
           </div>
@@ -82,7 +89,7 @@ const About = () => {
           {/* Our Story */}
           <Card className="hover:shadow-elegant transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-2xl">Notre Histoire</CardTitle>
+              <CardTitle className="text-2xl">{t('about.story.title')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="prose prose-lg max-w-none text-muted-foreground">
@@ -106,6 +113,8 @@ const About = () => {
           </Card>
         </div>
       </div>
+      </div>
+      <Footer />
     </div>
   );
 };

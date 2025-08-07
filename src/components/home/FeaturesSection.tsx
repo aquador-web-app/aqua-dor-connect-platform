@@ -32,7 +32,7 @@ const FeaturesSection = () => {
             {t('features.title')}
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Découvrez ce qui fait de A'qua D'or l'école de natation de référence en Haïti
+            {t('features.subtitle')}
           </p>
         </div>
         
