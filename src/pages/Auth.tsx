@@ -257,18 +257,6 @@ const Auth = () => {
             </p>
           </div>
 
-          {/* Role-specific Login Buttons */}
-          <div className="grid gap-3 mb-6">
-            <Button size="lg" className="bg-gradient-primary text-white" asChild>
-              <Link to="/admin-portal">Portail Administrateur</Link>
-            </Button>
-            <Button size="lg" variant="outline" asChild>
-              <Link to="/coach-portal">Portail Instructeur</Link>
-            </Button>
-            <Button size="lg" variant="secondary" asChild>
-              <Link to="/student-portal">Portail Étudiant</Link>
-            </Button>
-          </div>
 
           <Card className="hover:shadow-elegant transition-all duration-300">
             <Tabs defaultValue="login" className="w-full">
