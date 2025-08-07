@@ -21,6 +21,15 @@ const HeroSection = () => {
       
       {/* Content */}
       <div className="relative z-10 text-center text-white px-4 max-w-4xl mx-auto">
+        {/* Logo */}
+        <div className="mb-8">
+          <img 
+            src="/lovable-uploads/e6bcd59a-86d7-4d53-817a-8d4910df8897.png" 
+            alt="A'qua D'or Logo" 
+            className="h-24 md:h-32 w-auto mx-auto"
+          />
+        </div>
+        
         <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
           {t('hero.title')}
         </h1>
