@@ -89,7 +89,7 @@ export default function CompleteProfile() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label>Nom complet</Label>
-                <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
+                <Input autoFocus value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
               </div>
               <div>
                 <Label>Téléphone</Label>

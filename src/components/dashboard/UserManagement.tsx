@@ -260,122 +260,124 @@ export function UserManagement() {
               </p>
             </div>
           ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12"></TableHead>
-                    <TableHead>Nom</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Rôle</TableHead>
-                    <TableHead>Statut</TableHead>
-                    <TableHead>Date d'inscription</TableHead>
-                    <TableHead className="w-48">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredUsers.map((user) => (
-                    <TableRow key={user.id} className="hover:bg-muted/50">
-                      <TableCell>
-                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                          <span className="text-sm font-semibold text-primary">
-                            {(user.full_name || user.email)[0].toUpperCase()}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        <div>
-                          <div className="font-semibold">
-                            {user.full_name || 'Nom non défini'}
-                          </div>
-                          {user.phone && (
-                            <div className="text-sm text-muted-foreground">
-                              {user.phone}
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">{user.email}</div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getRoleBadgeVariant(user.role)}>
-                          {user.role === 'co_admin' ? 'Co-Admin' : 
-                           user.role === 'instructor' ? 'Instructeur' :
-                           user.role === 'parent' ? 'Parent' :
-                           user.role === 'admin' ? 'Admin' : 'Étudiant'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Switch
-                            checked={user.is_active}
-                            onCheckedChange={async (checked) => {
-                              try {
-                                const { error } = await supabase
-                                  .from('profiles')
-                                  .update({ is_active: checked } as any)
-                                  .eq('id', user.id);
-
-                                if (error) throw error;
-
-                                toast({
-                                  title: "Succès",
-                                  description: `Utilisateur ${checked ? 'activé' : 'désactivé'}`,
-                                });
-
-                                fetchUsers();
-                              } catch (error) {
-                                console.error('Error updating user status:', error);
-                                toast({
-                                  title: "Erreur",
-                                  description: "Impossible de modifier le statut",
-                                  variant: "destructive",
-                                });
-                              }
-                            }}
-                          />
-                          <span className="text-sm text-muted-foreground">
-                            {user.is_active ? 'Actif' : 'Inactif'}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        {new Date(user.created_at).toLocaleDateString('fr-FR')}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Select
-                            value={user.role}
-                            onValueChange={(newRole) => updateUserRole(user.user_id, newRole)}
-                          >
-                            <SelectTrigger className="w-32">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="admin">Admin</SelectItem>
-                              <SelectItem value="co_admin">Co-Admin</SelectItem>
-                              <SelectItem value="instructor">Instructeur</SelectItem>
-                              <SelectItem value="parent">Parent</SelectItem>
-                              <SelectItem value="student">Étudiant</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => {
-                              setEditingUser(user);
-                              setIsEditModalOpen(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+            <div className="rounded-md border overflow-x-auto">
+              <div className="min-w-[900px]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12"></TableHead>
+                      <TableHead>Nom</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Rôle</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead>Date d'inscription</TableHead>
+                      <TableHead className="w-48">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredUsers.map((user) => (
+                      <TableRow key={user.id} className="hover:bg-muted/50">
+                        <TableCell>
+                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                            <span className="text-sm font-semibold text-primary">
+                              {(user.full_name || user.email)[0].toUpperCase()}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          <div>
+                            <div className="font-semibold">
+                              {user.full_name || 'Nom non défini'}
+                            </div>
+                            {user.phone && (
+                              <div className="text-sm text-muted-foreground">
+                                {user.phone}
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">{user.email}</div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={getRoleBadgeVariant(user.role)}>
+                            {user.role === 'co_admin' ? 'Co-Admin' : 
+                             user.role === 'instructor' ? 'Instructeur' :
+                             user.role === 'parent' ? 'Parent' :
+                             user.role === 'admin' ? 'Admin' : 'Étudiant'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              checked={user.is_active}
+                              onCheckedChange={async (checked) => {
+                                try {
+                                  const { error } = await supabase
+                                    .from('profiles')
+                                    .update({ is_active: checked } as any)
+                                    .eq('id', user.id);
+
+                                  if (error) throw error;
+
+                                  toast({
+                                    title: "Succès",
+                                    description: `Utilisateur ${checked ? 'activé' : 'désactivé'}`,
+                                  });
+
+                                  fetchUsers();
+                                } catch (error) {
+                                  console.error('Error updating user status:', error);
+                                  toast({
+                                    title: "Erreur",
+                                    description: "Impossible de modifier le statut",
+                                    variant: "destructive",
+                                  });
+                                }
+                              }}
+                            />
+                            <span className="text-sm text-muted-foreground">
+                              {user.is_active ? 'Actif' : 'Inactif'}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {new Date(user.created_at).toLocaleDateString('fr-FR')}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Select
+                              value={user.role}
+                              onValueChange={(newRole) => updateUserRole(user.user_id, newRole)}
+                            >
+                              <SelectTrigger className="w-32">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="admin">Admin</SelectItem>
+                                <SelectItem value="co_admin">Co-Admin</SelectItem>
+                                <SelectItem value="instructor">Instructeur</SelectItem>
+                                <SelectItem value="parent">Parent</SelectItem>
+                                <SelectItem value="student">Étudiant</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => {
+                                setEditingUser(user);
+                                setIsEditModalOpen(true);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           )}
         </CardContent>

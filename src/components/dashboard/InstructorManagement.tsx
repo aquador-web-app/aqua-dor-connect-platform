@@ -276,96 +276,100 @@ export function InstructorManagement() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nom</TableHead>
-                <TableHead>Experience</TableHead>
-                <TableHead>Taux Horaire</TableHead>
-                <TableHead>Cours Assignés</TableHead>
-                <TableHead>Classes Données</TableHead>
-                <TableHead>Note Moyenne</TableHead>
-                <TableHead>Spécialisations</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredInstructors.map((instructor) => (
-                <TableRow key={instructor.id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{instructor.full_name}</div>
-                      <div className="text-sm text-muted-foreground">{instructor.email}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {instructor.experience_years || 0} ans
-                  </TableCell>
-                  <TableCell>
-                    {instructor.hourly_rate ? `${instructor.hourly_rate}€/h` : 'Non défini'}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-1">
-                      <BookOpen className="h-4 w-4" />
-                      <span className="font-medium">{instructor.assigned_courses}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-1">
-                      <Calendar className="h-4 w-4" />
-                      <span>{instructor.total_classes}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-1">
-                      <Star className="h-4 w-4" />
-                      <span>{instructor.average_rating.toFixed(1)}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {instructor.specializations?.slice(0, 2).map((spec, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
-                          {spec}
-                        </Badge>
-                      ))}
-                      {instructor.specializations?.length > 2 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{instructor.specializations.length - 2}
-                        </Badge>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Switch
-                      checked={instructor.is_active}
-                      onCheckedChange={(checked) => 
-                        toggleInstructorStatus(instructor.id, checked)
-                      }
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleCourseAssignment(instructor.id, instructor.full_name)}
-                      >
-                        <UserPlus className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Calendar className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <div className="rounded-md border overflow-x-auto">
+            <div className="min-w-[900px]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nom</TableHead>
+                    <TableHead>Experience</TableHead>
+                    <TableHead>Taux Horaire</TableHead>
+                    <TableHead>Cours Assignés</TableHead>
+                    <TableHead>Classes Données</TableHead>
+                    <TableHead>Note Moyenne</TableHead>
+                    <TableHead>Spécialisations</TableHead>
+                    <TableHead>Statut</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredInstructors.map((instructor) => (
+                    <TableRow key={instructor.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{instructor.full_name}</div>
+                          <div className="text-sm text-muted-foreground">{instructor.email}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {instructor.experience_years || 0} ans
+                      </TableCell>
+                      <TableCell>
+                        {instructor.hourly_rate ? `${instructor.hourly_rate}€/h` : 'Non défini'}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-1">
+                          <BookOpen className="h-4 w-4" />
+                          <span className="font-medium">{instructor.assigned_courses}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-1">
+                          <Calendar className="h-4 w-4" />
+                          <span>{instructor.total_classes}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-1">
+                          <Star className="h-4 w-4" />
+                          <span>{instructor.average_rating.toFixed(1)}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {instructor.specializations?.slice(0, 2).map((spec, index) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {spec}
+                            </Badge>
+                          ))}
+                          {instructor.specializations?.length > 2 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{instructor.specializations.length - 2}
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={instructor.is_active}
+                          onCheckedChange={(checked) => 
+                            toggleInstructorStatus(instructor.id, checked)
+                          }
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleCourseAssignment(instructor.id, instructor.full_name)}
+                          >
+                            <UserPlus className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm">
+                            <Calendar className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
         </CardContent>
       </Card>
 

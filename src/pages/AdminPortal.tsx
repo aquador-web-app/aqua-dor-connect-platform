@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AdminNavbar } from "@/components/layout/AdminNavbar";
 import { AdminSidebar } from "@/components/layout/AdminSidebar";
 import { OverviewDashboard } from "@/components/dashboard/OverviewDashboard";
@@ -21,6 +21,15 @@ import { Toaster } from "@/components/ui/toaster";
 function AdminPortal() {
   const [activeTab, setActiveTab] = useState("overview");
   const { canManagePayments, canManageContent } = useAuth();
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const ce = e as CustomEvent<string>;
+      if (typeof ce.detail === 'string') setActiveTab(ce.detail);
+    };
+    window.addEventListener('admin:setTab', handler as EventListener);
+    return () => window.removeEventListener('admin:setTab', handler as EventListener);
+  }, []);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -89,9 +98,11 @@ function AdminPortal() {
       <AdminNavbar />
       
       <div className="flex flex-1">
-        <AdminSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        <div className="hidden md:block">
+          <AdminSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        </div>
         
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 p-4 md:p-6 overflow-auto">
           <div className="max-w-7xl mx-auto">
             {renderContent()}
           </div>

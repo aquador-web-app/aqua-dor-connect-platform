@@ -37,13 +37,13 @@ const HeroSection = () => {
           {t('hero.subtitle')}
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button size="lg" className="bg-gradient-accent text-lg px-8 py-3" asChild>
+          <Button size="lg" className="bg-gradient-accent text-base sm:text-lg px-8 py-3" asChild>
             <Link to="/auth">{t('hero.cta.register')}</Link>
           </Button>
           <Button 
             size="lg" 
             variant="outline" 
-            className="text-lg px-8 py-3 border-white/20 text-white hover:bg-white/10 hover:border-white hover:backdrop-blur-sm"
+            className="text-base sm:text-lg px-8 py-3 border-white/20 text-white hover:bg-white/10 hover:border-white hover:backdrop-blur-sm"
             asChild
           >
             <Link to="/about">{t('hero.cta.learn')}</Link>

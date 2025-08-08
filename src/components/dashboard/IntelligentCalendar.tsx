@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ClassSession {
   id: string;
@@ -66,6 +67,7 @@ export function IntelligentCalendar() {
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [children, setChildren] = useState<ChildProfile[]>([]);
   const [loading, setLoading] = useState(false);
+  const isMobile = useIsMobile();
   const [attendanceDialogOpen, setAttendanceDialogOpen] = useState(false);
   const [reservationDialogOpen, setReservationDialogOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState<ClassSession | null>(null);
@@ -331,8 +333,8 @@ export function IntelligentCalendar() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Calendar */}
-        <Card className="lg:col-span-1">
+        {/* Calendar (hidden on small screens) */}
+        <Card className="hidden md:block lg:col-span-1">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <CalendarIcon className="h-5 w-5" />
@@ -364,6 +366,15 @@ export function IntelligentCalendar() {
             <CardDescription>
               Sessions de cours et réservations du jour
             </CardDescription>
+            {isMobile && (
+              <div className="mt-3">
+                <Input
+                  type="date"
+                  value={selectedDate ? format(selectedDate, 'yyyy-MM-dd') : ''}
+                  onChange={(e) => setSelectedDate(e.target.value ? new Date(e.target.value) : undefined)}
+                />
+              </div>
+            )}
           </CardHeader>
           <CardContent>
             {loading ? (

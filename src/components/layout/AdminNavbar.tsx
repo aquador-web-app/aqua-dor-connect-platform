@@ -2,13 +2,14 @@
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { User, Settings, LogOut, Globe, Sun, Moon, Home } from "lucide-react";
+import { User, Settings, LogOut, Globe, Sun, Moon, Home, Menu } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useState } from "react";
 import { ProfileModal } from "@/components/profile/ProfileModal";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 export function AdminNavbar() {
   const { user, profile, signOut } = useAuth();
@@ -36,8 +37,59 @@ export function AdminNavbar() {
           </Link>
 
           <div className="flex items-center space-x-2">
+            {/* Mobile Menu */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="sm" className="md:hidden">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-72">
+                <SheetHeader>
+                  <SheetTitle>Navigation</SheetTitle>
+                </SheetHeader>
+                <nav className="mt-4 space-y-1">
+                  {[
+                    { key: 'overview', label: 'Aperçu' },
+                    { key: 'users', label: 'Utilisateurs' },
+                    { key: 'instructors', label: 'Instructeurs' },
+                    { key: 'courses', label: 'Cours' },
+                    { key: 'calendar', label: 'Calendrier' },
+                    { key: 'payments', label: 'Paiements' },
+                    { key: 'content', label: 'Contenu' },
+                    { key: 'settings', label: 'Paramètres' },
+                  ].map((item) => (
+                    <Button
+                      key={item.key}
+                      variant="ghost"
+                      className="w-full justify-start py-3"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('admin:setTab', { detail: item.key }));
+                      }}
+                    >
+                      {item.label}
+                    </Button>
+                  ))}
+                </nav>
+                <div className="mt-6 grid grid-cols-2 gap-2">
+                  <Button variant="outline" onClick={toggleTheme}>
+                    {theme === 'light' ? <Moon className="h-4 w-4 mr-2" /> : <Sun className="h-4 w-4 mr-2" />}
+                    Thème
+                  </Button>
+                  <Button variant="outline" onClick={() => setLanguage(language === 'fr' ? 'en' : 'fr')}>
+                    <Globe className="h-4 w-4 mr-2" /> {language.toUpperCase()}
+                  </Button>
+                  <Button asChild variant="secondary" className="col-span-2">
+                    <Link to="/" target="_blank" rel="noopener noreferrer">
+                      <Home className="h-4 w-4 mr-2" /> Voir le site
+                    </Link>
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
+
             {/* View Site Button */}
-            <Button variant="outline" size="sm" asChild>
+            <Button variant="outline" size="sm" asChild className="hidden md:inline-flex">
               <Link to="/" target="_blank" rel="noopener noreferrer">
                 <Home className="h-4 w-4 mr-2" />
                 Voir le site

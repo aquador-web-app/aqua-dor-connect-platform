@@ -110,6 +110,7 @@ export function CourseCreator() {
               onChange={(e) => setForm({...form, name: e.target.value})}
               placeholder="Ex: Natation pour débutants"
               required
+              autoFocus
             />
           </div>
 

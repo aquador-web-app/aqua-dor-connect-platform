@@ -293,17 +293,18 @@ const Auth = () => {
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleLogin} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="login-email">Email</Label>
-                      <Input
-                        id="login-email"
-                        type="email"
-                        placeholder="votre@email.com"
-                        value={loginForm.email}
-                        onChange={(e) => setLoginForm(prev => ({ ...prev, email: e.target.value }))}
-                        required
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="login-email">Email</Label>
+                    <Input
+                      id="login-email"
+                      type="email"
+                      placeholder="votre@email.com"
+                      value={loginForm.email}
+                      onChange={(e) => setLoginForm(prev => ({ ...prev, email: e.target.value }))}
+                      required
+                      autoFocus
+                    />
+                  </div>
                     
                     <div className="space-y-2">
                       <Label htmlFor="login-password">Mot de passe</Label>
@@ -364,6 +365,7 @@ const Auth = () => {
                         value={signupForm.fullName}
                         onChange={(e) => setSignupForm(prev => ({ ...prev, fullName: e.target.value }))}
                         required
+                        autoFocus
                       />
                     </div>
 

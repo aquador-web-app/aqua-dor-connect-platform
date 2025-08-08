@@ -169,7 +169,7 @@ export function CalendarBooking() {
                 selected={selectedDate}
                 onSelect={setSelectedDate}
                 locale={fr}
-                className="rounded-md border"
+                className="w-full p-3 pointer-events-auto rounded-md border"
                 disabled={(date) => date < new Date()}
               />
             </div>
