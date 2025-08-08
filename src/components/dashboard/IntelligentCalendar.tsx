@@ -330,7 +330,7 @@ export function IntelligentCalendar() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Calendar */}
         <Card className="lg:col-span-1">
           <CardHeader>
@@ -344,7 +344,7 @@ export function IntelligentCalendar() {
               mode="single"
               selected={selectedDate}
               onSelect={setSelectedDate}
-              className="rounded-md border"
+              className="w-full p-3 pointer-events-auto rounded-md border"
               modifiers={{
                 hasSession: hasSessionOnDate
               }}
