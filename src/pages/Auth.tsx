@@ -373,20 +373,6 @@ const Auth = () => {
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-role">Je suis</Label>
-                      <Select value={signupForm.role} onValueChange={(value: 'student' | 'instructor') => 
-                        setSignupForm(prev => ({ ...prev, role: value }))
-                      }>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="student">Élève</SelectItem>
-                          <SelectItem value="instructor">Instructeur</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
                     
                     <div className="space-y-2">
                       <Label htmlFor="signup-password">Mot de passe</Label>
