@@ -253,7 +253,7 @@ export default function AdminCalendar() {
       </div>
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="w-full max-w-2xl">
           <DialogHeader>
             <DialogTitle>Programmer un cours / événement</DialogTitle>
             <DialogDescription>
@@ -335,7 +335,7 @@ export default function AdminCalendar() {
               </Select>
             </div>
 
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="space-y-2 col-span-1">
                 <Label>Heure de début</Label>
                 <Input type="time" value={form.time} onChange={(e) => {
