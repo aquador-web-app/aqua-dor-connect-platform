@@ -46,6 +46,7 @@ export function ContentManager() {
     is_active: true,
     display_order: 0
   });
+  const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -180,6 +181,45 @@ export function ContentManager() {
     });
   };
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      setUploading(true);
+
+      const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const filePath = `${formData.type}/${Date.now()}-${sanitizedName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("content")
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data } = supabase.storage.from("content").getPublicUrl(filePath);
+      const publicUrl = data.publicUrl;
+
+      setFormData({ ...formData, media_url: publicUrl });
+
+      toast({
+        title: "Fichier téléversé",
+        description: "Le média a été ajouté et l'URL a été remplie.",
+      });
+    } catch (err) {
+      console.error("Upload error:", err);
+      toast({
+        title: "Échec du téléversement",
+        description: "Vérifiez vos permissions et réessayez.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+      if (e.target) e.target.value = "";
+    }
+  };
+
   const getTypeIcon = (type: string) => {
     switch (type) {
       case "gallery": return <Image className="h-4 w-4" />;
@@ -211,14 +251,14 @@ export function ContentManager() {
               Nouveau contenu
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="w-full max-w-2xl">
             <DialogHeader>
               <DialogTitle>
                 {editingContent ? "Modifier le contenu" : "Nouveau contenu"}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="title">Titre</Label>
                   <Input
@@ -256,16 +296,48 @@ export function ContentManager() {
                 />
               </div>
 
-              <div>
-                <Label htmlFor="media_url">URL média (optionnel)</Label>
-                <Input
-                  id="media_url"
-                  value={formData.media_url}
-                  onChange={(e) => setFormData({...formData, media_url: e.target.value})}
-                  placeholder="https://example.com/image.jpg"
-                />
-              </div>
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="media_url">URL média (optionnel)</Label>
+                  <Input
+                    id="media_url"
+                    value={formData.media_url}
+                    onChange={(e) => setFormData({...formData, media_url: e.target.value})}
+                    placeholder="https://example.com/image.jpg"
+                  />
+                </div>
 
+                <div>
+                  <Label>Téléverser un fichier (image/vidéo)</Label>
+                  <Input
+                    type="file"
+                    accept="image/*,video/*"
+                    onChange={handleFileChange}
+                    disabled={uploading}
+                  />
+                  {uploading && (
+                    <p className="text-sm text-muted-foreground mt-1">Téléversement en cours...</p>
+                  )}
+                </div>
+
+                {formData.media_url && (
+                  <div className="mt-2">
+                    {/\.(mp4|webm|ogg)$/i.test(formData.media_url) ? (
+                      <video
+                        src={formData.media_url}
+                        className="w-full rounded-md"
+                        controls
+                      />
+                    ) : (
+                      <img
+                        src={formData.media_url}
+                        alt={`Prévisualisation ${formData.title || 'média'}`}
+                        className="w-full rounded-md"
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="display_order">Ordre d'affichage</Label>
@@ -293,7 +365,7 @@ export function ContentManager() {
         </Dialog>
       </div>
 
-      <div className="grid gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {contents.map((content) => (
           <Card key={content.id}>
             <CardHeader>
