@@ -8,6 +8,7 @@ import { IntelligentCalendar } from "@/components/dashboard/IntelligentCalendar"
 import { DynamicContent } from "@/components/home/DynamicContent";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UpcomingSessionsList } from "@/components/dashboard/UpcomingSessionsList";
 
 const Index = () => {
   return (
@@ -33,7 +34,15 @@ const Index = () => {
             </TabsList>
             
             <TabsContent value="booking" className="mt-8">
-              <IntelligentCalendar />
+              <div className="grid gap-8 lg:grid-cols-3">
+                <div className="lg:col-span-2">
+                  <IntelligentCalendar />
+                </div>
+                <div>
+                  {/* Upcoming list replacing any previous "Today's activity" concept */}
+                  <UpcomingSessionsList mode="public" daysAhead={14} title="À venir (7–14 jours)" />
+                </div>
+              </div>
             </TabsContent>
             
             <TabsContent value="info" className="mt-8">

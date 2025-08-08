@@ -37,77 +37,95 @@ export function InstructorManagement() {
 
   useEffect(() => {
     fetchInstructors();
+    const channel = supabase
+      .channel('user_roles-instructor')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_roles' }, () => fetchInstructors())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const fetchInstructors = async () => {
     try {
       setLoading(true);
-      
-      // Get instructors with their profile data
-      const { data: instructorData, error: instructorError } = await supabase
+
+      // 1) Fetch user_ids with role 'instructor'
+      const { data: roleRows, error: roleError } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .eq('role', 'instructor');
+      if (roleError) throw roleError;
+      const userIds = (roleRows || []).map(r => r.user_id);
+      if (userIds.length === 0) {
+        setInstructors([]);
+        setLoading(false);
+        return;
+      }
+
+      // 2) Fetch profiles for those users
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, user_id, full_name, email, phone')
+        .in('user_id', userIds);
+      if (profilesError) throw profilesError;
+      const profileIds = (profilesData || []).map(p => p.id);
+
+      // 3) Fetch instructors rows (stats) for those profiles
+      const { data: instructorRows, error: instrError } = await supabase
         .from('instructors')
-        .select(`
-          *,
-          profiles!inner(full_name, email)
-        `);
+        .select('*')
+        .in('profile_id', profileIds);
+      if (instrError) throw instrError;
 
-      if (instructorError) throw instructorError;
-
-      // Get class counts for each instructor
-      const instructorIds = instructorData?.map(i => i.id) || [];
-      
+      // 4) Fetch class sessions taught (completed) for totals
+      const instructorIds = (instructorRows || []).map(i => i.id);
       const { data: classData, error: classError } = await supabase
         .from('class_sessions')
         .select('instructor_id')
-        .in('instructor_id', instructorIds)
-        .eq('status', 'completed');
-
+        .in('instructor_id', instructorIds);
       if (classError) throw classError;
 
-      // Get average ratings
-      const { data: reviewData, error: reviewError } = await supabase
-        .from('reviews')
-        .select('instructor_id, rating')
-        .in('instructor_id', instructorIds);
-
-      if (reviewError) throw reviewError;
-
-      // Get assigned courses count
+      // 5) Assigned active courses count
       const { data: courseData, error: courseError } = await supabase
         .from('classes')
         .select('instructor_id')
         .in('instructor_id', instructorIds)
         .eq('is_active', true);
-
       if (courseError) throw courseError;
 
-      // Process data
-      const instructorsWithStats = instructorData?.map(instructor => {
-        const totalClasses = classData?.filter(c => c.instructor_id === instructor.id).length || 0;
-        const assignedCourses = courseData?.filter(c => c.instructor_id === instructor.id).length || 0;
-        const ratings = reviewData?.filter(r => r.instructor_id === instructor.id) || [];
-        const averageRating = ratings.length > 0 
-          ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length 
-          : 0;
+      // 6) Reviews for rating
+      const { data: reviewData, error: reviewError } = await supabase
+        .from('reviews')
+        .select('instructor_id, rating')
+        .in('instructor_id', instructorIds);
+      if (reviewError) throw reviewError;
 
+      // Build list from profiles, joining instructor row if exists
+      const list: InstructorData[] = (profilesData || []).map((p) => {
+        const instr = (instructorRows || []).find(i => i.profile_id === p.id);
+        const totalClasses = (classData || []).filter(c => c.instructor_id === instr?.id).length || 0;
+        const assignedCourses = (courseData || []).filter(c => c.instructor_id === instr?.id).length || 0;
+        const ratings = (reviewData || []).filter(r => r.instructor_id === instr?.id);
+        const averageRating = ratings.length > 0 ? ratings.reduce((s, r) => s + r.rating, 0) / ratings.length : 0;
         return {
-          ...instructor,
-          full_name: instructor.profiles.full_name || 'Nom non défini',
-          email: instructor.profiles.email,
+          id: instr?.id || p.id, // fallback unique
+          profile_id: p.id,
+          full_name: p.full_name || 'Nom non défini',
+          email: p.email,
+          experience_years: instr?.experience_years || 0,
+          hourly_rate: Number(instr?.hourly_rate) || 0,
+          is_active: instr?.is_active ?? true,
+          specializations: instr?.specializations || [],
           total_classes: totalClasses,
           average_rating: averageRating,
+          created_at: instr?.created_at || new Date().toISOString(),
           assigned_courses: assignedCourses,
         };
-      }) || [];
+      });
 
-      setInstructors(instructorsWithStats);
+      setInstructors(list);
     } catch (error) {
       console.error('Error fetching instructors:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger les instructeurs",
-        variant: "destructive",
-      });
+      toast({ title: 'Erreur', description: "Impossible de charger les instructeurs", variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -167,7 +185,7 @@ export function InstructorManagement() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold">Gestion des Instructeurs</h2>
-            <p className="text-muted-foreground">Gérer les coachs et leurs assignations</p>
+            <p className="text-muted-foreground">Liste automatique des coachs (rôle)</p>
           </div>
         </div>
 
@@ -190,12 +208,8 @@ export function InstructorManagement() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Gestion des Instructeurs</h2>
-          <p className="text-muted-foreground">Gérer les coachs et leurs assignations</p>
+          <p className="text-muted-foreground">Liste automatique des coachs (rôle)</p>
         </div>
-        <Button>
-          <Users className="h-4 w-4 mr-2" />
-          Ajouter Instructeur
-        </Button>
       </div>
 
       <div className="flex gap-4 mb-6">
@@ -224,7 +238,7 @@ export function InstructorManagement() {
             <CardTitle className="text-sm font-medium">Instructeurs Actifs</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold">
               {instructors.filter(i => i.is_active).length}
             </div>
           </CardContent>
@@ -293,19 +307,19 @@ export function InstructorManagement() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-1">
-                      <BookOpen className="h-4 w-4 text-blue-500" />
+                      <BookOpen className="h-4 w-4" />
                       <span className="font-medium">{instructor.assigned_courses}</span>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-1">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <Calendar className="h-4 w-4" />
                       <span>{instructor.total_classes}</span>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-1">
-                      <Star className="h-4 w-4 text-yellow-500" />
+                      <Star className="h-4 w-4" />
                       <span>{instructor.average_rating.toFixed(1)}</span>
                     </div>
                   </TableCell>
