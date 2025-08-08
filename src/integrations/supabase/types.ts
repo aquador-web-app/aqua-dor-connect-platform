@@ -579,6 +579,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: string | null
           avatar_url: string | null
           barcode: string | null
           barcode_generated_at: string | null
@@ -595,6 +596,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          address?: string | null
           avatar_url?: string | null
           barcode?: string | null
           barcode_generated_at?: string | null
@@ -611,6 +613,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          address?: string | null
           avatar_url?: string | null
           barcode?: string | null
           barcode_generated_at?: string | null

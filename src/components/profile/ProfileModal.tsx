@@ -29,6 +29,7 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
   const [formData, setFormData] = useState({
     full_name: profile?.full_name || "",
     phone: profile?.phone || "",
+    address: (profile as any)?.address || "",
     emergency_contact: profile?.emergency_contact || "",
     medical_notes: profile?.medical_notes || "",
     date_of_birth: profile?.date_of_birth || ""
@@ -96,6 +97,7 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
         .update({
           full_name: formData.full_name,
           phone: formData.phone,
+          address: formData.address,
           emergency_contact: formData.emergency_contact,
           medical_notes: formData.medical_notes,
           date_of_birth: formData.date_of_birth
@@ -258,6 +260,15 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                       onChange={(e) => setFormData(prev => ({ ...prev, date_of_birth: e.target.value }))}
                     />
                   </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="address">{t('profile.address')}</Label>
+                  <Input
+                    id="address"
+                    value={formData.address}
+                    onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                  />
                 </div>
 
                 <div>

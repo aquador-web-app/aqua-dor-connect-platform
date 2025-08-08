@@ -19,6 +19,8 @@ import CoachPortal from "./pages/CoachPortal";
 import AdminPortal from "./pages/AdminPortal";
 import AdminLogin from "./pages/AdminLogin";
 import CoachLogin from "./pages/CoachLogin";
+import ParentPortal from "./pages/ParentPortal";
+import CompleteProfile from "./pages/CompleteProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +44,7 @@ const App = () => (
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/admin-login" element={<AdminLogin />} />
                 <Route path="/coach-login" element={<CoachLogin />} />
+                <Route path="/complete-profile" element={<CompleteProfile />} />
                 <Route 
                   path="/student-portal" 
                   element={
@@ -63,6 +66,14 @@ const App = () => (
                   element={
                     <ProtectedRoute allowedRoles={["admin", "co_admin"]}>
                       <AdminPortal />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/parent-portal" 
+                  element={
+                    <ProtectedRoute allowedRoles={["parent"]}>
+                      <ParentPortal />
                     </ProtectedRoute>
                   } 
                 />

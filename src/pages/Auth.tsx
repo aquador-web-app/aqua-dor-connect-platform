@@ -44,8 +44,9 @@ const Auth = () => {
         return '/admin-portal';
       case 'instructor':
         return '/coach-portal';
-      case 'student':
       case 'parent':
+        return '/parent-portal';
+      case 'student':
         return '/student-portal';
       default:
         return '/';

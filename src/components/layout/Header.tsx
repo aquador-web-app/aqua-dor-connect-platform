@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ProfileModal } from "@/components/profile/ProfileModal";
+import { useLocation } from "react-router-dom";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -17,6 +18,14 @@ const Header = () => {
   const { language, setLanguage, t } = useLanguage();
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isPortalRoute = [
+    "/student-portal",
+    "/coach-portal",
+    "/admin-portal",
+    "/parent-portal",
+    "/complete-profile",
+  ].some((p) => location.pathname.startsWith(p));
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -83,18 +92,20 @@ const Header = () => {
             </Button>
           </div>
 
-          {/* Dashboard Login Buttons */}
-          <div className="hidden md:flex items-center space-x-2">
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/admin-login">Admin</Link>
-            </Button>
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/coach-login">Coach</Link>
-            </Button>
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/auth">Étudiant</Link>
-            </Button>
-          </div>
+          {/* Dashboard Login Buttons (hidden on portal routes) */}
+          {!isPortalRoute && (
+            <div className="hidden md:flex items-center space-x-2">
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/admin-login">Admin</Link>
+              </Button>
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/coach-login">Coach</Link>
+              </Button>
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/auth">Étudiant</Link>
+              </Button>
+            </div>
+          )}
 
           {/* Auth Section */}
           <div className="hidden md:flex items-center space-x-2">

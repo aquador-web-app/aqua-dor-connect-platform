@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
-  const { user, userRole, loading } = useAuth();
+  const { user, userRole, loading, profile } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -20,6 +20,14 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
 
   if (!user) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  // Enforce profile completion before accessing dashboards (except on the completion page)
+  if (
+    location.pathname !== "/complete-profile" &&
+    (!profile || !profile.full_name || !profile.phone || !profile.date_of_birth)
+  ) {
+    return <Navigate to="/complete-profile" replace />;
   }
 
   if (allowedRoles && userRole && !allowedRoles.includes(userRole)) {

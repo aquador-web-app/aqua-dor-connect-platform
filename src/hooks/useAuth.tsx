@@ -8,6 +8,7 @@ interface UserProfile {
   email: string;
   full_name: string | null;
   phone: string | null;
+  address: string | null;
   avatar_url: string | null;
   emergency_contact: string | null;
   medical_notes: string | null;
@@ -160,8 +161,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       case 'instructor':
         return '/coach-portal';
       case 'student':
-      case 'parent':
         return '/student-portal';
+      case 'parent':
+        return '/parent-portal';
       default:
         return '/';
     }

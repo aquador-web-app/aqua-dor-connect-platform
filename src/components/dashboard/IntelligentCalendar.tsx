@@ -77,7 +77,7 @@ export function IntelligentCalendar() {
     notes: ""
   });
 
-  const { user, isStudent, isParent, isAdmin, isInstructor } = useAuth();
+  const { user, profile, isStudent, isParent, isAdmin, isInstructor } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -153,7 +153,7 @@ export function IntelligentCalendar() {
           .select('*')
           .gte('reservation_date', `${dateStr}T00:00:00`)
           .lt('reservation_date', `${dateStr}T23:59:59`)
-          .eq('student_id', user.id);
+          .eq('student_id', profile?.id as string);
 
         if (reservationsError) throw reservationsError;
         setReservations(reservationsData || []);
@@ -185,7 +185,7 @@ export function IntelligentCalendar() {
                 full_name
               )
             `)
-            .eq('parent_id', user.id);
+            .eq('parent_id', profile?.id as string);
 
           if (childrenError) throw childrenError;
           setChildren(childrenData?.map(rel => rel.child).filter(Boolean) || []);
@@ -211,7 +211,7 @@ export function IntelligentCalendar() {
       const { data: enrollment } = await supabase
         .from('bookings')
         .select('id')
-        .eq('user_id', user.id)
+        .eq('user_id', profile?.id as string)
         .eq('class_session_id', sessionId)
         .single();
 
@@ -228,7 +228,7 @@ export function IntelligentCalendar() {
       const { error } = await supabase
         .from('attendance')
         .upsert({
-          student_id: user.id,
+          student_id: profile?.id as string,
           class_session_id: sessionId,
           status: willAttend ? 'present' : 'absent',
           marked_by: user.id
@@ -279,7 +279,7 @@ export function IntelligentCalendar() {
       const { error } = await supabase
         .from('reservations')
         .insert({
-          student_id: user.id,
+          student_id: profile?.id as string,
           reservation_date: reservationDateTime.toISOString(),
           duration_minutes: reservationForm.duration,
           purpose: reservationForm.purpose,
