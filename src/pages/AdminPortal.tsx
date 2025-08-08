@@ -14,6 +14,7 @@ import { ParentChildManager } from "@/components/dashboard/ParentChildManager";
 import { ReferralDashboard } from "@/components/dashboard/ReferralDashboard";
 import { InstructorAnalytics } from "@/components/dashboard/InstructorAnalytics";
 import { IntelligentCalendar } from "@/components/dashboard/IntelligentCalendar";
+import AdminCalendar from "@/components/dashboard/AdminCalendar";
 import { useAuth } from "@/hooks/useAuth";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -38,7 +39,7 @@ function AdminPortal() {
               <h2 className="text-2xl font-bold">Calendrier et Réservations</h2>
               <p className="text-muted-foreground">Gérez les sessions de cours et les réservations</p>
             </div>
-            <IntelligentCalendar />
+            <AdminCalendar />
           </div>
         );
       case "payments":

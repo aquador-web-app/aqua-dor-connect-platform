@@ -86,6 +86,18 @@ export function IntelligentCalendar() {
     }
   }, [selectedDate, user]);
 
+  useEffect(() => {
+    const channel = supabase
+      .channel('calendar-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'class_sessions' }, () => {
+        if (selectedDate && user) {
+          fetchCalendarData();
+        }
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [selectedDate, user]);
+
   const fetchCalendarData = async () => {
     if (!selectedDate || !user) return;
     

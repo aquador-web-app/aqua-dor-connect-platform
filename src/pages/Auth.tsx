@@ -34,6 +34,8 @@ const Auth = () => {
     role: 'student' as 'student' | 'instructor'
   });
 
+  const [isAdult, setIsAdult] = useState<'yes'|'no'|''>('');
+  const [isParent, setIsParent] = useState<'yes'|'no'>('no');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -162,6 +164,21 @@ const Auth = () => {
     setIsSubmitting(true);
 
     try {
+      // Determine role based on age/parent answers
+      if (isAdult === '') {
+        toast({ title: 'Information manquante', description: 'Veuillez indiquer si vous avez 18 ans ou plus.', variant: 'destructive' });
+        setIsSubmitting(false);
+        return;
+      }
+      if (isAdult === 'no') {
+        toast({ title: 'Inscription parent requise', description: 'Un parent doit créer le compte. Redirection vers le formulaire parent...' });
+        setIsParent('yes');
+        navigate('/auth?as=parent');
+        setIsSubmitting(false);
+        return;
+      }
+      const computedRole = isParent === 'yes' ? 'parent' : 'student';
+
       const { error } = await supabase.auth.signUp({
         email: signupForm.email,
         password: signupForm.password,
@@ -170,7 +187,7 @@ const Auth = () => {
           data: {
             full_name: signupForm.fullName,
             phone: signupForm.phone,
-            role: signupForm.role,
+            role: computedRole,
           }
         }
       });
@@ -373,7 +390,32 @@ const Auth = () => {
                       />
                     </div>
 
-                    
+                    <div className="space-y-2">
+                      <Label>Âgé de 18 ans ou plus ?</Label>
+                      <Select value={isAdult} onValueChange={(v: any) => setIsAdult(v)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner une option" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="yes">Oui</SelectItem>
+                          <SelectItem value="no">Non</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Êtes-vous parent ?</Label>
+                      <Select value={isParent} onValueChange={(v: any) => setIsParent(v)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner une option" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="no">Non</SelectItem>
+                          <SelectItem value="yes">Oui</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
                     <div className="space-y-2">
                       <Label htmlFor="signup-password">Mot de passe</Label>
                       <Input
