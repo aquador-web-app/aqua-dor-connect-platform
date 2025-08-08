@@ -6,10 +6,12 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 export default function CompleteProfile() {
   const { user, profile, refetch, redirectToRoleBasedPortal, userRole } = useAuth() as any;
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     full_name: profile?.full_name || "",
@@ -33,6 +35,17 @@ export default function CompleteProfile() {
 
   const save = async () => {
     if (!user) return;
+
+    // Validate required fields
+    const missing: string[] = [];
+    if (!form.full_name) missing.push("Nom complet");
+    if (!form.phone) missing.push("Téléphone");
+    if (!form.date_of_birth) missing.push("Date de naissance");
+    if (missing.length > 0) {
+      toast({ title: "Champs requis manquants", description: `Veuillez compléter: ${missing.join(", ")}` , variant: "destructive" });
+      return;
+    }
+
     setLoading(true);
     try {
       const { error } = await supabase
@@ -40,10 +53,23 @@ export default function CompleteProfile() {
         .update(form)
         .eq("user_id", user.id);
       if (error) throw error;
+
+      // Ensure fresh role from DB to decide redirect
+      const { data: roleRow, error: roleError } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .single();
+      if (roleError) throw roleError;
+
       await refetch();
-      toast({ title: "Profil complété", description: "Vos informations ont été sauvegardées." });
-      const path = redirectToRoleBasedPortal(userRole || "student");
-      window.location.replace(path);
+
+      const role = roleRow?.role || userRole || "student";
+      const path = redirectToRoleBasedPortal(role);
+
+      toast({ title: "Profil complété", description: "Redirection en cours...", duration: 2000 });
+
+      navigate(path, { replace: true });
     } catch (e: any) {
       toast({ title: "Erreur", description: e.message, variant: "destructive" });
     } finally {
