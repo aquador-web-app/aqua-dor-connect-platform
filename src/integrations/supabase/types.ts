@@ -110,38 +110,82 @@ export type Database = {
           },
         ]
       }
+      children: {
+        Row: {
+          age: number | null
+          created_at: string
+          id: string
+          name: string
+          parent_id: string
+          swimming_level: string | null
+          updated_at: string
+        }
+        Insert: {
+          age?: number | null
+          created_at?: string
+          id?: string
+          name: string
+          parent_id: string
+          swimming_level?: string | null
+          updated_at?: string
+        }
+        Update: {
+          age?: number | null
+          created_at?: string
+          id?: string
+          name?: string
+          parent_id?: string
+          swimming_level?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_children_parent_profile"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       class_sessions: {
         Row: {
           class_id: string
           created_at: string
+          duration_minutes: number | null
           id: string
           instructor_id: string
           max_participants: number
           notes: string | null
           session_date: string
           status: string | null
+          type: string
           updated_at: string
         }
         Insert: {
           class_id: string
           created_at?: string
+          duration_minutes?: number | null
           id?: string
           instructor_id: string
           max_participants?: number
           notes?: string | null
           session_date: string
           status?: string | null
+          type?: string
           updated_at?: string
         }
         Update: {
           class_id?: string
           created_at?: string
+          duration_minutes?: number | null
           id?: string
           instructor_id?: string
           max_participants?: number
           notes?: string | null
           session_date?: string
           status?: string | null
+          type?: string
           updated_at?: string
         }
         Relationships: [
