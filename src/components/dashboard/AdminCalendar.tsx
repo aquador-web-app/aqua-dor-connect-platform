@@ -57,6 +57,7 @@ export default function AdminCalendar() {
     newClass: { name: '', level: 'beginner', price: 0, duration_minutes: 60, capacity: 10 },
     instructor_id: '',
     time: '09:00',
+    endTime: '10:00',
     duration_minutes: 60,
     max_participants: 10,
     notes: ''
@@ -130,7 +131,7 @@ export default function AdminCalendar() {
   const openCreateForDate = (date?: Date) => {
     if (!date) return;
     setSelectedDate(date);
-    setForm((f) => ({ ...f, time: '09:00', duration_minutes: 60 }));
+    setForm((f) => ({ ...f, time: '09:00', duration_minutes: 60, endTime: '10:00' }));
     setModalOpen(true);
   };
 
@@ -334,14 +335,50 @@ export default function AdminCalendar() {
               </Select>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-4 gap-4">
               <div className="space-y-2 col-span-1">
                 <Label>Heure de début</Label>
-                <Input type="time" value={form.time} onChange={(e) => setForm((f)=>({ ...f, time: e.target.value }))} />
+                <Input type="time" value={form.time} onChange={(e) => {
+                  const newTime = e.target.value;
+                  const [h, m] = newTime.split(':').map(Number);
+                  const startMin = h * 60 + m;
+                  const endTotal = startMin + form.duration_minutes;
+                  const endH = Math.floor(endTotal / 60) % 24;
+                  const endM = endTotal % 60;
+                  const pad = (n: number) => String(n).padStart(2, '0');
+                  const newEnd = `${pad(endH)}:${pad(endM)}`;
+                  setForm((f)=>({ ...f, time: newTime, endTime: newEnd }));
+                }} />
               </div>
               <div className="space-y-2 col-span-1">
                 <Label>Durée (min)</Label>
-                <Input type="number" value={form.duration_minutes} onChange={(e) => setForm((f)=>({ ...f, duration_minutes: Number(e.target.value) }))} />
+                <Input type="number" value={form.duration_minutes} onChange={(e) => {
+                  const dur = Number(e.target.value);
+                  const [h, m] = form.time.split(':').map(Number);
+                  const startMin = h * 60 + m;
+                  const endTotal = startMin + (isNaN(dur) ? 0 : dur);
+                  const endH = Math.floor(endTotal / 60) % 24;
+                  const endM = endTotal % 60;
+                  const pad = (n: number) => String(n).padStart(2, '0');
+                  const newEnd = `${pad(endH)}:${pad(endM)}`;
+                  setForm((f)=>({ ...f, duration_minutes: dur, endTime: newEnd }));
+                }} />
+              </div>
+              <div className="space-y-2 col-span-1">
+                <Label>Heure de fin</Label>
+                <Input type="time" value={form.endTime} onChange={(e) => {
+                  const newEnd = e.target.value;
+                  const [sh, sm] = form.time.split(':').map(Number);
+                  const [eh, em] = newEnd.split(':').map(Number);
+                  const startMin = sh * 60 + sm;
+                  const endMin = eh * 60 + em;
+                  const diff = endMin - startMin;
+                  if (diff <= 0) {
+                    toast({ title: 'Heure invalide', description: "L'heure de fin doit être après l'heure de début", variant: 'destructive' });
+                    return;
+                  }
+                  setForm((f)=>({ ...f, endTime: newEnd, duration_minutes: diff }));
+                }} />
               </div>
               <div className="space-y-2 col-span-1">
                 <Label>Participants max</Label>
