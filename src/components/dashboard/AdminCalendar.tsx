@@ -211,15 +211,11 @@ export default function AdminCalendar() {
             <UICalendar
               mode="single"
               selected={selectedDate}
-              onSelect={(d) => { setSelectedDate(d); openCreateForDate(d); }}
+              onSelect={(d) => { setSelectedDate(d); }}
               className="rounded-md border"
               modifiers={{ hasItems: dayHasItems }}
               modifiersStyles={{ hasItems: { backgroundColor: 'hsl(var(--primary) / 0.2)' } }}
             />
-            <Button className="w-full mt-4" onClick={() => openCreateForDate(selectedDate)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Nouvelle session/événement
-            </Button>
           </CardContent>
         </Card>
 

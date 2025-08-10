@@ -19,6 +19,7 @@ interface Student {
 interface Course {
   id: string;
   name: string;
+  capacity?: number;
 }
 
 interface CourseAssignmentModalProps {
@@ -35,6 +36,9 @@ export function CourseAssignmentModal({ course, isOpen, onClose, onSuccess }: Co
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+
+  const availableSeats = (course?.capacity ?? Number.POSITIVE_INFINITY) - enrolledStudents.length;
+  const seatsLeft = Math.max(availableSeats - selectedStudents.length, 0);
 
   useEffect(() => {
     if (isOpen && course) {
@@ -89,7 +93,8 @@ export function CourseAssignmentModal({ course, isOpen, onClose, onSuccess }: Co
             avatar_url
           )
         `)
-        .eq('class_id', course.id);
+        .eq('class_id', course.id)
+        .eq('status', 'active');
 
       if (error) throw error;
 
@@ -102,6 +107,14 @@ export function CourseAssignmentModal({ course, isOpen, onClose, onSuccess }: Co
 
   const handleAssignStudents = async () => {
     if (!course || selectedStudents.length === 0) return;
+    if (selectedStudents.length > availableSeats) {
+      toast({
+        title: "Information",
+        description:
+          "No more seats available. Please edit the course to increase capacity if you wish to add more students.",
+      });
+      return;
+    }
 
     setLoading(true);
     try {
@@ -231,6 +244,17 @@ export function CourseAssignmentModal({ course, isOpen, onClose, onSuccess }: Co
               <UserPlus className="h-4 w-4" />
               <Label className="text-sm font-semibold">Ajouter des étudiants</Label>
             </div>
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">Places disponibles: {seatsLeft}</div>
+              {availableSeats <= 0 && (
+                <Badge variant="secondary">Complet</Badge>
+              )}
+            </div>
+            {availableSeats <= 0 && (
+              <p className="text-sm text-muted-foreground">
+                No more seats available. Please edit the course to increase capacity if you wish to add more students.
+              </p>
+            )}
             
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -239,6 +263,7 @@ export function CourseAssignmentModal({ course, isOpen, onClose, onSuccess }: Co
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
+                disabled={availableSeats <= 0}
               />
             </div>
 
@@ -254,11 +279,13 @@ export function CourseAssignmentModal({ course, isOpen, onClose, onSuccess }: Co
                       checked={selectedStudents.includes(student.id)}
                       onCheckedChange={(checked) => {
                         if (checked) {
+                          if (selectedStudents.length >= availableSeats) return;
                           setSelectedStudents([...selectedStudents, student.id]);
                         } else {
                           setSelectedStudents(selectedStudents.filter(id => id !== student.id));
                         }
                       }}
+                      disabled={!selectedStudents.includes(student.id) && (availableSeats <= 0 || selectedStudents.length >= availableSeats)}
                     />
                     <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
                       <span className="text-xs font-semibold text-primary">
@@ -281,7 +308,7 @@ export function CourseAssignmentModal({ course, isOpen, onClose, onSuccess }: Co
             Fermer
           </Button>
           {selectedStudents.length > 0 && (
-            <Button onClick={handleAssignStudents} disabled={loading}>
+            <Button onClick={handleAssignStudents} disabled={loading || seatsLeft <= 0 || selectedStudents.length === 0}>
               {loading ? (
                 "Attribution..."
               ) : (
