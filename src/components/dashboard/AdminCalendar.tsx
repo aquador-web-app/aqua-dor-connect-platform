@@ -224,6 +224,12 @@ export default function AdminCalendar() {
             <CardTitle>Agenda du {selectedDate ? format(selectedDate, 'dd MMMM yyyy', { locale: fr }) : ''}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="flex justify-end">
+              <Button size="sm" onClick={() => openCreateForDate(selectedDate!)} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Nouvelle session/événement
+              </Button>
+            </div>
             {sessions.map((s) => (
               <div key={s.id} className="p-4 rounded-lg border flex items-center justify-between">
                 <div>
