@@ -17,31 +17,40 @@ export type Database = {
       attendance: {
         Row: {
           class_session_id: string | null
+          course_id: string | null
           created_at: string
           id: string
           marked_at: string | null
           marked_by: string | null
+          marked_by_role: string
           notes: string | null
+          present: boolean
           status: string
           student_id: string | null
         }
         Insert: {
           class_session_id?: string | null
+          course_id?: string | null
           created_at?: string
           id?: string
           marked_at?: string | null
           marked_by?: string | null
+          marked_by_role?: string
           notes?: string | null
+          present?: boolean
           status?: string
           student_id?: string | null
         }
         Update: {
           class_session_id?: string | null
+          course_id?: string | null
           created_at?: string
           id?: string
           marked_at?: string | null
           marked_by?: string | null
+          marked_by_role?: string
           notes?: string | null
+          present?: boolean
           status?: string
           student_id?: string | null
         }
@@ -51,6 +60,13 @@ export type Database = {
             columns: ["class_session_id"]
             isOneToOne: false
             referencedRelation: "class_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
             referencedColumns: ["id"]
           },
           {
@@ -150,9 +166,10 @@ export type Database = {
       }
       class_sessions: {
         Row: {
-          class_id: string
+          class_id: string | null
           created_at: string
           duration_minutes: number | null
+          enrolled_students: number
           id: string
           instructor_id: string
           max_participants: number
@@ -163,9 +180,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          class_id: string
+          class_id?: string | null
           created_at?: string
           duration_minutes?: number | null
+          enrolled_students?: number
           id?: string
           instructor_id: string
           max_participants?: number
@@ -176,9 +194,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          class_id?: string
+          class_id?: string | null
           created_at?: string
           duration_minutes?: number | null
+          enrolled_students?: number
           id?: string
           instructor_id?: string
           max_participants?: number
@@ -911,7 +930,14 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_children_view: {
+        Row: {
+          first_name: string | null
+          id: string | null
+          swimming_level: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       generate_barcode: {
@@ -925,6 +951,14 @@ export type Database = {
       generate_secure_password: {
         Args: { length?: number }
         Returns: string
+      }
+      get_public_children_for_instructor: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          first_name: string
+          swimming_level: string
+        }[]
       }
       get_public_instructors: {
         Args: Record<PropertyKey, never>
@@ -955,6 +989,10 @@ export type Database = {
           p_new_values?: Json
         }
         Returns: string
+      }
+      recalc_enrolled_count: {
+        Args: { p_session: string }
+        Returns: undefined
       }
     }
     Enums: {
