@@ -334,7 +334,7 @@ export function IntelligentCalendar() {
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Calendar (hidden on small screens) */}
-        <Card className="hidden md:block lg:col-span-1">
+        <Card className="lg:col-span-1">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <CalendarIcon className="h-5 w-5" />
