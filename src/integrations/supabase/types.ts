@@ -926,6 +926,18 @@ export type Database = {
         Args: { length?: number }
         Returns: string
       }
+      get_public_instructors: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          full_name: string
+          bio: string
+          specializations: string[]
+          certifications: string[]
+          experience_years: number
+          avatar_url: string
+        }[]
+      }
       get_user_role: {
         Args: { user_uuid?: string }
         Returns: string
