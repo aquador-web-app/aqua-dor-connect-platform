@@ -4,7 +4,7 @@ import { Resend } from "npm:resend@2.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-cron-secret",
 };
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -29,6 +29,27 @@ const handler = async (req: Request): Promise<Response> => {
 
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Require POST and a valid cron secret (if configured)
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
+  }
+
+  const cronSecret = Deno.env.get("CRON_SECRET");
+  if (cronSecret) {
+    const provided = req.headers.get("x-cron-secret");
+    if (provided !== cronSecret) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+  } else {
+    console.warn("CRON_SECRET is not set; proceeding with JWT-only protection.");
   }
 
   try {
@@ -166,6 +187,43 @@ const handler = async (req: Request): Promise<Response> => {
 };
 
 function generateEmailContent(type: string, data: NotificationData) {
+  const esc = (v: unknown) =>
+    String(v ?? "").replace(/[&<>"'`=\/]/g, (s) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+        "`": "&#96;",
+        "=": "&#61;",
+        "/": "&#47;",
+      } as Record<string, string>)[s] || s
+    );
+
+  const safe = {
+    class_name: esc((data as any).class_name),
+    instructor_name: esc((data as any).instructor_name),
+    user_name: esc((data as any).user_name),
+    referral_code: esc((data as any).referral_code),
+    commission_amount:
+      typeof (data as any).commission_amount === "number"
+        ? (data as any).commission_amount.toFixed(2)
+        : esc((data as any).commission_amount),
+  };
+
+  const formatDate = (iso?: string) =>
+    iso
+      ? new Date(iso).toLocaleDateString("fr-FR", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "";
+
   switch (type) {
     case "booking_confirmation":
       return {
@@ -174,24 +232,17 @@ function generateEmailContent(type: string, data: NotificationData) {
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #0066cc;">Confirmation de Réservation</h2>
             <p>Bonjour,</p>
-            <p>Votre réservation pour le cours <strong>${data.class_name}</strong> a été confirmée.</p>
+            <p>Votre réservation pour le cours <strong>${safe.class_name}</strong> a été confirmée.</p>
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
               <h3>Détails du cours:</h3>
-              <p><strong>Cours:</strong> ${data.class_name}</p>
-              <p><strong>Date:</strong> ${new Date(data.session_date!).toLocaleDateString('fr-FR', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}</p>
-              <p><strong>Instructeur:</strong> ${data.instructor_name}</p>
+              <p><strong>Cours:</strong> ${safe.class_name}</p>
+              <p><strong>Date:</strong> ${formatDate((data as any).session_date)}</p>
+              <p><strong>Instructeur:</strong> ${safe.instructor_name}</p>
             </div>
             <p>Nous avons hâte de vous voir!</p>
             <p><strong>L'équipe A'qua D'or</strong></p>
           </div>
-        `
+        `,
       };
 
     case "class_reminder":
@@ -204,21 +255,14 @@ function generateEmailContent(type: string, data: NotificationData) {
             <p>N'oubliez pas votre cours de natation demain!</p>
             <div style="background: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;">
               <h3>Votre cours:</h3>
-              <p><strong>Cours:</strong> ${data.class_name}</p>
-              <p><strong>Date:</strong> ${new Date(data.session_date!).toLocaleDateString('fr-FR', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}</p>
-              <p><strong>Instructeur:</strong> ${data.instructor_name}</p>
+              <p><strong>Cours:</strong> ${safe.class_name}</p>
+              <p><strong>Date:</strong> ${formatDate((data as any).session_date)}</p>
+              <p><strong>Instructeur:</strong> ${safe.instructor_name}</p>
             </div>
             <p>Pensez à apporter votre maillot de bain et une serviette!</p>
             <p><strong>L'équipe A'qua D'or</strong></p>
           </div>
-        `
+        `,
       };
 
     case "user_registration":
@@ -227,7 +271,7 @@ function generateEmailContent(type: string, data: NotificationData) {
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #0066cc;">Bienvenue chez A'qua D'or!</h2>
-            <p>Bonjour ${data.user_name},</p>
+            <p>Bonjour ${safe.user_name},</p>
             <p>Félicitations! Votre compte a été créé avec succès.</p>
             <div style="background: #d4edda; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #28a745;">
               <h3>Prochaines étapes:</h3>
@@ -240,7 +284,7 @@ function generateEmailContent(type: string, data: NotificationData) {
             <p>Nous sommes ravis de vous accompagner dans votre parcours aquatique!</p>
             <p><strong>L'équipe A'qua D'or</strong></p>
           </div>
-        `
+        `,
       };
 
     case "schedule_change":
@@ -253,20 +297,13 @@ function generateEmailContent(type: string, data: NotificationData) {
             <p>Nous vous informons qu'il y a eu une modification concernant votre cours.</p>
             <div style="background: #f8d7da; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc3545;">
               <h3>Détails:</h3>
-              <p><strong>Cours:</strong> ${data.class_name}</p>
-              <p><strong>Nouvelle date:</strong> ${new Date(data.session_date!).toLocaleDateString('fr-FR', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}</p>
+              <p><strong>Cours:</strong> ${safe.class_name}</p>
+              <p><strong>Nouvelle date:</strong> ${formatDate((data as any).session_date)}</p>
             </div>
             <p>Merci de votre compréhension.</p>
             <p><strong>L'équipe A'qua D'or</strong></p>
           </div>
-        `
+        `,
       };
 
     case "referral_success":
@@ -279,13 +316,13 @@ function generateEmailContent(type: string, data: NotificationData) {
             <p>Félicitations! Votre parrainage a été un succès.</p>
             <div style="background: #d4edda; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #28a745;">
               <h3>Récompense de parrainage:</h3>
-              <p><strong>Code de parrainage:</strong> ${data.referral_code}</p>
-              <p><strong>Commission gagnée:</strong> ${data.commission_amount} HTG</p>
+              <p><strong>Code de parrainage:</strong> ${safe.referral_code}</p>
+              <p><strong>Commission gagnée:</strong> ${safe.commission_amount} HTG</p>
             </div>
             <p>Merci de faire grandir notre communauté!</p>
             <p><strong>L'équipe A'qua D'or</strong></p>
           </div>
-        `
+        `,
       };
 
     default:
@@ -297,7 +334,7 @@ function generateEmailContent(type: string, data: NotificationData) {
             <p>Vous avez une nouvelle notification de A'qua D'or.</p>
             <p><strong>L'équipe A'qua D'or</strong></p>
           </div>
-        `
+        `,
       };
   }
 }
