@@ -1,6 +1,8 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useRef } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface UserProfile {
   id: string;
@@ -61,6 +63,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Idle timeout state (15 min inactivity, warn at 14 min)
+  const [idleWarning, setIdleWarning] = useState(false);
+  const [countdown, setCountdown] = useState(60);
+  const warningTimeoutRef = useRef<number | null>(null);
+  const logoutTimeoutRef = useRef<number | null>(null);
+  const countdownIntervalRef = useRef<number | null>(null);
 
   const fetchUserProfile = async (userId: string) => {
     try {
@@ -129,6 +138,78 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const signOut = async () => {
     await supabase.auth.signOut();
   };
+
+  // ---- Idle timeout helpers ----
+  const clearTimers = () => {
+    if (warningTimeoutRef.current) window.clearTimeout(warningTimeoutRef.current);
+    if (logoutTimeoutRef.current) window.clearTimeout(logoutTimeoutRef.current);
+    if (countdownIntervalRef.current) window.clearInterval(countdownIntervalRef.current);
+    warningTimeoutRef.current = null;
+    logoutTimeoutRef.current = null;
+    countdownIntervalRef.current = null;
+  };
+
+  const startTimers = () => {
+    clearTimers();
+    if (!user) return;
+
+    // Show warning at 14 minutes
+    warningTimeoutRef.current = window.setTimeout(() => {
+      setIdleWarning(true);
+      setCountdown(60);
+      countdownIntervalRef.current = window.setInterval(() => {
+        setCountdown((c) => {
+          if (c <= 1) {
+            window.clearInterval(countdownIntervalRef.current!);
+          }
+          return c - 1;
+        });
+      }, 1000);
+    }, 14 * 60 * 1000);
+
+    // Auto logout at 15 minutes
+    logoutTimeoutRef.current = window.setTimeout(() => {
+      signOut();
+    }, 15 * 60 * 1000);
+  };
+
+  const resetTimers = () => {
+    if (!user) return;
+    setIdleWarning(false);
+    clearTimers();
+    startTimers();
+  };
+
+  const staySignedIn = () => {
+    resetTimers();
+  };
+
+  // Start/clean timers when auth state changes
+  useEffect(() => {
+    if (user) {
+      startTimers();
+    } else {
+      clearTimers();
+      setIdleWarning(false);
+    }
+    return () => clearTimers();
+  }, [user]);
+
+  // Listen to user activity to reset timers
+  useEffect(() => {
+    if (!user) return;
+    const activityHandler = () => resetTimers();
+    const visibilityHandler = () => {
+      if (document.visibilityState === 'visible') resetTimers();
+    };
+    const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+    events.forEach((evt) => window.addEventListener(evt, activityHandler, { passive: true }));
+    document.addEventListener('visibilitychange', visibilityHandler);
+    return () => {
+      events.forEach((evt) => window.removeEventListener(evt, activityHandler));
+      document.removeEventListener('visibilitychange', visibilityHandler);
+    };
+  }, [user]);
 
   const hasRole = (role: string) => {
     return userRole === role;

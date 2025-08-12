@@ -112,6 +112,26 @@ const StudentPortal = () => {
 
       setEnrollments(enrollmentsData || []);
 
+      // Fetch next upcoming session for each enrolled class
+      if (enrollmentsData && enrollmentsData.length > 0) {
+        const classIds = enrollmentsData.map((e: any) => e.class_id);
+        const { data: sessionsData } = await supabase
+          .from('class_sessions')
+          .select('class_id, session_date')
+          .in('class_id', classIds)
+          .gte('session_date', new Date().toISOString())
+          .order('session_date', { ascending: true });
+        const map: Record<string, string> = {};
+        (sessionsData || []).forEach((s: any) => {
+          if (!map[s.class_id]) {
+            map[s.class_id] = s.session_date;
+          }
+        });
+        setNextSessionsByClass(map);
+      } else {
+        setNextSessionsByClass({});
+      }
+
       // Get attendance data
       const { data: attendanceData } = await supabase
         .from("attendance")

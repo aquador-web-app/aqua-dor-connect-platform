@@ -30,6 +30,12 @@ const Instructors = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    document.title = "Instructors | A'qua D'or";
+    const meta = document.querySelector('meta[name="description"]');
+    if (meta) meta.setAttribute('content', 'Découvrez nos instructeurs de natation - profils et bios (placeholders).');
+  }, []);
+
+  useEffect(() => {
     fetchInstructors();
   }, []);
 

@@ -50,6 +50,8 @@ export default function AdminCalendar() {
   const [modalOpen, setModalOpen] = useState(false);
   const { toast } = useToast();
 
+  const [editingSession, setEditingSession] = useState<Session | null>(null);
+
   const [form, setForm] = useState({
     entryType: 'class' as 'class' | 'event',
     classMode: 'existing' as 'existing' | 'new',
@@ -60,7 +62,12 @@ export default function AdminCalendar() {
     endTime: '10:00',
     duration_minutes: 60,
     max_participants: 10,
-    notes: ''
+    notes: '',
+
+    // Recurrence
+    repeatPattern: 'none' as 'none' | 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'custom',
+    repeatCount: 1,
+    customIntervalDays: 1,
   });
 
   useEffect(() => {
@@ -129,7 +136,31 @@ export default function AdminCalendar() {
   const openCreateForDate = (date?: Date) => {
     if (!date) return;
     setSelectedDate(date);
-    setForm((f) => ({ ...f, time: '09:00', duration_minutes: 60, endTime: '10:00' }));
+    setEditingSession(null);
+    setForm((f) => ({ ...f, time: '09:00', duration_minutes: 60, endTime: '10:00', classMode: 'existing', class_id: '', notes: '', repeatPattern: 'none', repeatCount: 1, customIntervalDays: 1 }));
+    setModalOpen(true);
+  };
+
+  const openEdit = (s: Session) => {
+    const d = new Date(s.session_date);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const time = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    setSelectedDate(new Date(d.getFullYear(), d.getMonth(), d.getDate()));
+    setEditingSession(s);
+    setForm((f) => ({
+      ...f,
+      entryType: (s.type as 'class' | 'event') || 'class',
+      classMode: 'existing',
+      class_id: s.class_id,
+      time,
+      duration_minutes: s.duration_minutes || s.classes?.duration_minutes || 60,
+      endTime: time, // will be recalculated by duration input
+      max_participants: s.max_participants,
+      notes: s.notes || '',
+      repeatPattern: 'none',
+      repeatCount: 1,
+      customIntervalDays: 1,
+    }));
     setModalOpen(true);
   };
 
@@ -167,27 +198,77 @@ export default function AdminCalendar() {
       }
 
       const [h, m] = form.time.split(':');
-      const start = new Date(selectedDate);
-      start.setHours(parseInt(h), parseInt(m), 0, 0);
+      const base = new Date(selectedDate);
+      base.setHours(parseInt(h), parseInt(m), 0, 0);
 
-      const { error: insertErr } = await supabase.from('class_sessions').insert({
-        class_id: classId,
-        instructor_id: null,
-        session_date: start.toISOString(),
-        max_participants: form.max_participants,
-        notes: form.notes,
-        status: 'scheduled',
-        duration_minutes: form.duration_minutes,
-        type: form.entryType
-      });
-      if (insertErr) throw insertErr;
+      if (editingSession) {
+        // Update existing session
+        const { error: updateErr } = await supabase
+          .from('class_sessions')
+          .update({
+            class_id: classId,
+            session_date: base.toISOString(),
+            max_participants: form.max_participants,
+            notes: form.notes,
+            status: 'scheduled',
+            duration_minutes: form.duration_minutes,
+            type: form.entryType
+          })
+          .eq('id', editingSession.id);
+        if (updateErr) throw updateErr;
+        toast({ title: 'Mis à jour', description: 'Session/Événement mis à jour avec succès.' });
+      } else {
+        // Create new (with optional recurrence)
+        const toInsert: any[] = [];
+        const addDays = (d: Date, days: number) => { const nd = new Date(d); nd.setDate(nd.getDate() + days); return nd; };
+        const addMonthly = (d: Date) => { const nd = new Date(d); nd.setMonth(nd.getMonth() + 1); return nd; };
+        const occurrences = Math.max(1, form.repeatCount || 1);
+        let current = new Date(base);
+        for (let i = 0; i < occurrences; i++) {
+          toInsert.push({
+            class_id: classId,
+            instructor_id: null,
+            session_date: current.toISOString(),
+            max_participants: form.max_participants,
+            notes: form.notes,
+            status: 'scheduled',
+            duration_minutes: form.duration_minutes,
+            type: form.entryType
+          });
+          // Next occurrence
+          switch (form.repeatPattern) {
+            case 'daily':
+              current = addDays(current, 1);
+              break;
+            case 'weekly':
+              current = addDays(current, 7);
+              break;
+            case 'biweekly':
+              current = addDays(current, 14);
+              break;
+            case 'monthly':
+              current = addMonthly(current);
+              break;
+            case 'custom':
+              current = addDays(current, Math.max(1, form.customIntervalDays || 1));
+              break;
+            default:
+              // none
+              break;
+          }
+          if (form.repeatPattern === 'none') break;
+        }
+        const { error: insertErr } = await supabase.from('class_sessions').insert(toInsert);
+        if (insertErr) throw insertErr;
+        toast({ title: 'Enregistré', description: 'Session/Événement créé avec succès.' });
+      }
 
-      toast({ title: 'Enregistré', description: 'Session/Événement créé avec succès.' });
       setModalOpen(false);
+      setEditingSession(null);
       await fetchSessionsForDate(selectedDate);
     } catch (e: any) {
       console.error(e);
-      toast({ title: 'Erreur', description: e.message || "Impossible d\u2019enregistrer", variant: 'destructive' });
+      toast({ title: 'Erreur', description: e.message || "Impossible d’enregistrer", variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -252,12 +333,12 @@ export default function AdminCalendar() {
         </Card>
       </div>
 
-      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+      <Dialog open={modalOpen} onOpenChange={(open) => { setModalOpen(open); if (!open) setEditingSession(null); }}>
         <DialogContent className="w-full max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Programmer un cours / événement</DialogTitle>
+            <DialogTitle>{editingSession ? 'Modifier une session / un événement' : 'Programmer un cours / événement'}</DialogTitle>
             <DialogDescription>
-              Choisissez un type, un cours et l\u2019horaire pour cette date.
+              {editingSession ? 'Mettez à jour les détails puis enregistrez.' : 'Choisissez un type, un cours et l’horaire pour cette date.'}
             </DialogDescription>
           </DialogHeader>
 
@@ -379,6 +460,38 @@ export default function AdminCalendar() {
               <Label>Notes (optionnel)</Label>
               <Textarea value={form.notes} onChange={(e) => setForm((f)=>({ ...f, notes: e.target.value }))} />
             </div>
+
+            {!editingSession && (
+              <div className="space-y-4">
+                <h4 className="font-semibold">Récurrence</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label>Répéter</Label>
+                    <Select value={form.repeatPattern} onValueChange={(v: any) => setForm((f)=>({ ...f, repeatPattern: v }))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Aucune</SelectItem>
+                        <SelectItem value="daily">Quotidien</SelectItem>
+                        <SelectItem value="weekly">Hebdomadaire</SelectItem>
+                        <SelectItem value="biweekly">Bihebdomadaire</SelectItem>
+                        <SelectItem value="monthly">Mensuel</SelectItem>
+                        <SelectItem value="custom">Personnalisé</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Occurrences</Label>
+                    <Input type="number" min={1} max={20} value={form.repeatCount} onChange={(e) => setForm((f)=>({ ...f, repeatCount: Number(e.target.value) }))} />
+                  </div>
+                  {form.repeatPattern === 'custom' && (
+                    <div className="space-y-2">
+                      <Label>Intervalle (jours)</Label>
+                      <Input type="number" min={1} value={form.customIntervalDays} onChange={(e) => setForm((f)=>({ ...f, customIntervalDays: Number(e.target.value) }))} />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             <Button className="w-full" onClick={handleSave} disabled={loading}>
               {loading ? 'Enregistrement...' : 'Enregistrer'}
