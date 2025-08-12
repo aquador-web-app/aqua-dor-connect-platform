@@ -53,6 +53,7 @@ const StudentPortal = () => {
     totalPaid: 0
   });
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [nextSessionsByClass, setNextSessionsByClass] = useState<Record<string, string>>({});
   const [attendanceData, setAttendanceData] = useState([
     { week: "Sem 1", attendance: 85 },
     { week: "Sem 2", attendance: 92 },
