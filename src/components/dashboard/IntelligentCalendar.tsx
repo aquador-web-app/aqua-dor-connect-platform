@@ -403,9 +403,6 @@ export function IntelligentCalendar() {
                             </span>
                             <Badge variant="secondary">{session.classes.level}</Badge>
                           </div>
-                          <p className="text-sm">
-                            Instructeur: {session.instructors?.profiles?.full_name}
-                          </p>
                         </div>
                         
                         {(isStudent() || isParent()) && (
