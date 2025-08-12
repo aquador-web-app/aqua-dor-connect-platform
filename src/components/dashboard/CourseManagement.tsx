@@ -359,7 +359,7 @@ export function CourseManagement() {
                       <TableCell>
                         <div className="flex items-center space-x-1">
                           <DollarSign className="h-4 w-4 text-muted-foreground" />
-                          <span>${Number(course.price).toFixed(2)} USD</span>
+                          <span>{Number(course.price).toFixed(2)} USD</span>
                         </div>
                       </TableCell>
                       <TableCell>
