@@ -345,7 +345,7 @@ export default function AdminCalendar() {
               </Button>
             </div>
             {sessions.map((s) => (
-              <div key={s.id} className="p-4 rounded-lg border flex items-center justify-between">
+              <div key={s.id} className="p-4 rounded-lg border flex items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => openEdit(s)} role="button" aria-label={`Modifier ${s.classes?.name} à ${format(parseISO(s.session_date), 'HH:mm')}`}>
                 <div>
                   <div className="font-semibold flex items-center gap-2">
                     <Badge variant="secondary">{(s.type || 'class') === 'event' ? 'Événement' : 'Cours'}</Badge>
