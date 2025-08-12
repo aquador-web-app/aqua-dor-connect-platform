@@ -57,6 +57,7 @@ export function UpcomingSessionsList({ mode = 'public', daysAhead = 14, title }:
   async function fetchSessions() {
     try {
       setLoading(true);
+      // Primary fetch: sessions in range [now, daysAhead]
       const { data, error } = await supabase
         .from('class_sessions')
         .select(`
@@ -70,12 +71,35 @@ export function UpcomingSessionsList({ mode = 'public', daysAhead = 14, title }:
         `)
         .gte('session_date', range.from)
         .lte('session_date', range.to)
-        .neq('status', 'canceled')
+        .eq('status', 'scheduled')
         .order('session_date', { ascending: true });
 
       if (error) throw error;
 
-      const mapped: SessionItem[] = (data || []).map((row: any) => ({
+      let rows = data || [];
+
+      // Fallback: if none in range, fetch next 8 upcoming scheduled sessions
+      if (rows.length === 0) {
+        const { data: fallback, error: fallbackError } = await supabase
+          .from('class_sessions')
+          .select(`
+            id,
+            session_date,
+            type,
+            status,
+            max_participants,
+            duration_minutes,
+            classes:class_id ( id, name )
+          `)
+          .gte('session_date', range.from)
+          .eq('status', 'scheduled')
+          .order('session_date', { ascending: true })
+          .limit(8);
+        if (fallbackError) throw fallbackError;
+        rows = fallback || [];
+      }
+
+      const mapped: SessionItem[] = rows.map((row: any) => ({
         id: row.id,
         session_date: row.session_date,
         type: row.type,
