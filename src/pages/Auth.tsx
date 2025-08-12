@@ -141,10 +141,10 @@ const Auth = () => {
       });
       return;
     }
-    if (signupForm.password.length < 6) {
+    if (signupForm.password.length < 12) {
       toast({
         title: "Erreur",
-        description: "Le mot de passe doit contenir au moins 6 caractères.",
+        description: "Le mot de passe doit contenir au moins 12 caractères.",
         variant: "destructive"
       });
       return;
@@ -172,17 +172,14 @@ const Auth = () => {
         return;
       }
       const computedRole = isParent === 'yes' ? 'parent' : 'student';
-      const {
-        error
-      } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email: signupForm.email,
         password: signupForm.password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
             full_name: signupForm.fullName,
-            phone: signupForm.phone,
-            role: computedRole
+            phone: signupForm.phone
           }
         }
       });

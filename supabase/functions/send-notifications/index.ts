@@ -5,10 +5,12 @@ import { Resend } from "npm:resend@2.0.0";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-cron-secret",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 const resendApiKey = Deno.env.get("RESEND_API_KEY")!;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -40,16 +42,31 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   const cronSecret = Deno.env.get("CRON_SECRET");
-  if (cronSecret) {
-    const provided = req.headers.get("x-cron-secret");
-    if (provided !== cronSecret) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
+  const provided = req.headers.get("x-cron-secret");
+
+  // Build an auth client to check caller's role
+  const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: req.headers.get("Authorization") || "" } },
+  });
+
+  let isPrivileged = false;
+  try {
+    const { data: { user } } = await supabaseAuth.auth.getUser();
+    if (user) {
+      const { data: isAdmin } = await supabaseAuth.rpc("has_role", { user_uuid: user.id, role_name: "admin" });
+      const { data: isCoAdmin } = await supabaseAuth.rpc("has_role", { user_uuid: user.id, role_name: "co_admin" });
+      isPrivileged = Boolean(isAdmin) || Boolean(isCoAdmin);
     }
-  } else {
-    console.warn("CRON_SECRET is not set; proceeding with JWT-only protection.");
+  } catch (e) {
+    console.warn("Role check failed:", e);
+  }
+
+  // Allow if valid cron secret OR privileged user
+  if (!((cronSecret && provided === cronSecret) || isPrivileged)) {
+    return new Response(JSON.stringify({ error: "Forbidden" }), {
+      status: 403,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
   }
 
   try {
