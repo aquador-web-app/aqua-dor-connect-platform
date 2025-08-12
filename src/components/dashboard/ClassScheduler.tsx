@@ -52,7 +52,7 @@ interface Instructor {
 export function ClassScheduler() {
   const [sessions, setSessions] = useState<ClassSession[]>([]);
   const [classes, setClasses] = useState<ClassType[]>([]);
-  const [instructors, setInstructors] = useState<Instructor[]>([]);
+  
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -61,7 +61,6 @@ export function ClassScheduler() {
   // Form state
   const [formData, setFormData] = useState({
     class_id: "",
-    instructor_id: "",
     session_date: "",
     session_time: "",
     max_participants: 10,
@@ -115,17 +114,6 @@ export function ClassScheduler() {
       if (classesError) throw classesError;
       setClasses(classesData || []);
 
-      // Fetch instructors
-      const { data: instructorsData, error: instructorsError } = await supabase
-        .from('instructors')
-        .select(`
-          id,
-          profiles!inner(full_name)
-        `)
-        .eq('is_active', true);
-
-      if (instructorsError) throw instructorsError;
-      setInstructors(instructorsData || []);
 
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -141,7 +129,7 @@ export function ClassScheduler() {
 
   const createSession = async () => {
     try {
-      if (!formData.class_id || !formData.instructor_id || !formData.session_date || !formData.session_time) {
+      if (!formData.class_id || !formData.session_date || !formData.session_time) {
         toast({
           title: "Erreur",
           description: "Veuillez remplir tous les champs obligatoires",
@@ -156,7 +144,7 @@ export function ClassScheduler() {
         .from('class_sessions')
         .insert({
           class_id: formData.class_id,
-          instructor_id: formData.instructor_id,
+          instructor_id: null,
           session_date: sessionDateTime.toISOString(),
           max_participants: formData.max_participants,
           notes: formData.notes,
@@ -173,7 +161,6 @@ export function ClassScheduler() {
       setIsCreateDialogOpen(false);
       setFormData({
         class_id: "",
-        instructor_id: "",
         session_date: "",
         session_time: "",
         max_participants: 10,
@@ -286,23 +273,6 @@ export function ClassScheduler() {
                 </Select>
               </div>
 
-              <div>
-                <Label htmlFor="instructor">Instructeur</Label>
-                <Select value={formData.instructor_id} onValueChange={(value) => 
-                  setFormData(prev => ({ ...prev, instructor_id: value }))
-                }>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner un instructeur" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {instructors.map((instructor) => (
-                      <SelectItem key={instructor.id} value={instructor.id}>
-                        {instructor.profiles.full_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>

@@ -45,7 +45,7 @@ export default function AdminCalendar() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [sessions, setSessions] = useState<Session[]>([]);
   const [classes, setClasses] = useState<DBClass[]>([]);
-  const [instructors, setInstructors] = useState<Instructor[]>([]);
+  
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const { toast } = useToast();
@@ -55,7 +55,7 @@ export default function AdminCalendar() {
     classMode: 'existing' as 'existing' | 'new',
     class_id: '',
     newClass: { name: '', level: 'beginner', price: 0, duration_minutes: 60, capacity: 10 },
-    instructor_id: '',
+    
     time: '09:00',
     endTime: '10:00',
     duration_minutes: 60,
@@ -91,14 +91,12 @@ export default function AdminCalendar() {
   const fetchMeta = async () => {
     try {
       setLoading(true);
-      const [{ data: classesData, error: classesError }, { data: instructorsData, error: instructorsError }] = await Promise.all([
-        supabase.from('classes').select('*').eq('is_active', true),
-        supabase.from('instructors').select('id, profiles!inner(full_name)').eq('is_active', true)
-      ]);
+      const { data: classesData, error: classesError } = await supabase
+        .from('classes')
+        .select('*')
+        .eq('is_active', true);
       if (classesError) throw classesError;
-      if (instructorsError) throw instructorsError;
       setClasses(classesData || []);
-      setInstructors(instructorsData || []);
     } catch (e) {
       console.error(e);
       toast({ title: 'Erreur', description: "Impossible de charger les données", variant: 'destructive' });
@@ -159,7 +157,7 @@ export default function AdminCalendar() {
             price: form.newClass.price,
             duration_minutes: form.newClass.duration_minutes,
             capacity: form.newClass.capacity,
-            instructor_id: form.instructor_id || null,
+            instructor_id: null,
             is_active: true
           })
           .select('id')
@@ -174,7 +172,7 @@ export default function AdminCalendar() {
 
       const { error: insertErr } = await supabase.from('class_sessions').insert({
         class_id: classId,
-        instructor_id: form.instructor_id || null,
+        instructor_id: null,
         session_date: start.toISOString(),
         max_participants: form.max_participants,
         notes: form.notes,
@@ -325,17 +323,6 @@ export default function AdminCalendar() {
               </div>
             )}
 
-            <div className="space-y-2">
-              <Label>Instructeur</Label>
-              <Select value={form.instructor_id} onValueChange={(v) => setForm((f)=>({ ...f, instructor_id: v }))}>
-                <SelectTrigger><SelectValue placeholder="Choisir un instructeur" /></SelectTrigger>
-                <SelectContent>
-                  {instructors.map((i) => (
-                    <SelectItem key={i.id} value={i.id}>{i.profiles.full_name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="space-y-2 col-span-1">
