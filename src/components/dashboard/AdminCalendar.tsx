@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar as UICalendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarIcon, Clock, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -287,11 +288,30 @@ export default function AdminCalendar() {
             </CardTitle>
           </CardHeader>
           <CardContent>
+            <div className="mb-3">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {selectedDate ? format(selectedDate, 'PPP', { locale: fr }) : 'Sélectionner une date'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <UICalendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(d) => { setSelectedDate(d); }}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
             <UICalendar
               mode="single"
               selected={selectedDate}
               onSelect={(d) => { setSelectedDate(d); }}
-              className="rounded-md border"
+              className="rounded-md border p-3 pointer-events-auto"
               modifiers={{ hasItems: dayHasItems }}
               modifiersStyles={{ hasItems: { backgroundColor: 'hsl(var(--primary) / 0.2)' } }}
             />
