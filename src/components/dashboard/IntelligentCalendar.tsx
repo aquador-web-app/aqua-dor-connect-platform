@@ -358,7 +358,7 @@ export function IntelligentCalendar() {
         </Card>
 
         {/* Sessions and Events */}
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-1">
           <CardHeader>
             <CardTitle>
               {selectedDate ? format(selectedDate, 'EEEE dd MMMM yyyy') : 'Sélectionnez une date'}
@@ -376,7 +376,7 @@ export function IntelligentCalendar() {
               </div>
             )}
           </CardHeader>
-          <CardContent>
+          <CardContent className="max-h-[70vh] overflow-y-auto pr-1">
             {loading ? (
               <div className="space-y-4">
                 {[...Array(3)].map((_, i) => (
