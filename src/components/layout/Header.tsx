@@ -16,7 +16,7 @@ const Header = () => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const { language, setLanguage, t } = useLanguage();
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, userRole, redirectToRoleBasedPortal } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const isPortalRoute = [
@@ -92,17 +92,11 @@ const Header = () => {
             </Button>
           </div>
 
-          {/* Dashboard Login Buttons (hidden on portal routes) */}
-          {!isPortalRoute && (
+          {/* Dashboard Shortcut (hidden on portal routes) */}
+          {!isPortalRoute && user && (
             <div className="hidden md:flex items-center space-x-2">
               <Button variant="outline" size="sm" asChild>
-                <Link to="/admin-login">Admin</Link>
-              </Button>
-              <Button variant="outline" size="sm" asChild>
-                <Link to="/coach-login">Coach</Link>
-              </Button>
-              <Button variant="outline" size="sm" asChild>
-                <Link to="/auth">Étudiant</Link>
+                <Link to={redirectToRoleBasedPortal(userRole || 'student')}>Dashboard</Link>
               </Button>
             </div>
           )}

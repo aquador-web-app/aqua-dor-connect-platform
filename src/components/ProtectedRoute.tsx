@@ -22,9 +22,10 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // Enforce profile completion before accessing dashboards (except on the completion page)
+  // Enforce profile completion only for students and instructors (admins bypass)
   if (
     location.pathname !== "/complete-profile" &&
+    (userRole === 'student' || userRole === 'instructor') &&
     (!profile || !profile.full_name || !profile.phone || !profile.date_of_birth)
   ) {
     return <Navigate to="/complete-profile" replace />;
