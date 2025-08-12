@@ -320,7 +320,22 @@ export default function AdminCalendar() {
 
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Agenda du {selectedDate ? format(selectedDate, 'dd MMMM yyyy', { locale: fr }) : ''}</CardTitle>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" className="p-0 h-auto font-semibold">
+                  Agenda du {selectedDate ? format(selectedDate, 'dd MMMM yyyy', { locale: fr }) : ''}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <UICalendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(d) => { setSelectedDate(d); }}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-end">
