@@ -328,11 +328,14 @@ export function IntelligentCalendar() {
 
   const hasSessionOnDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    return sessions.some(session => 
+    const hasClass = sessions.some(session => 
       format(new Date(session.session_date), 'yyyy-MM-dd') === dateStr
-    ) || reservations.some(reservation =>
+    );
+    const includeReservations = isAdmin() || isInstructor();
+    const hasReservation = includeReservations && reservations.some(reservation =>
       format(new Date(reservation.reservation_date), 'yyyy-MM-dd') === dateStr
     );
+    return hasClass || hasReservation;
   };
 
   return (
@@ -437,8 +440,8 @@ export function IntelligentCalendar() {
                   </Card>
                 ))}
 
-                {/* Personal Reservations */}
-                {reservations.map((reservation) => (
+                {/* Personal Reservations - hidden for students/parents */}
+                {(isAdmin() || isInstructor()) && reservations.map((reservation) => (
                   <Card key={reservation.id} className="border-l-4 border-l-accent">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
@@ -462,7 +465,7 @@ export function IntelligentCalendar() {
                 ))}
 
                 {/* Empty slot - allow students to make reservations */}
-                {(isStudent() || isParent()) && sessions.length === 0 && reservations.length === 0 && selectedDate && (
+                {(isAdmin() || isInstructor()) && sessions.length === 0 && reservations.length === 0 && selectedDate && (
                   <Card className="border-dashed border-2">
                     <CardContent className="p-6 text-center">
                       <p className="text-muted-foreground mb-4">
@@ -481,78 +484,80 @@ export function IntelligentCalendar() {
         </Card>
       </div>
 
-      {/* Reservation Dialog */}
-      <Dialog open={reservationDialogOpen} onOpenChange={setReservationDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Nouvelle Réservation</DialogTitle>
-            <DialogDescription>
-              Réservez la piscine pour une session personnelle
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+      {/* Reservation Dialog - hidden for students/parents */}
+      {(isAdmin() || isInstructor()) && (
+        <Dialog open={reservationDialogOpen} onOpenChange={setReservationDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Nouvelle Réservation</DialogTitle>
+              <DialogDescription>
+                Réservez la piscine pour une session personnelle
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="time">Heure</Label>
+                  <Input
+                    id="time"
+                    type="time"
+                    value={reservationForm.time}
+                    onChange={(e) => setReservationForm(prev => ({ ...prev, time: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="duration">Durée (minutes)</Label>
+                  <Select 
+                    value={reservationForm.duration.toString()} 
+                    onValueChange={(value) => setReservationForm(prev => ({ ...prev, duration: parseInt(value) }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="30">30 minutes</SelectItem>
+                      <SelectItem value="60">1 heure</SelectItem>
+                      <SelectItem value="90">1h30</SelectItem>
+                      <SelectItem value="120">2 heures</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
               <div className="space-y-2">
-                <Label htmlFor="time">Heure</Label>
+                <Label htmlFor="purpose">Objet</Label>
                 <Input
-                  id="time"
-                  type="time"
-                  value={reservationForm.time}
-                  onChange={(e) => setReservationForm(prev => ({ ...prev, time: e.target.value }))}
+                  id="purpose"
+                  value={reservationForm.purpose}
+                  onChange={(e) => setReservationForm(prev => ({ ...prev, purpose: e.target.value }))}
+                  placeholder="Ex: Entraînement personnel, thérapie..."
                 />
               </div>
+              
               <div className="space-y-2">
-                <Label htmlFor="duration">Durée (minutes)</Label>
-                <Select 
-                  value={reservationForm.duration.toString()} 
-                  onValueChange={(value) => setReservationForm(prev => ({ ...prev, duration: parseInt(value) }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="30">30 minutes</SelectItem>
-                    <SelectItem value="60">1 heure</SelectItem>
-                    <SelectItem value="90">1h30</SelectItem>
-                    <SelectItem value="120">2 heures</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="notes">Notes</Label>
+                <Textarea
+                  id="notes"
+                  value={reservationForm.notes}
+                  onChange={(e) => setReservationForm(prev => ({ ...prev, notes: e.target.value }))}
+                  placeholder="Notes supplémentaires..."
+                  rows={3}
+                />
               </div>
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="purpose">Objet</Label>
-              <Input
-                id="purpose"
-                value={reservationForm.purpose}
-                onChange={(e) => setReservationForm(prev => ({ ...prev, purpose: e.target.value }))}
-                placeholder="Ex: Entraînement personnel, thérapie..."
-              />
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setReservationDialogOpen(false)}>
+                Annuler
+              </Button>
+              <Button onClick={createReservation}>
+                Réserver
+              </Button>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                value={reservationForm.notes}
-                onChange={(e) => setReservationForm(prev => ({ ...prev, notes: e.target.value }))}
-                placeholder="Notes supplémentaires..."
-                rows={3}
-              />
-            </div>
-          </div>
-          
-          <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={() => setReservationDialogOpen(false)}>
-              Annuler
-            </Button>
-            <Button onClick={createReservation}>
-              Réserver
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
