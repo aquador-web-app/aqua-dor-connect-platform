@@ -372,6 +372,7 @@ export type Database = {
           id: string
           notes: string | null
           payment_status: string | null
+          preferred_day_of_week: number | null
           progress_level: number | null
           status: string | null
           student_id: string
@@ -382,6 +383,7 @@ export type Database = {
           id?: string
           notes?: string | null
           payment_status?: string | null
+          preferred_day_of_week?: number | null
           progress_level?: number | null
           status?: string | null
           student_id: string
@@ -392,6 +394,7 @@ export type Database = {
           id?: string
           notes?: string | null
           payment_status?: string | null
+          preferred_day_of_week?: number | null
           progress_level?: number | null
           status?: string | null
           student_id?: string
@@ -935,6 +938,16 @@ export type Database = {
           first_name: string | null
           id: string | null
           swimming_level: string | null
+        }
+        Insert: {
+          first_name?: never
+          id?: string | null
+          swimming_level?: string | null
+        }
+        Update: {
+          first_name?: never
+          id?: string | null
+          swimming_level?: string | null
         }
         Relationships: []
       }

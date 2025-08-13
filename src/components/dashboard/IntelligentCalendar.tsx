@@ -96,6 +96,11 @@ export function IntelligentCalendar() {
           fetchCalendarData();
         }
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'enrollments' }, () => {
+        if (selectedDate && user) {
+          fetchCalendarData();
+        }
+      })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [selectedDate, user]);

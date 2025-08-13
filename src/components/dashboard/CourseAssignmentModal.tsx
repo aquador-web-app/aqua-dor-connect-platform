@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Search, Users, UserPlus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Student {
   id: string;
