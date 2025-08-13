@@ -38,6 +38,9 @@ export function CourseAssignmentModal({ course, isOpen, onClose, onSuccess }: Co
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
+  const [daysOptions, setDaysOptions] = useState<number[]>([]); // 0-6 (dimanche-samedi)
+  const [selectedDayByStudent, setSelectedDayByStudent] = useState<Record<string, number | undefined>>({});
+
   const availableSeats = (course?.capacity ?? Number.POSITIVE_INFINITY) - enrolledStudents.length;
   const seatsLeft = Math.max(availableSeats - selectedStudents.length, 0);
 
@@ -45,6 +48,8 @@ export function CourseAssignmentModal({ course, isOpen, onClose, onSuccess }: Co
     if (isOpen && course) {
       fetchStudents();
       fetchEnrolledStudents();
+      fetchCourseDays();
+      setSelectedDayByStudent({});
     }
   }, [isOpen, course]);
 
@@ -106,6 +111,25 @@ export function CourseAssignmentModal({ course, isOpen, onClose, onSuccess }: Co
     }
   };
 
+  const dayNamesFr = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const dayLabel = (n: number) => dayNamesFr[n] || '';
+
+  const fetchCourseDays = async () => {
+    if (!course) return;
+    try {
+      const { data } = await supabase
+        .from('class_sessions')
+        .select('session_date, status')
+        .eq('class_id', course.id)
+        .eq('status', 'scheduled');
+      const set = new Set<number>();
+      (data || []).forEach((s: any) => set.add(new Date(s.session_date).getDay()));
+      setDaysOptions(Array.from(set).sort());
+    } catch (e) {
+      console.error('Error fetching course days', e);
+    }
+  };
+
   const handleAssignStudents = async () => {
     if (!course || selectedStudents.length === 0) return;
     if (selectedStudents.length > availableSeats) {
@@ -117,13 +141,23 @@ export function CourseAssignmentModal({ course, isOpen, onClose, onSuccess }: Co
       return;
     }
 
+    // Require day selection if multiple meeting days exist
+    if (daysOptions.length > 1) {
+      const missing = selectedStudents.filter((sid) => selectedDayByStudent[sid] === undefined);
+      if (missing.length > 0) {
+        toast({ title: "Jour requis", description: "Sélectionnez le jour d'affectation pour chaque étudiant.", variant: "destructive" });
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       const enrollments = selectedStudents.map(studentId => ({
         student_id: studentId,
         class_id: course.id,
         status: 'active',
-        payment_status: 'pending'
+        payment_status: 'pending',
+        preferred_day_of_week: selectedDayByStudent[studentId] ?? (daysOptions.length === 1 ? daysOptions[0] : null)
       }));
 
       const { error } = await supabase
@@ -138,6 +172,7 @@ export function CourseAssignmentModal({ course, isOpen, onClose, onSuccess }: Co
       });
 
       setSelectedStudents([]);
+      setSelectedDayByStudent({});
       fetchEnrolledStudents();
       onSuccess();
     } catch (error) {
@@ -275,15 +310,24 @@ export function CourseAssignmentModal({ course, isOpen, onClose, onSuccess }: Co
                 </p>
               ) : (
                 filteredStudents.map((student) => (
-                  <div key={student.id} className="flex items-center space-x-2 p-2 border rounded">
+                  <div key={student.id} className="flex items-center gap-2 p-2 border rounded">
                     <Checkbox
                       checked={selectedStudents.includes(student.id)}
                       onCheckedChange={(checked) => {
                         if (checked) {
                           if (selectedStudents.length >= availableSeats) return;
                           setSelectedStudents([...selectedStudents, student.id]);
+                          setSelectedDayByStudent((prev) => {
+                            const next = { ...prev };
+                            if (daysOptions.length === 1) next[student.id] = daysOptions[0];
+                            return next;
+                          });
                         } else {
                           setSelectedStudents(selectedStudents.filter(id => id !== student.id));
+                          setSelectedDayByStudent((prev) => {
+                            const { [student.id]: _omit, ...rest } = prev;
+                            return rest;
+                          });
                         }
                       }}
                       disabled={!selectedStudents.includes(student.id) && (availableSeats <= 0 || selectedStudents.length >= availableSeats)}
@@ -297,6 +341,28 @@ export function CourseAssignmentModal({ course, isOpen, onClose, onSuccess }: Co
                       <div className="text-sm font-medium">{student.full_name || 'Nom non défini'}</div>
                       <div className="text-xs text-muted-foreground">{student.email}</div>
                     </div>
+                    {selectedStudents.includes(student.id) && daysOptions.length > 1 && (
+                      <div className="w-40">
+                        <Select
+                          value={selectedDayByStudent[student.id]?.toString() ?? undefined}
+                          onValueChange={(v) => setSelectedDayByStudent({ ...selectedDayByStudent, [student.id]: Number(v) })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choisir le jour" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {daysOptions.map((d) => (
+                              <SelectItem key={d} value={d.toString()}>
+                                {dayLabel(d)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                    {selectedStudents.includes(student.id) && daysOptions.length === 1 && (
+                      <Badge variant="secondary">{dayLabel(daysOptions[0])}</Badge>
+                    )}
                   </div>
                 ))
               )}

@@ -643,7 +643,8 @@ export function CourseManagement() {
                     }
                     setSchedule({ startDate: undefined, endDate: undefined, sessionTime: '09:00', sessionDays: [] });
                     await fetchMetaForCourses([editingCourse.id]);
-                  }
+                    await loadDetails(editingCourse.id);
+                   }
                 }}>
                   {t('common.save')}
                 </Button>
