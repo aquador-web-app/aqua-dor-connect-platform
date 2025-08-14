@@ -39,7 +39,11 @@ interface FilterOptions {
   timeOfDay: string;
 }
 
-export function CalendarBookingSystem() {
+interface CalendarBookingSystemProps {
+  onBookingSuccess?: () => void;
+}
+
+export function CalendarBookingSystem({ onBookingSuccess }: CalendarBookingSystemProps = {}) {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -206,6 +210,9 @@ export function CalendarBookingSystem() {
 
       // Refresh sessions to update availability
       fetchSessions();
+      
+      // Close modal if callback provided
+      onBookingSuccess?.();
     } catch (error: any) {
       console.error('Error booking session:', error);
       toast({

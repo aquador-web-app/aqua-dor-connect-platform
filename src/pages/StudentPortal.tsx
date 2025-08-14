@@ -15,6 +15,8 @@ import Header from "@/components/layout/Header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { IntelligentCalendar } from "@/components/dashboard/IntelligentCalendar";
 import { ProfileModal } from "@/components/profile/ProfileModal";
+import { CalendarBookingSystem } from "@/components/dashboard/CalendarBookingSystem";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 interface StudentStats {
   totalClasses: number;
@@ -63,6 +65,7 @@ const StudentPortal = () => {
   const [loading, setLoading] = useState(true);
   const [payments, setPayments] = useState<any[]>([]);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -186,6 +189,10 @@ const StudentPortal = () => {
         { event: '*', schema: 'public', table: 'attendance' },
         () => fetchStudentData()
       )
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'bookings' },
+        () => fetchStudentData()
+      )
       .subscribe();
 
     return () => {
@@ -205,9 +212,25 @@ const StudentPortal = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Portail Étudiant</h1>
-          <p className="text-muted-foreground">Suivez votre progression et gérez vos cours</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Portail Étudiant</h1>
+            <p className="text-muted-foreground">Suivez votre progression et gérez vos cours</p>
+          </div>
+          <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
+            <DialogTrigger asChild>
+              <Button size="lg" className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Réserver un Cours
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-6xl max-h-[90vh] overflow-auto">
+              <DialogHeader>
+                <DialogTitle>Réservation de Cours</DialogTitle>
+              </DialogHeader>
+              <CalendarBookingSystem onBookingSuccess={() => setIsBookingOpen(false)} />
+            </DialogContent>
+          </Dialog>
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
