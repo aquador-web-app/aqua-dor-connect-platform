@@ -259,7 +259,10 @@ const StudentPortal = () => {
               <DialogHeader>
                 <DialogTitle>Réservation de Cours</DialogTitle>
               </DialogHeader>
-              <CalendarBookingSystem onBookingSuccess={() => setIsBookingOpen(false)} />
+              <CalendarBookingSystem onBookingSuccess={() => {
+                setIsBookingOpen(false);
+                fetchStudentData(); // Refresh data after booking
+              }} />
             </DialogContent>
           </Dialog>
         </div>
