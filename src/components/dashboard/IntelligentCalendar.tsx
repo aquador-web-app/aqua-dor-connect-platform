@@ -164,19 +164,19 @@ export function IntelligentCalendar() {
         setSessions([]);
       }
 
-      // For students: fetch their reservations and enrolled sessions
+      // Fetch personal reservations for all user types
+      const { data: reservationsData, error: reservationsError } = await supabase
+        .from('reservations')
+        .select('*')
+        .gte('reservation_date', `${dateStr}T00:00:00`)
+        .lt('reservation_date', `${dateStr}T23:59:59`)
+        .eq('student_id', profile?.id as string);
+
+      if (reservationsError) throw reservationsError;
+      setReservations(reservationsData || []);
+
+      // For students: fetch their enrolled sessions and attendance
       if (isStudent() || isParent()) {
-        // Fetch personal reservations
-        const { data: reservationsData, error: reservationsError } = await supabase
-          .from('reservations')
-          .select('*')
-          .gte('reservation_date', `${dateStr}T00:00:00`)
-          .lt('reservation_date', `${dateStr}T23:59:59`)
-          .eq('student_id', profile?.id as string);
-
-        if (reservationsError) throw reservationsError;
-        setReservations(reservationsData || []);
-
         // Fetch attendance records
         const { data: attendanceData, error: attendanceError } = await supabase
           .from('attendance')
