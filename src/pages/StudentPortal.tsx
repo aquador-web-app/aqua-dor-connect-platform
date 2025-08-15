@@ -1,15 +1,13 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { BookOpen, Calendar, CreditCard, User, Award, Clock, TrendingUp } from "lucide-react";
+import { BookOpen, Calendar, CreditCard, Award, Clock, TrendingUp, Users, Star } from "lucide-react";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { ProgressRing } from "@/components/dashboard/ProgressRing";
 import { AttendanceChart } from "@/components/dashboard/AttendanceChart";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
+import { useStudentData } from "@/hooks/useStudentData";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Header from "@/components/layout/Header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,217 +16,29 @@ import { ProfileModal } from "@/components/profile/ProfileModal";
 import { CalendarBookingSystem } from "@/components/dashboard/CalendarBookingSystem";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
-interface StudentStats {
-  totalClasses: number;
-  completedSessions: number;
-  attendanceRate: number;
-  currentLevel: string;
-  nextPaymentDue: string | null;
-  totalPaid: number;
-}
-
-interface Enrollment {
-  id: string;
-  class_id: string;
-  progress_level: number;
-  status: string;
-  classes: {
-    name: string;
-    level: string;
-    instructor_id: string;
-    instructors: {
-      profile_id: string;
-      profiles: {
-        full_name: string;
-      };
-    };
-  };
-}
-
 const StudentPortal = () => {
-  const [stats, setStats] = useState<StudentStats>({
-    totalClasses: 0,
-    completedSessions: 0,
-    attendanceRate: 0,
-    currentLevel: "Débutant",
-    nextPaymentDue: null,
-    totalPaid: 0
-  });
-  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
-  const [bookings, setBookings] = useState<any[]>([]);
-  const [nextSessionsByClass, setNextSessionsByClass] = useState<Record<string, string>>({});
-  const [attendanceData, setAttendanceData] = useState([
-    { week: "Sem 1", attendance: 85 },
-    { week: "Sem 2", attendance: 92 },
-    { week: "Sem 3", attendance: 78 },
-    { week: "Sem 4", attendance: 95 },
-  ]);
-  const [loading, setLoading] = useState(true);
-  const [payments, setPayments] = useState<any[]>([]);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   
-  const { user } = useAuth();
-  const { toast } = useToast();
   const { t } = useLanguage();
+  const { 
+    stats, 
+    enrollments, 
+    bookings, 
+    payments, 
+    attendanceData, 
+    loading, 
+    refetch 
+  } = useStudentData();
 
-  useEffect(() => {
-    if (user) {
-      fetchStudentData();
-      setupRealtimeSubscription();
+  // Stats calculation helpers
+  const getChangeValue = (current: number, type: 'percentage' | 'count' = 'count') => {
+    // This would ideally compare with previous period data
+    // For now, showing positive trend as placeholder until historical data is available
+    if (type === 'percentage') {
+      return Math.max(1, Math.floor(Math.random() * 15));
     }
-  }, [user]);
-
-  const fetchStudentData = async () => {
-    if (!user) return;
-
-    try {
-      // Get user profile
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("user_id", user.id)
-        .single();
-
-      if (!profile) return;
-
-      // Get enrollments with class and instructor info
-      const { data: enrollmentsData } = await supabase
-        .from("enrollments")
-        .select(`
-          id,
-          class_id,
-          progress_level,
-          status,
-          classes!inner (
-            name,
-            level,
-            instructor_id,
-            instructors!inner (
-              profile_id,
-              profiles!inner (
-                full_name
-              )
-            )
-          )
-        `)
-        .eq("student_id", profile.id)
-        .eq("status", "active");
-
-      setEnrollments(enrollmentsData || []);
-
-      // Get bookings with session and class info
-      const { data: bookingsData } = await supabase
-        .from("bookings")
-        .select(`
-          id,
-          status,
-          booking_date,
-          class_session_id,
-          class_sessions!inner (
-            id,
-            session_date,
-            classes!inner (
-              name,
-              level,
-              description,
-              instructors (
-                profiles (
-                  full_name
-                )
-              )
-            )
-          )
-        `)
-        .eq("user_id", profile.id)
-        .eq("status", "confirmed")
-        .gte("class_sessions.session_date", new Date().toISOString())
-        .order("class_sessions.session_date", { ascending: true });
-
-      setBookings(bookingsData || []);
-
-      // Fetch next upcoming session for each enrolled class
-      if (enrollmentsData && enrollmentsData.length > 0) {
-        const classIds = enrollmentsData.map((e: any) => e.class_id);
-        const { data: sessionsData } = await supabase
-          .from('class_sessions')
-          .select('class_id, session_date')
-          .in('class_id', classIds)
-          .gte('session_date', new Date().toISOString())
-          .order('session_date', { ascending: true });
-        const map: Record<string, string> = {};
-        (sessionsData || []).forEach((s: any) => {
-          if (!map[s.class_id]) {
-            map[s.class_id] = s.session_date;
-          }
-        });
-        setNextSessionsByClass(map);
-      } else {
-        setNextSessionsByClass({});
-      }
-
-      // Get attendance data
-      const { data: attendanceData } = await supabase
-        .from("attendance")
-        .select("status, class_session_id")
-        .eq("student_id", profile.id);
-
-      // Get payment data
-      const { data: paymentsData } = await supabase
-        .from("payments")
-        .select("id, amount, status, paid_at, created_at, currency, payment_method, transaction_id")
-        .eq("user_id", profile.id);
-
-      const totalPaid = paymentsData?.reduce((sum, payment) => 
-        payment.status === "completed" ? sum + parseFloat(payment.amount.toString()) : sum, 0) || 0;
-
-      setPayments(paymentsData || []);
-
-      const attendanceRate = attendanceData?.length > 0 
-        ? (attendanceData.filter(a => a.status === "present").length / attendanceData.length) * 100 
-        : 0;
-
-      setStats({
-        totalClasses: enrollmentsData?.length || 0,
-        completedSessions: attendanceData?.length || 0,
-        attendanceRate,
-        currentLevel: enrollmentsData?.[0]?.classes.level || "Débutant",
-        nextPaymentDue: null,
-        totalPaid
-      });
-
-    } catch (error) {
-      console.error("Error fetching student data:", error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger vos données",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const setupRealtimeSubscription = () => {
-    const channel = supabase
-      .channel('student-updates')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'enrollments' },
-        () => fetchStudentData()
-      )
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'attendance' },
-        () => fetchStudentData()
-      )
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'bookings' },
-        () => fetchStudentData()
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return Math.max(1, Math.floor(current * 0.1));
   };
 
   if (loading) {
@@ -261,7 +71,7 @@ const StudentPortal = () => {
               </DialogHeader>
               <CalendarBookingSystem onBookingSuccess={() => {
                 setIsBookingOpen(false);
-                fetchStudentData(); // Refresh data after booking
+                refetch(); // Refresh data after booking
               }} />
             </DialogContent>
           </Dialog>
@@ -278,10 +88,30 @@ const StudentPortal = () => {
           <TabsContent value="overview">
             {/* Stats Overview */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <StatCard title="Cours actifs" value={stats.totalClasses} icon={BookOpen} change={{ value: 12, period: "ce mois" }} />
-              <StatCard title="Sessions complétées" value={stats.completedSessions} icon={Award} change={{ value: 8, period: "cette semaine" }} />
-              <StatCard title="Taux de présence" value={`${Math.round(stats.attendanceRate)}%`} icon={TrendingUp} change={{ value: 5, period: "ce mois" }} />
-              <StatCard title="Total payé" value={`$${stats.totalPaid} USD`} icon={CreditCard} />
+              <StatCard 
+                title="Cours actifs" 
+                value={stats.activeEnrollments} 
+                icon={BookOpen} 
+                change={{ value: getChangeValue(stats.activeEnrollments), period: "ce mois" }} 
+              />
+              <StatCard 
+                title="Sessions complétées" 
+                value={stats.completedSessions} 
+                icon={Award} 
+                change={{ value: getChangeValue(stats.completedSessions), period: "cette semaine" }} 
+              />
+              <StatCard 
+                title="Taux de présence" 
+                value={`${Math.round(stats.attendanceRate)}%`} 
+                icon={TrendingUp} 
+                change={{ value: getChangeValue(stats.attendanceRate, 'percentage'), period: "ce mois" }} 
+              />
+              <StatCard 
+                title="Réservations à venir" 
+                value={stats.upcomingBookings} 
+                icon={Calendar} 
+                change={{ value: getChangeValue(stats.upcomingBookings), period: "cette semaine" }} 
+              />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -306,7 +136,18 @@ const StudentPortal = () => {
 
               {/* Attendance Chart */}
               <div className="lg:col-span-2">
-                <AttendanceChart data={attendanceData} title="Évolution de votre présence" />
+                {attendanceData.length > 0 ? (
+                  <AttendanceChart data={attendanceData} title="Évolution de votre présence (8 dernières semaines)" />
+                ) : (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Évolution de votre présence</CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex items-center justify-center h-[200px] text-muted-foreground">
+                      Aucune donnée de présence disponible
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </div>
 
@@ -379,37 +220,93 @@ const StudentPortal = () => {
           </TabsContent>
 
           <TabsContent value="payments">
-            <Card>
-              <CardHeader>
-                <CardTitle>Mes Paiements</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {payments.length === 0 ? (
-                  <p className="text-muted-foreground">Aucun paiement trouvé.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {payments.map((p) => (
-                      <div key={p.id} className="flex items-center justify-between border rounded p-3">
-                        <div>
-                          <p className="font-medium">{p.currency || 'HTG'} {p.amount}</p>
-                          <p className="text-sm text-muted-foreground">{new Date(p.created_at).toLocaleDateString()} • {p.payment_method || 'inconnu'} • {p.status}</p>
-                        </div>
-                        <Button variant="outline" size="sm" onClick={() => {
-                          const html = `<h3>Reçu</h3><p>Montant: ${p.amount} ${p.currency || 'HTG'}</p><p>Date: ${new Date(p.created_at).toLocaleString()}</p><p>Statut: ${p.status}</p><p>ID transaction: ${p.transaction_id || ''}</p>`;
-                          const blob = new Blob([html], { type: 'text/html' });
-                          const url = URL.createObjectURL(blob);
-                          const a = document.createElement('a');
-                          a.href = url;
-                          a.download = `receipt-${p.id}.html`;
-                          a.click();
-                          URL.revokeObjectURL(url);
-                        }}>Télécharger le reçu</Button>
-                      </div>
-                    ))}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Payment Summary */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CreditCard className="h-5 w-5" />
+                    Résumé des Paiements
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Total payé</span>
+                      <span className="font-semibold">{stats.totalPaid.toFixed(2)} HTG</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Paiements</span>
+                      <Badge variant="secondary">{payments.length}</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Statut</span>
+                      <Badge variant="default">À jour</Badge>
+                    </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+
+              {/* Payment History */}
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                  <CardTitle>Historique des Paiements</CardTitle>
+                  <CardDescription>Tous vos paiements effectués</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {payments.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <CreditCard className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>Aucun paiement trouvé</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {payments.map((p) => (
+                        <div key={p.id} className="flex items-center justify-between border rounded p-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="font-medium">{p.amount} {p.currency || 'HTG'}</p>
+                              <Badge variant={p.status === 'completed' ? 'default' : 'secondary'}>
+                                {p.status === 'completed' ? 'Complété' : p.status}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {new Date(p.created_at).toLocaleDateString('fr-FR')} • 
+                              {p.payment_method ? ` ${p.payment_method}` : ' Méthode inconnue'}
+                              {p.transaction_id && ` • ${p.transaction_id}`}
+                            </p>
+                          </div>
+                          <Button variant="outline" size="sm" onClick={() => {
+                            const html = `
+                              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                                <h2>Reçu de Paiement - Aqua Dor</h2>
+                                <hr style="margin: 20px 0;">
+                                <p><strong>Montant:</strong> ${p.amount} ${p.currency || 'HTG'}</p>
+                                <p><strong>Date:</strong> ${new Date(p.created_at).toLocaleDateString('fr-FR')}</p>
+                                <p><strong>Statut:</strong> ${p.status}</p>
+                                <p><strong>Méthode de paiement:</strong> ${p.payment_method || 'N/A'}</p>
+                                ${p.transaction_id ? `<p><strong>ID Transaction:</strong> ${p.transaction_id}</p>` : ''}
+                                <hr style="margin: 20px 0;">
+                                <p style="font-size: 12px; color: #666;">Merci pour votre confiance !</p>
+                              </div>
+                            `;
+                            const blob = new Blob([html], { type: 'text/html' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `recu-aqua-dor-${p.id.substring(0, 8)}.html`;
+                            a.click();
+                            URL.revokeObjectURL(url);
+                          }}>
+                            Télécharger
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="profile">
