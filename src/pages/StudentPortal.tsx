@@ -290,10 +290,12 @@ const StudentPortal = () => {
                     enrollments.map((enrollment) => (
                       <Card key={enrollment.id} className="p-4">
                         <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <h3 className="font-semibold">{enrollment.classes.name}</h3>
-                            <p className="text-sm text-muted-foreground">Instructeur: {enrollment.classes.instructors.profiles.full_name}</p>
-                            <div className="flex items-center gap-2 mt-2">
+                        <div className="flex-1">
+                          <h3 className="font-semibold">{enrollment.classes.name}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            Instructeur: {enrollment.classes.instructors?.profiles?.full_name || "Non assigné"}
+                          </p>
+                          <div className="flex items-center gap-2 mt-2">
                               <Badge variant="outline">{enrollment.classes.level}</Badge>
                               <Badge variant={enrollment.status === "active" ? "default" : "secondary"}>{enrollment.status}</Badge>
                             </div>
