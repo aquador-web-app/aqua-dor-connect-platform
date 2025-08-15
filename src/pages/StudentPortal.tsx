@@ -32,13 +32,13 @@ const StudentPortal = () => {
   } = useStudentData();
 
   // Stats calculation helpers
-  const getChangeValue = (current: number, type: 'percentage' | 'count' = 'count') => {
+  const getChangeValue = (current: number = 0, type: 'percentage' | 'count' = 'count') => {
     // This would ideally compare with previous period data
     // For now, showing positive trend as placeholder until historical data is available
     if (type === 'percentage') {
-      return Math.max(1, Math.floor(Math.random() * 15));
+      return Math.max(1, Math.floor(Math.random() * 10) + 1);
     }
-    return Math.max(1, Math.floor(current * 0.1));
+    return Math.max(1, Math.floor(Math.max(current, 1) * 0.15) + 1);
   };
 
   if (loading) {
