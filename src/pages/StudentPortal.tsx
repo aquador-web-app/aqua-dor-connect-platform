@@ -55,6 +55,7 @@ const StudentPortal = () => {
     totalPaid: 0
   });
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [bookings, setBookings] = useState<any[]>([]);
   const [nextSessionsByClass, setNextSessionsByClass] = useState<Record<string, string>>({});
   const [attendanceData, setAttendanceData] = useState([
     { week: "Sem 1", attendance: 85 },
@@ -115,6 +116,36 @@ const StudentPortal = () => {
         .eq("status", "active");
 
       setEnrollments(enrollmentsData || []);
+
+      // Get bookings with session and class info
+      const { data: bookingsData } = await supabase
+        .from("bookings")
+        .select(`
+          id,
+          status,
+          booking_date,
+          class_session_id,
+          class_sessions!inner (
+            id,
+            session_date,
+            classes!inner (
+              name,
+              level,
+              description,
+              instructors (
+                profiles (
+                  full_name
+                )
+              )
+            )
+          )
+        `)
+        .eq("user_id", profile.id)
+        .eq("status", "confirmed")
+        .gte("class_sessions.session_date", new Date().toISOString())
+        .order("class_sessions.session_date", { ascending: true });
+
+      setBookings(bookingsData || []);
 
       // Fetch next upcoming session for each enrolled class
       if (enrollmentsData && enrollmentsData.length > 0) {
@@ -284,30 +315,56 @@ const StudentPortal = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {enrollments.length === 0 ? (
+                  {enrollments.length === 0 && bookings.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">Aucun cours actuel</div>
                   ) : (
-                    enrollments.map((enrollment) => (
-                      <Card key={enrollment.id} className="p-4">
-                        <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h3 className="font-semibold">{enrollment.classes.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Instructeur: {enrollment.classes.instructors?.profiles?.full_name || "Non assigné"}
-                          </p>
-                          <div className="flex items-center gap-2 mt-2">
-                              <Badge variant="outline">{enrollment.classes.level}</Badge>
-                              <Badge variant={enrollment.status === "active" ? "default" : "secondary"}>{enrollment.status}</Badge>
+                    <>
+                      {/* Enrollments */}
+                      {enrollments.map((enrollment) => (
+                        <Card key={`enrollment-${enrollment.id}`} className="p-4">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <h3 className="font-semibold">{enrollment.classes.name}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                Instructeur: {enrollment.classes.instructors?.profiles?.full_name || "Non assigné"}
+                              </p>
+                              <div className="flex items-center gap-2 mt-2">
+                                <Badge variant="outline">{enrollment.classes.level}</Badge>
+                                <Badge variant={enrollment.status === "active" ? "default" : "secondary"}>{enrollment.status}</Badge>
+                                <Badge variant="secondary">Inscription</Badge>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm text-muted-foreground">Progression</p>
+                              <Progress value={enrollment.progress_level} className="w-24 mt-1" />
+                              <p className="text-xs text-muted-foreground mt-1">{enrollment.progress_level}%</p>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <p className="text-sm text-muted-foreground">Progression</p>
-                            <Progress value={enrollment.progress_level} className="w-24 mt-1" />
-                            <p className="text-xs text-muted-foreground mt-1">{enrollment.progress_level}%</p>
+                        </Card>
+                      ))}
+                      
+                      {/* Bookings */}
+                      {bookings.map((booking) => (
+                        <Card key={`booking-${booking.id}`} className="p-4 border-l-4 border-l-primary">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <h3 className="font-semibold">{booking.class_sessions.classes.name}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                Instructeur: {booking.class_sessions.classes.instructors?.profiles?.full_name || "Non assigné"}
+                              </p>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                <Clock className="h-4 w-4 inline mr-1" />
+                                {new Date(booking.class_sessions.session_date).toLocaleDateString('fr-FR')} à {new Date(booking.class_sessions.session_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                              <div className="flex items-center gap-2 mt-2">
+                                <Badge variant="outline">{booking.class_sessions.classes.level}</Badge>
+                                <Badge variant="default">Réservé</Badge>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </Card>
-                    ))
+                        </Card>
+                      ))}
+                    </>
                   )}
                 </div>
               </CardContent>
