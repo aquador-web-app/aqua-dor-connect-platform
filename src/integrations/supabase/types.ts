@@ -7,13 +7,40 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
   }
   public: {
     Tables: {
+      admin_settings: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          setting_key: string
+          setting_value: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       attendance: {
         Row: {
           class_session_id: string | null
@@ -81,31 +108,55 @@ export type Database = {
       bookings: {
         Row: {
           booking_date: string
+          cancellation_reason: string | null
+          cancelled_at: string | null
           class_session_id: string | null
           created_at: string
+          currency: string | null
           id: string
+          invoice_generated_at: string | null
+          invoice_number: string | null
+          modification_history: Json | null
+          modified_at: string | null
           notes: string | null
           status: string
+          total_amount: number | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
           booking_date?: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
           class_session_id?: string | null
           created_at?: string
+          currency?: string | null
           id?: string
+          invoice_generated_at?: string | null
+          invoice_number?: string | null
+          modification_history?: Json | null
+          modified_at?: string | null
           notes?: string | null
           status?: string
+          total_amount?: number | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
           booking_date?: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
           class_session_id?: string | null
           created_at?: string
+          currency?: string | null
           id?: string
+          invoice_generated_at?: string | null
+          invoice_number?: string | null
+          modification_history?: Json | null
+          modified_at?: string | null
           notes?: string | null
           status?: string
+          total_amount?: number | null
           updated_at?: string
           user_id?: string | null
         }
@@ -957,6 +1008,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      generate_invoice_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       generate_referral_code: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -968,21 +1023,21 @@ export type Database = {
       get_public_children_for_instructor: {
         Args: Record<PropertyKey, never>
         Returns: {
-          id: string
           first_name: string
+          id: string
           swimming_level: string
         }[]
       }
       get_public_instructors: {
         Args: Record<PropertyKey, never>
         Returns: {
-          id: string
-          full_name: string
+          avatar_url: string
           bio: string
-          specializations: string[]
           certifications: string[]
           experience_years: number
-          avatar_url: string
+          full_name: string
+          id: string
+          specializations: string[]
         }[]
       }
       get_user_role: {
@@ -990,16 +1045,16 @@ export type Database = {
         Returns: string
       }
       has_role: {
-        Args: { user_uuid: string; role_name: string }
+        Args: { role_name: string; user_uuid: string }
         Returns: boolean
       }
       log_security_event: {
         Args: {
           p_action: string
-          p_resource_type: string
-          p_resource_id?: string
-          p_old_values?: Json
           p_new_values?: Json
+          p_old_values?: Json
+          p_resource_id?: string
+          p_resource_type: string
         }
         Returns: string
       }
