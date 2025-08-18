@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { IntelligentCalendar } from "@/components/dashboard/IntelligentCalendar";
 import { ProfileModal } from "@/components/profile/ProfileModal";
 import { CalendarBookingSystem } from "@/components/dashboard/CalendarBookingSystem";
+import { StudentBookingManager } from "@/components/dashboard/StudentBookingManager";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const StudentPortal = () => {
@@ -194,7 +195,7 @@ const StudentPortal = () => {
                             <div className="flex-1">
                               <h3 className="font-semibold">{booking.class_sessions.classes.name}</h3>
                               <p className="text-sm text-muted-foreground">
-                                Instructeur: {booking.class_sessions.classes.instructors?.profiles?.full_name || "Non assigné"}
+                                Instructeur: {booking.class_sessions.instructors?.profiles?.full_name || "Non assigné"}
                               </p>
                               <p className="text-sm text-muted-foreground mt-1">
                                 <Clock className="h-4 w-4 inline mr-1" />
@@ -216,7 +217,13 @@ const StudentPortal = () => {
           </TabsContent>
 
           <TabsContent value="planning">
-            <IntelligentCalendar />
+            <div className="space-y-6">
+              <IntelligentCalendar />
+              <StudentBookingManager 
+                bookings={bookings} 
+                onBookingUpdated={refetch}
+              />
+            </div>
           </TabsContent>
 
           <TabsContent value="payments">
@@ -233,7 +240,7 @@ const StudentPortal = () => {
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">Total payé</span>
-                      <span className="font-semibold">{stats.totalPaid.toFixed(2)} HTG</span>
+                      <span className="font-semibold">${stats.totalPaid.toFixed(2)} USD</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">Paiements</span>
@@ -265,7 +272,7 @@ const StudentPortal = () => {
                         <div key={p.id} className="flex items-center justify-between border rounded p-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <p className="font-medium">{p.amount} {p.currency || 'HTG'}</p>
+                              <p className="font-medium">${p.amount} {p.currency || 'USD'}</p>
                               <Badge variant={p.status === 'completed' ? 'default' : 'secondary'}>
                                 {p.status === 'completed' ? 'Complété' : p.status}
                               </Badge>
@@ -278,27 +285,45 @@ const StudentPortal = () => {
                           </div>
                           <Button variant="outline" size="sm" onClick={() => {
                             const html = `
-                              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                                <h2>Reçu de Paiement - Aqua Dor</h2>
-                                <hr style="margin: 20px 0;">
-                                <p><strong>Montant:</strong> ${p.amount} ${p.currency || 'HTG'}</p>
-                                <p><strong>Date:</strong> ${new Date(p.created_at).toLocaleDateString('fr-FR')}</p>
-                                <p><strong>Statut:</strong> ${p.status}</p>
-                                <p><strong>Méthode de paiement:</strong> ${p.payment_method || 'N/A'}</p>
-                                ${p.transaction_id ? `<p><strong>ID Transaction:</strong> ${p.transaction_id}</p>` : ''}
-                                <hr style="margin: 20px 0;">
-                                <p style="font-size: 12px; color: #666;">Merci pour votre confiance !</p>
+                              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd;">
+                                <div style="text-align: center; margin-bottom: 30px;">
+                                  <h1 style="color: #0066cc; margin: 0;">A'qua D'or</h1>
+                                  <p style="margin: 5px 0; color: #666;">École de Natation</p>
+                                </div>
+                                
+                                <h2 style="color: #333; border-bottom: 2px solid #0066cc; padding-bottom: 10px;">Facture de Réservation</h2>
+                                
+                                <div style="margin: 20px 0;">
+                                  <p><strong>Numéro de facture:</strong> ${p.transaction_id || 'FAC-' + p.id.substring(0, 8).toUpperCase()}</p>
+                                  <p><strong>Date d'émission:</strong> ${new Date(p.created_at).toLocaleDateString('fr-FR')}</p>
+                                </div>
+                                
+                                <div style="background: #f5f5f5; padding: 15px; margin: 20px 0;">
+                                  <h3 style="margin-top: 0; color: #333;">Détails du Service</h3>
+                                  <p><strong>Service:</strong> Réservation de cours de natation</p>
+                                  <p><strong>Montant:</strong> $${p.amount} ${p.currency || 'USD'}</p>
+                                  <p><strong>Statut du paiement:</strong> ${p.status === 'completed' ? 'Payé' : 'En attente'}</p>
+                                  <p><strong>Méthode de paiement:</strong> ${p.payment_method || 'Non spécifiée'}</p>
+                                </div>
+                                
+                                ${p.transaction_id ? `<p><strong>ID de transaction:</strong> ${p.transaction_id}</p>` : ''}
+                                
+                                <hr style="margin: 30px 0;">
+                                <div style="text-align: center;">
+                                  <p style="font-size: 12px; color: #666; margin: 0;">Merci de votre confiance !</p>
+                                  <p style="font-size: 12px; color: #666; margin: 5px 0;">A'qua D'or - École de Natation</p>
+                                </div>
                               </div>
                             `;
                             const blob = new Blob([html], { type: 'text/html' });
                             const url = URL.createObjectURL(blob);
                             const a = document.createElement('a');
                             a.href = url;
-                            a.download = `recu-aqua-dor-${p.id.substring(0, 8)}.html`;
+                            a.download = `facture-aqua-dor-${p.id.substring(0, 8)}.html`;
                             a.click();
                             URL.revokeObjectURL(url);
                           }}>
-                            Télécharger
+                            Télécharger PDF
                           </Button>
                         </div>
                       ))}

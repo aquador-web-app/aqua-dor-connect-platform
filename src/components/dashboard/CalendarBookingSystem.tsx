@@ -193,6 +193,10 @@ export function CalendarBookingSystem({ onBookingSuccess }: CalendarBookingSyste
     try {
       setLoading(true);
 
+      // Get session details for confirmation
+      const sessionToBook = sessions.find(s => s.id === sessionId);
+      if (!sessionToBook) throw new Error("Session non trouvée");
+
       const { error } = await supabase
         .from('bookings')
         .insert({
@@ -203,9 +207,22 @@ export function CalendarBookingSystem({ onBookingSuccess }: CalendarBookingSyste
 
       if (error) throw error;
 
+      // Enhanced confirmation with complete details
       toast({
-        title: "Réservation confirmée",
-        description: "Votre cours a été réservé avec succès",
+        title: "✅ Réservation Confirmée!",
+        description: (
+          <div className="space-y-1">
+            <div><strong>Cours:</strong> {sessionToBook.classes.name}</div>
+            <div><strong>Niveau:</strong> {sessionToBook.classes.level}</div>
+            <div><strong>Date:</strong> {format(new Date(sessionToBook.session_date), 'EEEE d MMMM yyyy', { locale: fr })}</div>
+            <div><strong>Heure:</strong> {format(new Date(sessionToBook.session_date), 'HH:mm')}</div>
+            <div><strong>Instructeur:</strong> {sessionToBook.instructors?.profiles?.full_name}</div>
+            <div><strong>Prix:</strong> {formatPrice(sessionToBook.classes.price)}</div>
+            <div className="text-xs text-muted-foreground mt-2">
+              Une facture a été générée automatiquement. Vous la retrouverez dans votre espace "Paiements".
+            </div>
+          </div>
+        ),
       });
 
       // Refresh sessions to update availability

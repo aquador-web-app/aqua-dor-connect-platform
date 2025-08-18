@@ -37,6 +37,11 @@ interface Booking {
   status: string;
   booking_date: string;
   class_session_id: string;
+  invoice_number: string;
+  total_amount: number;
+  currency: string;
+  cancelled_at: string | null;
+  modification_history: any;
   class_sessions: {
     id: string;
     session_date: string;
@@ -44,11 +49,11 @@ interface Booking {
       name: string;
       level: string;
       description: string;
-      instructors: {
-        profiles: {
-          full_name: string;
-        };
-      } | null;
+    };
+    instructors: {
+      profiles: {
+        full_name: string;
+      };
     };
   };
 }
@@ -186,7 +191,7 @@ export const useStudentData = () => {
 
       setEnrollments(enrollmentsData || []);
 
-      // Get upcoming bookings
+      // Get upcoming bookings with enhanced fields
       const { data: bookingsData } = await supabase
         .from("bookings")
         .select(`
@@ -194,23 +199,28 @@ export const useStudentData = () => {
           status,
           booking_date,
           class_session_id,
+          invoice_number,
+          total_amount,
+          currency,
+          cancelled_at,
+          modification_history,
           class_sessions!inner (
             id,
             session_date,
             classes!inner (
               name,
               level,
-              description,
-              instructors (
-                profiles (
-                  full_name
-                )
+              description
+            ),
+            instructors (
+              profiles (
+                full_name
               )
             )
           )
         `)
         .eq("user_id", profile.id)
-        .eq("status", "confirmed")
+        .in("status", ["confirmed", "cancelled"])
         .gte("class_sessions.session_date", new Date().toISOString())
         .order("class_sessions.session_date", { ascending: true });
 
@@ -222,16 +232,38 @@ export const useStudentData = () => {
         .select("status, class_session_id")
         .eq("student_id", profile.id);
 
-      // Get payment data
-      const { data: paymentsData } = await supabase
-        .from("payments")
-        .select("id, amount, status, paid_at, created_at, currency, payment_method, transaction_id")
-        .eq("user_id", profile.id);
+      // Get payment data - now also including booking invoices
+      const [paymentsResult, bookingInvoicesResult] = await Promise.all([
+        supabase
+          .from("payments")
+          .select("id, amount, status, paid_at, created_at, currency, payment_method, transaction_id")
+          .eq("user_id", profile.id),
+        supabase
+          .from("bookings")
+          .select("id, invoice_number, total_amount, currency, created_at, invoice_generated_at, status")
+          .eq("user_id", profile.id)
+          .not("invoice_number", "is", null)
+      ]);
 
-      setPayments(paymentsData || []);
+      // Combine payments and booking invoices
+      const paymentsData = paymentsResult.data || [];
+      const bookingInvoices = (bookingInvoicesResult.data || []).map(invoice => ({
+        id: invoice.id,
+        amount: invoice.total_amount || 0,
+        status: invoice.status === 'confirmed' ? 'completed' : 'pending',
+        paid_at: invoice.invoice_generated_at,
+        created_at: invoice.created_at,
+        currency: invoice.currency || 'USD',
+        payment_method: 'Réservation de cours',
+        transaction_id: invoice.invoice_number
+      }));
+
+      const allPayments = [...paymentsData, ...bookingInvoices];
+
+      setPayments(allPayments);
 
       // Calculate stats
-      const totalPaid = paymentsData?.reduce((sum, payment) => 
+      const totalPaid = allPayments?.reduce((sum, payment) => 
         payment.status === "completed" ? sum + parseFloat(payment.amount.toString()) : sum, 0) || 0;
 
       const attendanceRate = attendanceRecords?.length > 0 
@@ -239,7 +271,7 @@ export const useStudentData = () => {
         : 0;
 
       // Get next payment due (simplified - you might want to implement proper payment scheduling)
-      const nextPaymentDue = paymentsData?.find(p => p.status === "pending")?.created_at || null;
+      const nextPaymentDue = allPayments?.find(p => p.status === "pending")?.created_at || null;
 
       // Calculate attendance data for chart
       const chartData = await calculateAttendanceData(profile.id);

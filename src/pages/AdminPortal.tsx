@@ -17,6 +17,7 @@ import { IntelligentCalendar } from "@/components/dashboard/IntelligentCalendar"
 import AdminCalendar from "@/components/dashboard/AdminCalendar";
 import { useAuth } from "@/hooks/useAuth";
 import { Toaster } from "@/components/ui/toaster";
+import { AdminReservationManager } from "@/components/dashboard/AdminReservationManager";
 
 function AdminPortal() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -41,16 +42,18 @@ function AdminPortal() {
         return <InstructorManagement />;
       case "courses":
         return <CourseManagement />;
-      case "calendar":
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold">Calendrier et Réservations</h2>
-              <p className="text-muted-foreground">Gérez les sessions de cours et les réservations</p>
+        case "reservations":
+          return <AdminReservationManager />;
+        case "calendar":
+          return (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold">Calendrier et Réservations</h2>
+                <p className="text-muted-foreground">Gérez les sessions de cours et les réservations</p>
+              </div>
+              <AdminCalendar />
             </div>
-            <AdminCalendar />
-          </div>
-        );
+          );
       case "payments":
         return canManagePayments() ? <PaymentOverview /> : (
           <div className="text-center p-8">
