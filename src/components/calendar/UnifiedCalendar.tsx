@@ -334,9 +334,9 @@ export function UnifiedCalendar({
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
         {/* Calendar */}
-        <Card className="lg:col-span-1">
+        <Card className="xl:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <CalendarIcon className="h-5 w-5" />
@@ -348,13 +348,13 @@ export function UnifiedCalendar({
               </CardDescription>
             )}
           </CardHeader>
-          <CardContent>
-            <div className="relative">
+          <CardContent className="p-6">
+            <div className="flex justify-center">
               <Calendar
                 mode="single"
                 selected={selectedDate}
                 onSelect={(date) => date && setSelectedDate(date)}
-                className="rounded-md border w-full"
+                className="rounded-md border"
                 disabled={(date) => {
                   const today = new Date();
                   today.setHours(0, 0, 0, 0);
@@ -375,21 +375,21 @@ export function UnifiedCalendar({
             </div>
             
             {/* Legend */}
-            <div className="mt-4 space-y-2 text-xs">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                <span>Cours disponibles</span>
+            <div className="mt-6 space-y-3 text-sm">
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 rounded-full bg-primary"></div>
+                <span className="text-muted-foreground">Cours disponibles</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                <span>Réservations</span>
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 rounded-full bg-destructive"></div>
+                <span className="text-muted-foreground">Réservations</span>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Sessions List */}
-        <Card className="lg:col-span-2">
+        <Card className="xl:col-span-3">
           <CardHeader>
             <CardTitle>
               {format(selectedDate, 'EEEE d MMMM yyyy', { locale: fr })}
