@@ -4,7 +4,7 @@ import HeroSection from "@/components/home/HeroSection";
 import FeaturesSection from "@/components/home/FeaturesSection";
 import ClassesPreview from "@/components/home/ClassesPreview";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
-import { IntelligentCalendar } from "@/components/dashboard/IntelligentCalendar";
+import { UnifiedCalendar } from "@/components/calendar/UnifiedCalendar";
 import { DynamicContent } from "@/components/home/DynamicContent";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -36,7 +36,7 @@ const Index = () => {
             <TabsContent value="booking" className="mt-8">
               <div className="grid gap-8 lg:grid-cols-3">
                 <div className="lg:col-span-2">
-                  <IntelligentCalendar />
+                  <UnifiedCalendar mode="public" showBookingActions={true} maxDaysAhead={90} />
                 </div>
                 <div>
                   {/* Upcoming list replacing any previous "Today's activity" concept */}

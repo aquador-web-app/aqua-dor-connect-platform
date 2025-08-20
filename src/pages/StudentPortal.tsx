@@ -13,7 +13,7 @@ import Header from "@/components/layout/Header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { IntelligentCalendar } from "@/components/dashboard/IntelligentCalendar";
 import { ProfileModal } from "@/components/profile/ProfileModal";
-import { CalendarBookingSystem } from "@/components/dashboard/CalendarBookingSystem";
+import { UnifiedCalendar } from "@/components/calendar/UnifiedCalendar";
 import { StudentBookingManager } from "@/components/dashboard/StudentBookingManager";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
@@ -70,10 +70,7 @@ const StudentPortal = () => {
               <DialogHeader>
                 <DialogTitle>Réservation de Cours</DialogTitle>
               </DialogHeader>
-              <CalendarBookingSystem onBookingSuccess={() => {
-                setIsBookingOpen(false);
-                refetch(); // Refresh data after booking
-              }} />
+              <UnifiedCalendar mode="student" showBookingActions={true} maxDaysAhead={30} />
             </DialogContent>
           </Dialog>
         </div>
@@ -81,7 +78,7 @@ const StudentPortal = () => {
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="grid w-full grid-cols-4 mb-6">
             <TabsTrigger value="overview">Aperçu</TabsTrigger>
-            <TabsTrigger value="planning">Planning</TabsTrigger>
+            <TabsTrigger value="booking">Réservation</TabsTrigger>
             <TabsTrigger value="payments">Paiements</TabsTrigger>
             <TabsTrigger value="profile">Profil</TabsTrigger>
           </TabsList>
@@ -216,14 +213,8 @@ const StudentPortal = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="planning">
-            <div className="space-y-6">
-              <IntelligentCalendar />
-              <StudentBookingManager 
-                bookings={bookings} 
-                onBookingUpdated={refetch}
-              />
-            </div>
+          <TabsContent value="booking" className="space-y-4">
+            <UnifiedCalendar mode="student" showBookingActions={true} maxDaysAhead={30} />
           </TabsContent>
 
           <TabsContent value="payments">
