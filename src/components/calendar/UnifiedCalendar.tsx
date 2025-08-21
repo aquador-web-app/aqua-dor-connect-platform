@@ -67,6 +67,8 @@ export function UnifiedCalendar({
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [sessions, setSessions] = useState<ClassSession[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [monthSessions, setMonthSessions] = useState<ClassSession[]>([]);
+  const [monthReservations, setMonthReservations] = useState<Reservation[]>([]);
   const [indicators, setIndicators] = useState<CalendarIndicators>({});
   const [loading, setLoading] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
@@ -138,13 +140,19 @@ export function UnifiedCalendar({
     
     setLoading(true);
     try {
+      // Fetch data for the entire month to show indicators properly
+      const startOfMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+      const endOfMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0);
+      endOfMonth.setHours(23, 59, 59, 999);
+
+      // For detailed view, use the selected date
       const startOfDay = new Date(selectedDate);
       startOfDay.setHours(0, 0, 0, 0);
       const endOfDay = new Date(selectedDate);
       endOfDay.setHours(23, 59, 59, 999);
 
-      // Fetch class sessions with booking counts
-      const { data: sessionsData, error: sessionsError } = await supabase
+      // Fetch class sessions with booking counts for the month (for indicators)
+      const { data: monthSessionsData, error: monthSessionsError } = await supabase
         .from('class_sessions')
         .select(`
           id,
@@ -170,32 +178,49 @@ export function UnifiedCalendar({
             status
           )
         `)
-        .gte('session_date', startOfDay.toISOString())
-        .lte('session_date', endOfDay.toISOString())
+        .gte('session_date', startOfMonth.toISOString())
+        .lte('session_date', endOfMonth.toISOString())
         .eq('status', 'scheduled')
         .order('session_date');
 
-      if (sessionsError) throw sessionsError;
-      setSessions(sessionsData || []);
+      if (monthSessionsError) throw monthSessionsError;
+      
+      // Store all month sessions for indicators
+      setMonthSessions(monthSessionsData || []);
+
+      // Filter sessions for the selected day
+      const daySessionsData = monthSessionsData?.filter(session => 
+        isSameDay(new Date(session.session_date), selectedDate)
+      ) || [];
+      setSessions(daySessionsData);
 
       // Fetch reservations based on user permissions
       if (mode === 'admin' || (user && profile)) {
-        let reservationQuery = supabase
+        // Month reservations for indicators
+        let monthReservationQuery = supabase
           .from('reservations')
           .select('*')
-          .gte('reservation_date', startOfDay.toISOString())
-          .lte('reservation_date', endOfDay.toISOString())
+          .gte('reservation_date', startOfMonth.toISOString())
+          .lte('reservation_date', endOfMonth.toISOString())
           .eq('status', 'confirmed');
 
         // Students only see their own reservations
         if (mode === 'student' && profile) {
-          reservationQuery = reservationQuery.eq('student_id', profile.id);
+          monthReservationQuery = monthReservationQuery.eq('student_id', profile.id);
         }
 
-        const { data: reservationsData, error: reservationsError } = await reservationQuery;
+        const { data: monthReservationsData, error: monthReservationsError } = await monthReservationQuery;
         
-        if (reservationsError) throw reservationsError;
-        setReservations(reservationsData || []);
+        if (monthReservationsError) throw monthReservationsError;
+        
+        // Store all month reservations for indicators
+        setMonthReservations(monthReservationsData || []);
+        
+        // Filter reservations for the selected day
+        const dayReservationsData = monthReservationsData?.filter(reservation =>
+          isSameDay(new Date(reservation.reservation_date), selectedDate)
+        ) || [];
+        setReservations(dayReservationsData);
       }
 
     } catch (error) {
@@ -275,8 +300,8 @@ export function UnifiedCalendar({
   const getDateIndicators = (date: Date) => {
     const indicators: Array<{ type: string; color: string }> = [];
     
-    // Check for class sessions on this date
-    const hasAdminSessions = sessions.some(session => 
+    // Check for class sessions on this date (using month data for proper indicators)
+    const hasAdminSessions = monthSessions.some(session => 
       isSameDay(new Date(session.session_date), date)
     );
     
@@ -287,8 +312,8 @@ export function UnifiedCalendar({
       });
     }
 
-    // Check for student reservations on this date
-    const hasStudentReservations = reservations.some(reservation =>
+    // Check for student reservations on this date (using month data for proper indicators)
+    const hasStudentReservations = monthReservations.some(reservation =>
       isSameDay(new Date(reservation.reservation_date), date)
     );
     

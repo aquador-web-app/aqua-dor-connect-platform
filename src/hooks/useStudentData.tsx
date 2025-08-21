@@ -250,7 +250,7 @@ export const useStudentData = () => {
       const bookingInvoices = (bookingInvoicesResult.data || []).map(invoice => ({
         id: invoice.id,
         amount: invoice.total_amount || 0,
-        status: invoice.status === 'confirmed' ? 'completed' : 'pending',
+        status: invoice.status === 'confirmed' && invoice.invoice_generated_at ? 'completed' : 'pending',
         paid_at: invoice.invoice_generated_at,
         created_at: invoice.created_at,
         currency: invoice.currency || 'USD',

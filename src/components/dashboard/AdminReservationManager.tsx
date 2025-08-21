@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Calendar, Clock, User, DollarSign, Eye, Download, Search, Filter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -45,6 +46,8 @@ export function AdminReservationManager() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
+  const [selectedReservation, setSelectedReservation] = useState<AdminReservation | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -112,6 +115,11 @@ export function AdminReservationManager() {
     return () => {
       supabase.removeChannel(channel);
     };
+  };
+
+  const handleViewReservation = (reservation: AdminReservation) => {
+    setSelectedReservation(reservation);
+    setShowDetailModal(true);
   };
 
   const exportToCSV = () => {
@@ -353,13 +361,18 @@ export function AdminReservationManager() {
                         </span>
                       </TableCell>
                       
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+                       <TableCell>
+                         <div className="flex items-center gap-2">
+                           <Button 
+                             variant="ghost" 
+                             size="sm" 
+                             className="h-8 w-8 p-0"
+                             onClick={() => handleViewReservation(reservation)}
+                           >
+                             <Eye className="h-4 w-4" />
+                           </Button>
+                         </div>
+                       </TableCell>
                     </TableRow>
                   ))
                 )}
@@ -372,6 +385,82 @@ export function AdminReservationManager() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Reservation Detail Modal */}
+      <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Détails de la Réservation</DialogTitle>
+          </DialogHeader>
+          {selectedReservation && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h3 className="font-semibold text-sm text-muted-foreground">ÉTUDIANT</h3>
+                  <p className="font-medium">{selectedReservation.profiles?.full_name || 'N/A'}</p>
+                  <p className="text-sm text-muted-foreground">{selectedReservation.profiles?.email || 'N/A'}</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-sm text-muted-foreground">STATUT</h3>
+                  <Badge variant={getStatusVariant(selectedReservation)}>
+                    {getStatusText(selectedReservation.status)}
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h3 className="font-semibold text-sm text-muted-foreground">COURS</h3>
+                  <p className="font-medium">{selectedReservation.class_sessions?.classes?.name || 'N/A'}</p>
+                  <Badge variant="outline" className="text-xs mt-1">
+                    {selectedReservation.class_sessions?.classes?.level || 'N/A'}
+                  </Badge>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-sm text-muted-foreground">INSTRUCTEUR</h3>
+                  <p className="font-medium">{selectedReservation.class_sessions?.instructors?.profiles?.full_name || 'N/A'}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h3 className="font-semibold text-sm text-muted-foreground">DATE ET HEURE</h3>
+                  <p className="font-medium">
+                    {selectedReservation.class_sessions?.session_date ? 
+                      format(new Date(selectedReservation.class_sessions.session_date), 'dd MMMM yyyy à HH:mm', { locale: fr }) 
+                      : 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-sm text-muted-foreground">MONTANT</h3>
+                  <p className="font-medium">
+                    {selectedReservation.total_amount || 0} {selectedReservation.currency || 'USD'}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-sm text-muted-foreground">NUMÉRO DE FACTURE</h3>
+                <p className="font-mono text-sm">{selectedReservation.invoice_number || 'N/A'}</p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-sm text-muted-foreground">DATE DE RÉSERVATION</h3>
+                <p className="font-medium">
+                  {format(new Date(selectedReservation.booking_date), 'dd MMMM yyyy à HH:mm', { locale: fr })}
+                </p>
+              </div>
+
+              {selectedReservation.cancellation_reason && (
+                <div>
+                  <h3 className="font-semibold text-sm text-muted-foreground">RAISON D'ANNULATION</h3>
+                  <p className="text-sm">{selectedReservation.cancellation_reason}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

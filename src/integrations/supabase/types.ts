@@ -119,6 +119,7 @@ export type Database = {
           modification_history: Json | null
           modified_at: string | null
           notes: string | null
+          payment_verified: boolean | null
           status: string
           total_amount: number | null
           updated_at: string
@@ -137,6 +138,7 @@ export type Database = {
           modification_history?: Json | null
           modified_at?: string | null
           notes?: string | null
+          payment_verified?: boolean | null
           status?: string
           total_amount?: number | null
           updated_at?: string
@@ -155,6 +157,7 @@ export type Database = {
           modification_history?: Json | null
           modified_at?: string | null
           notes?: string | null
+          payment_verified?: boolean | null
           status?: string
           total_amount?: number | null
           updated_at?: string
@@ -171,6 +174,85 @@ export type Database = {
           {
             foreignKeyName: "bookings_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bulletins: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          behavior_notes: string | null
+          created_at: string
+          id: string
+          instructor_id: string
+          period: string
+          progress_notes: string | null
+          recommendations: string | null
+          sent_at: string | null
+          status: string
+          student_id: string
+          submitted_at: string | null
+          swimming_level: string | null
+          technical_skills: Json | null
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          behavior_notes?: string | null
+          created_at?: string
+          id?: string
+          instructor_id: string
+          period: string
+          progress_notes?: string | null
+          recommendations?: string | null
+          sent_at?: string | null
+          status?: string
+          student_id: string
+          submitted_at?: string | null
+          swimming_level?: string | null
+          technical_skills?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          behavior_notes?: string | null
+          created_at?: string
+          id?: string
+          instructor_id?: string
+          period?: string
+          progress_notes?: string | null
+          recommendations?: string | null
+          sent_at?: string | null
+          status?: string
+          student_id?: string
+          submitted_at?: string | null
+          swimming_level?: string | null
+          technical_skills?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bulletins_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bulletins_instructor_id_fkey"
+            columns: ["instructor_id"]
+            isOneToOne: false
+            referencedRelation: "instructors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bulletins_student_id_fkey"
+            columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -650,6 +732,7 @@ export type Database = {
           transaction_id: string | null
           updated_at: string
           user_id: string | null
+          verified: boolean | null
         }
         Insert: {
           amount: number
@@ -663,6 +746,7 @@ export type Database = {
           transaction_id?: string | null
           updated_at?: string
           user_id?: string | null
+          verified?: boolean | null
         }
         Update: {
           amount?: number
@@ -676,6 +760,7 @@ export type Database = {
           transaction_id?: string | null
           updated_at?: string
           user_id?: string | null
+          verified?: boolean | null
         }
         Relationships: [
           {
@@ -925,6 +1010,115 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          created_at: string
+          currency: string
+          description: string | null
+          duration_months: number
+          features: Json | null
+          id: string
+          is_active: boolean | null
+          name: string
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          description?: string | null
+          duration_months?: number
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          price: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          description?: string | null
+          duration_months?: number
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      technical_sheets: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          evaluations: Json | null
+          id: string
+          instructor_id: string
+          sent_at: string | null
+          skills: Json | null
+          status: string
+          student_id: string
+          submitted_at: string | null
+          techniques: Json | null
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          evaluations?: Json | null
+          id?: string
+          instructor_id: string
+          sent_at?: string | null
+          skills?: Json | null
+          status?: string
+          student_id: string
+          submitted_at?: string | null
+          techniques?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          evaluations?: Json | null
+          id?: string
+          instructor_id?: string
+          sent_at?: string | null
+          skills?: Json | null
+          status?: string
+          student_id?: string
+          submitted_at?: string | null
+          techniques?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "technical_sheets_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "technical_sheets_instructor_id_fkey"
+            columns: ["instructor_id"]
+            isOneToOne: false
+            referencedRelation: "instructors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "technical_sheets_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_balances: {
         Row: {

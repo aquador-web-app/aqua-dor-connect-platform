@@ -8,7 +8,9 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Plus, Edit, Eye, EyeOff, Image, Video } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FileText, Plus, Edit, Eye, EyeOff, Image, Video, BookOpen, FileCheck } from "lucide-react";
+import { BulletinManager } from "./BulletinManager";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -242,8 +244,20 @@ export function ContentManager() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div>
         <h2 className="text-2xl font-bold">Gestion de Contenu</h2>
+        <p className="text-muted-foreground">Gérez le contenu du site et les bulletins étudiants</p>
+      </div>
+
+      <Tabs defaultValue="content" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="content">Contenu Site</TabsTrigger>
+          <TabsTrigger value="bulletins">Bulletins</TabsTrigger>
+          <TabsTrigger value="technical">Fiches Techniques</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="content" className="space-y-6">
+          <div className="flex justify-between items-center">
         <Dialog open={showDialog} onOpenChange={setShowDialog}>
           <DialogTrigger asChild>
             <Button onClick={() => { resetForm(); setEditingContent(null); }}>
@@ -365,7 +379,7 @@ export function ContentManager() {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {contents.map((content) => (
           <Card key={content.id}>
             <CardHeader>
@@ -447,6 +461,28 @@ export function ContentManager() {
           </CardContent>
         </Card>
       )}
+        </TabsContent>
+        
+        <TabsContent value="bulletins">
+          <BulletinManager />
+        </TabsContent>
+        
+        <TabsContent value="technical">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileCheck className="h-5 w-5" />
+                Fiches Techniques
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                La gestion des fiches techniques sera implémentée prochainement.
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
