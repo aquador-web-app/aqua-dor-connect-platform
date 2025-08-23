@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Calendar, BarChart3, MessageSquare, FileText, Settings, Scan } from "lucide-react";
-import { BarcodeScanner } from "@/components/dashboard/BarcodeScanner";
+import { EnhancedBarcodeScanner } from "@/components/dashboard/EnhancedBarcodeScanner";
 import { AttendanceChart } from "@/components/dashboard/AttendanceChart";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { InstructorAnalytics } from "@/components/dashboard/InstructorAnalytics";
@@ -123,7 +123,7 @@ const CoachPortal = () => {
           </TabsContent>
 
           <TabsContent value="scanner" className="mt-6">
-            <BarcodeScanner />
+            <EnhancedBarcodeScanner />
           </TabsContent>
 
           <TabsContent value="reports" className="mt-6">

@@ -17,6 +17,7 @@ import { UnifiedCalendar } from "@/components/calendar/UnifiedCalendar";
 import { StudentBookingManager } from "@/components/dashboard/StudentBookingManager";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PaymentSystem } from "@/components/dashboard/PaymentSystem";
+import { ReferralSystem } from "@/components/dashboard/ReferralSystem";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -437,7 +438,19 @@ const StudentPortal = () => {
           </TabsContent>
 
           <TabsContent value="subscription">
-            <PaymentSystem />
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Programme de Parrainage</CardTitle>
+                  <CardDescription>Invitez vos amis et gagnez des réductions</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ReferralSystem />
+                </CardContent>
+              </Card>
+              
+              <PaymentSystem />
+            </div>
           </TabsContent>
 
           <TabsContent value="profile">

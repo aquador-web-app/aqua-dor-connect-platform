@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useRef } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 interface UserProfile {
@@ -272,6 +272,27 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       redirectToRoleBasedPortal
     }}>
       {children}
+      
+      {idleWarning && (
+        <Dialog open={idleWarning} onOpenChange={() => {}}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Session bientôt expirée</DialogTitle>
+            </DialogHeader>
+            <div className="text-center py-4">
+              <p className="mb-4">Votre session va expirer dans {countdown} secondes par inactivité.</p>
+              <div className="flex gap-2 justify-center">
+                <Button onClick={staySignedIn} className="flex-1">
+                  Rester connecté
+                </Button>
+                <Button variant="outline" onClick={signOut} className="flex-1">
+                  Se déconnecter
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </AuthContext.Provider>
   );
 };
