@@ -385,7 +385,15 @@ export function UnifiedCalendar({
                   today.setHours(0, 0, 0, 0);
                   const maxDate = new Date();
                   maxDate.setDate(maxDate.getDate() + maxDaysAhead);
-                  return date < today || date > maxDate;
+                  const isSunday = date.getDay() === 0;
+                  const isPastOrFuture = date < today || date > maxDate;
+                  
+                  // Disable Sundays for non-admin users
+                  if (isSunday && !isAdmin) {
+                    return true;
+                  }
+                  
+                  return isPastOrFuture;
                 }}
                 modifiers={{
                   hasIndicator: (date) => getDateIndicators(date).length > 0
