@@ -103,7 +103,7 @@ export const useStudentData = () => {
         `)
         .eq("student_id", profileId)
         .gte("class_sessions.session_date", eightWeeksAgo.toISOString())
-        .order("class_sessions.session_date", { ascending: true });
+        .order("created_at", { ascending: true });
 
       if (!attendanceRecords || attendanceRecords.length === 0) {
         return [];
@@ -222,7 +222,7 @@ export const useStudentData = () => {
         .eq("user_id", profile.id)
         .in("status", ["confirmed", "cancelled"])
         .gte("class_sessions.session_date", new Date().toISOString())
-        .order("class_sessions.session_date", { ascending: true });
+        .order("booking_date", { ascending: true });
 
       setBookings(bookingsData || []);
 

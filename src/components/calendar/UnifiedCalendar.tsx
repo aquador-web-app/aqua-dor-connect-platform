@@ -271,6 +271,8 @@ export function UnifiedCalendar({
     }
 
     try {
+      console.log('Attempting to book session:', sessionId, 'for profile:', profile.id);
+      
       const { error } = await supabase
         .from('bookings')
         .insert({
@@ -279,7 +281,10 @@ export function UnifiedCalendar({
           status: 'confirmed'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Booking error:', error);
+        throw error;
+      }
 
       toast({
         title: "✅ Réservation Confirmée!",
@@ -291,7 +296,7 @@ export function UnifiedCalendar({
       console.error('Error booking session:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de réserver cette session",
+        description: error.message || "Impossible de réserver cette session",
         variant: "destructive",
       });
     }
