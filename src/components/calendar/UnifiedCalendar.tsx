@@ -73,6 +73,8 @@ export function UnifiedCalendar({
   const [loading, setLoading] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState<ClassSession | null>(null);
+  const [studentEnrollments, setStudentEnrollments] = useState<string[]>([]);
+  const [attendaneRecords, setAttendanceRecords] = useState<{ [key: string]: 'present' | 'absent' }>({});
 
   const { user, profile, isAdmin } = useAuth();
   const { toast } = useToast();
@@ -112,6 +114,20 @@ export function UnifiedCalendar({
       }, () => {
         fetchCalendarData();
       })
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'attendance' 
+      }, () => {
+        fetchCalendarData();
+      })
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'enrollments' 
+      }, () => {
+        fetchCalendarData();
+      })
       .subscribe();
 
     return () => {
@@ -125,7 +141,7 @@ export function UnifiedCalendar({
         .from('admin_settings')
         .select('setting_value')
         .eq('setting_key', 'calendar_indicators')
-        .single();
+        .maybeSingle();
 
       if (data?.setting_value) {
         setIndicators(data.setting_value as CalendarIndicators);
@@ -183,7 +199,12 @@ export function UnifiedCalendar({
         .eq('status', 'scheduled')
         .order('session_date');
 
-      if (monthSessionsError) throw monthSessionsError;
+      if (monthSessionsError) {
+        console.error('Error fetching month sessions:', monthSessionsError);
+        throw monthSessionsError;
+      }
+      
+      console.log('Fetched month sessions:', monthSessionsData?.length || 0);
       
       // Store all month sessions for indicators
       setMonthSessions(monthSessionsData || []);
@@ -192,7 +213,41 @@ export function UnifiedCalendar({
       const daySessionsData = monthSessionsData?.filter(session => 
         isSameDay(new Date(session.session_date), selectedDate)
       ) || [];
+      
+      console.log('Sessions for selected day:', daySessionsData.length);
       setSessions(daySessionsData);
+
+      // Fetch student enrollments and attendance if in student mode
+      let enrollments: string[] = [];
+      let attendanceMap: { [key: string]: 'present' | 'absent' } = {};
+      
+      if (mode === 'student' && profile) {
+        // Get student enrollments
+        const { data: enrollmentData } = await supabase
+          .from('enrollments')
+          .select('class_id')
+          .eq('student_id', profile.id)
+          .eq('status', 'active');
+        
+        enrollments = enrollmentData?.map(e => e.class_id) || [];
+        
+        // Get attendance records for today's sessions
+        const sessionIds = daySessionsData.map(s => s.id);
+        if (sessionIds.length > 0) {
+          const { data: attendanceData } = await supabase
+            .from('attendance')
+            .select('class_session_id, status')
+            .eq('student_id', profile.id)
+            .in('class_session_id', sessionIds);
+          
+          attendanceData?.forEach(record => {
+            attendanceMap[record.class_session_id] = record.status as 'present' | 'absent';
+          });
+        }
+      }
+      
+      setStudentEnrollments(enrollments);
+      setAttendanceRecords(attendanceMap);
 
       // Fetch reservations based on user permissions
       if (mode === 'admin' || (user && profile)) {
@@ -211,7 +266,10 @@ export function UnifiedCalendar({
 
         const { data: monthReservationsData, error: monthReservationsError } = await monthReservationQuery;
         
-        if (monthReservationsError) throw monthReservationsError;
+        if (monthReservationsError) {
+          console.error('Error fetching month reservations:', monthReservationsError);
+          throw monthReservationsError;
+        }
         
         // Store all month reservations for indicators
         setMonthReservations(monthReservationsData || []);
@@ -227,7 +285,7 @@ export function UnifiedCalendar({
       console.error('Error fetching calendar data:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de charger les données du calendrier",
+        description: "Impossible de charger les données du calendrier: " + (error.message || 'Erreur inconnue'),
         variant: "destructive",
       });
     } finally {
@@ -355,6 +413,55 @@ export function UnifiedCalendar({
     return session.max_participants - confirmedBookings;
   };
 
+  const handleAttendanceMarking = async (sessionId: string, status: 'present' | 'absent') => {
+    if (!user || !profile) {
+      toast({
+        title: "Connexion requise",
+        description: "Veuillez vous connecter pour marquer votre présence",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      console.log('Marking attendance:', sessionId, status, 'for profile:', profile.id);
+      
+      const { error } = await supabase
+        .from('attendance')
+        .upsert({
+          student_id: profile.id,
+          class_session_id: sessionId,
+          status: status,
+          marked_by: profile.id,
+          marked_by_role: 'student'
+        });
+
+      if (error) {
+        console.error('Attendance error:', error);
+        throw error;
+      }
+
+      // Update local attendance records
+      setAttendanceRecords(prev => ({
+        ...prev,
+        [sessionId]: status
+      }));
+
+      toast({
+        title: "✅ Présence Marquée!",
+        description: `Votre présence a été marquée comme ${status === 'present' ? 'présent' : 'absent'}`,
+      });
+
+    } catch (error) {
+      console.error('Error marking attendance:', error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de marquer votre présence",
+        variant: "destructive",
+      });
+    }
+  };
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -451,6 +558,8 @@ export function UnifiedCalendar({
                 {sessions.map((session) => {
                   const availableSpots = getAvailableSpots(session);
                   const isBooked = session.bookings?.some(b => b.user_id === profile?.id && b.status === 'confirmed');
+                  const isEnrolled = mode === 'student' && studentEnrollments.includes(session.classes.id);
+                  const attendanceStatus = attendaneRecords[session.id];
                   
                   return (
                     <Card key={session.id} className="border-l-4 border-l-blue-500">
@@ -461,6 +570,7 @@ export function UnifiedCalendar({
                               <BookOpen className="h-5 w-5 text-blue-500" />
                               <h3 className="font-semibold">{session.classes.name}</h3>
                               <Badge variant="secondary">{session.classes.level}</Badge>
+                              {isEnrolled && <Badge variant="outline">Inscrit</Badge>}
                             </div>
                             
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-muted-foreground">
@@ -488,9 +598,39 @@ export function UnifiedCalendar({
                             <div className="text-sm text-muted-foreground">
                               Instructeur: {session.instructors.profiles.full_name}
                             </div>
+                            
+                            {/* Attendance Marking for Enrolled Students */}
+                            {isEnrolled && mode === 'student' && (
+                              <div className="mt-3 p-3 bg-blue-50 rounded-md border border-blue-200">
+                                <div className="text-sm font-medium mb-2">Marquer votre présence:</div>
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant={attendanceStatus === 'present' ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => handleAttendanceMarking(session.id, 'present')}
+                                    className="flex items-center gap-1"
+                                  >
+                                    ✓ Présent
+                                  </Button>
+                                  <Button
+                                    variant={attendanceStatus === 'absent' ? 'destructive' : 'outline'}
+                                    size="sm"
+                                    onClick={() => handleAttendanceMarking(session.id, 'absent')}
+                                    className="flex items-center gap-1"
+                                  >
+                                    ✗ Absent
+                                  </Button>
+                                </div>
+                                {attendanceStatus && (
+                                  <div className="text-xs text-muted-foreground mt-2">
+                                    Statut actuel: {attendanceStatus === 'present' ? 'Présent' : 'Absent'}
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
 
-                          {showBookingActions && mode !== 'admin' && (
+                          {showBookingActions && mode !== 'admin' && !isEnrolled && (
                             <div className="ml-4">
                               {isBooked ? (
                                 <Badge variant="default">Réservé</Badge>
