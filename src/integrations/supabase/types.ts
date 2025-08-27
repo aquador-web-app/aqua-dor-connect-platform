@@ -259,6 +259,60 @@ export type Database = {
           },
         ]
       }
+      cashout_requests: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          notes: string | null
+          payment_details: Json | null
+          payment_method: string | null
+          processed_at: string | null
+          processed_by: string | null
+          profile_id: string | null
+          status: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_details?: Json | null
+          payment_method?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          profile_id?: string | null
+          status?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_details?: Json | null
+          payment_method?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          profile_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cashout_requests_processed_by_fkey"
+            columns: ["processed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cashout_requests_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       children: {
         Row: {
           age: number | null
@@ -591,6 +645,47 @@ export type Database = {
         }
         Relationships: []
       }
+      influencer_accounts: {
+        Row: {
+          balance: number
+          commission_rate: number
+          created_at: string
+          id: string
+          profile_id: string | null
+          status: string
+          total_referrals: number
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          commission_rate?: number
+          created_at?: string
+          id?: string
+          profile_id?: string | null
+          status?: string
+          total_referrals?: number
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          commission_rate?: number
+          created_at?: string
+          id?: string
+          profile_id?: string | null
+          status?: string
+          total_referrals?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "influencer_accounts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       instructors: {
         Row: {
           availability: Json | null
@@ -779,6 +874,53 @@ export type Database = {
           },
         ]
       }
+      pricing_plans: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          currency: string
+          description: string | null
+          duration_minutes: number
+          id: string
+          is_active: boolean
+          name: string
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          duration_minutes: number
+          id?: string
+          is_active?: boolean
+          name: string
+          price: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_plans_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           address: string | null
@@ -832,6 +974,57 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      referral_credits: {
+        Row: {
+          created_at: string
+          credit_amount: number
+          credit_type: string
+          expires_at: string | null
+          id: string
+          profile_id: string | null
+          referral_id: string | null
+          status: string
+          used_amount: number
+        }
+        Insert: {
+          created_at?: string
+          credit_amount: number
+          credit_type: string
+          expires_at?: string | null
+          id?: string
+          profile_id?: string | null
+          referral_id?: string | null
+          status?: string
+          used_amount?: number
+        }
+        Update: {
+          created_at?: string
+          credit_amount?: number
+          credit_type?: string
+          expires_at?: string | null
+          id?: string
+          profile_id?: string | null
+          referral_id?: string | null
+          status?: string
+          used_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_credits_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_credits_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       referrals: {
         Row: {
@@ -1010,6 +1203,55 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      student_pricing_assignments: {
+        Row: {
+          assigned_by: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          pricing_plan_id: string | null
+          student_id: string | null
+        }
+        Insert: {
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          pricing_plan_id?: string | null
+          student_id?: string | null
+        }
+        Update: {
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          pricing_plan_id?: string | null
+          student_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_pricing_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_pricing_assignments_pricing_plan_id_fkey"
+            columns: ["pricing_plan_id"]
+            isOneToOne: false
+            referencedRelation: "pricing_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_pricing_assignments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscription_plans: {
         Row: {
@@ -1198,6 +1440,10 @@ export type Database = {
       }
     }
     Functions: {
+      calculate_referral_credits: {
+        Args: { referrer_profile_id: string }
+        Returns: undefined
+      }
       generate_barcode: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -1212,6 +1458,10 @@ export type Database = {
       }
       generate_secure_password: {
         Args: { length?: number }
+        Returns: string
+      }
+      generate_user_referral_code: {
+        Args: { user_dob: string; user_full_name: string }
         Returns: string
       }
       get_public_children_for_instructor: {
