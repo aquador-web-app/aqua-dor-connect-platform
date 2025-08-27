@@ -7,26 +7,15 @@ import { EnhancedBarcodeScanner } from "@/components/dashboard/EnhancedBarcodeSc
 import { AttendanceChart } from "@/components/dashboard/AttendanceChart";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { InstructorAnalytics } from "@/components/dashboard/InstructorAnalytics";
+import { InstructorStudentManager } from "@/components/dashboard/InstructorStudentManager";
+import { BulletinManager } from "@/components/dashboard/BulletinManager";
 import { useAuth } from "@/hooks/useAuth";
+import { useInstructorStats } from "@/hooks/useInstructorStats";
 
 const CoachPortal = () => {
   const { profile, isInstructor, hasAnyRole } = useAuth();
+  const { stats: instructorStats, loading: statsLoading } = useInstructorStats();
   const [activeTab, setActiveTab] = useState("overview");
-
-  // Mock data for instructor stats
-  const instructorStats = {
-    totalStudents: 24,
-    classesThisWeek: 8,
-    averageRating: 4.8,
-    completedSessions: 156
-  };
-
-  const attendanceData = [
-    { week: "S1", attendance: 85 },
-    { week: "S2", attendance: 92 },
-    { week: "S3", attendance: 88 },
-    { week: "S4", attendance: 95 },
-  ];
 
   if (!isInstructor() && !hasAnyRole(['admin', 'co_admin'])) {
     return (
@@ -59,31 +48,53 @@ const CoachPortal = () => {
           </TabsList>
 
           <TabsContent value="overview" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-              <StatCard
-                title="Total Élèves"
-                value={instructorStats.totalStudents}
-                icon={Users}
-              />
-              <StatCard
-                title="Cours cette semaine"
-                value={instructorStats.classesThisWeek}
-                icon={Calendar}
-              />
-              <StatCard
-                title="Note moyenne"
-                value={instructorStats.averageRating}
-                icon={BarChart3}
-              />
-              <StatCard
-                title="Sessions terminées"
-                value={instructorStats.completedSessions}
-                icon={FileText}
-              />
-            </div>
+            {statsLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                {[...Array(4)].map((_, i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardContent className="p-6">
+                      <div className="h-16 bg-muted rounded"></div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <StatCard
+                  title="Total Élèves"
+                  value={instructorStats?.totalStudents || 0}
+                  icon={Users}
+                />
+                <StatCard
+                  title="Cours cette semaine"
+                  value={instructorStats?.classesThisWeek || 0}
+                  icon={Calendar}
+                />
+                <StatCard
+                  title="Note moyenne"
+                  value={instructorStats?.averageRating || 0}
+                  icon={BarChart3}
+                />
+                <StatCard
+                  title="Sessions terminées"
+                  value={instructorStats?.completedSessions || 0}
+                  icon={FileText}
+                />
+              </div>
+            )}
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <AttendanceChart data={attendanceData} title="Présence de mes élèves" />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Sessions à venir</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-primary">
+                    {instructorStats?.upcomingSessions || 0}
+                  </div>
+                  <p className="text-muted-foreground">sessions programmées</p>
+                </CardContent>
+              </Card>
               <Card>
                 <CardHeader>
                   <CardTitle>Actions rapides</CardTitle>
@@ -111,15 +122,7 @@ const CoachPortal = () => {
           </TabsContent>
 
           <TabsContent value="students" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Mes Élèves</CardTitle>
-                <CardDescription>Liste et gestion de vos élèves</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Fonctionnalité de gestion des élèves en développement...</p>
-              </CardContent>
-            </Card>
+            <InstructorStudentManager />
           </TabsContent>
 
           <TabsContent value="scanner" className="mt-6">
@@ -127,15 +130,7 @@ const CoachPortal = () => {
           </TabsContent>
 
           <TabsContent value="reports" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Rapports d'Évaluation</CardTitle>
-                <CardDescription>Créer des rapports sur le progrès des élèves</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Système de rapports en développement...</p>
-              </CardContent>
-            </Card>
+            <BulletinManager />
           </TabsContent>
 
         </Tabs>
