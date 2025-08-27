@@ -450,7 +450,7 @@ const StudentPortal = () => {
                 </CardContent>
               </Card>
               
-              <PaymentSystem />
+              <EnhancedPaymentSystem />
             </div>
           </TabsContent>
 
