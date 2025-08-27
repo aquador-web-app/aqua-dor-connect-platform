@@ -92,18 +92,53 @@ const Header = () => {
             </Button>
           </div>
 
-          {/* Portal Access Buttons */}
-          <div className="hidden md:flex items-center space-x-2">
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/admin-login">Admin</Link>
-            </Button>
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/coach-login">Coach</Link>
-            </Button>
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/student-portal">Student</Link>
-            </Button>
-          </div>
+          {/* Portal Access Buttons - Role-based */}
+          {user && userRole && (
+            <div className="hidden md:flex items-center space-x-2">
+              {(userRole === 'admin' || userRole === 'co_admin') && (
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/admin-portal">
+                    {userRole === 'admin' ? 'Admin Dashboard' : 'Co-Admin Dashboard'}
+                  </Link>
+                </Button>
+              )}
+              {userRole === 'instructor' && (
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/coach-portal">Coach Dashboard</Link>
+                </Button>
+              )}
+              {userRole === 'student' && (
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/student-portal">Student Dashboard</Link>
+                </Button>
+              )}
+              {userRole === 'parent' && (
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/parent-portal">Parent Dashboard</Link>
+                </Button>
+              )}
+              {userRole === 'influencer' && (
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/influencer-portal">Influencer Dashboard</Link>
+                </Button>
+              )}
+            </div>
+          )}
+          
+          {/* Login Buttons for non-authenticated users */}
+          {!user && (
+            <div className="hidden md:flex items-center space-x-2">
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/admin-login">Admin</Link>
+              </Button>
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/coach-login">Coach</Link>
+              </Button>
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/auth">Student</Link>
+              </Button>
+            </div>
+          )}
 
           {/* Auth Section */}
           <div className="hidden md:flex items-center space-x-2">

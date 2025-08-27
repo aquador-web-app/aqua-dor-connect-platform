@@ -196,7 +196,7 @@ export function UnifiedCalendar({
         `)
         .gte('session_date', startOfMonth.toISOString())
         .lte('session_date', endOfMonth.toISOString())
-        .eq('status', 'scheduled')
+        .eq('classes.is_active', true)
         .order('session_date');
 
       if (monthSessionsError) {
