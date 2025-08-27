@@ -159,55 +159,91 @@ const StudentPortal = () => {
             <Card className="mb-8">
               <CardHeader>
                 <CardTitle>Mes Cours Actuels</CardTitle>
-                <CardDescription>Vos inscriptions actives</CardDescription>
+                <CardDescription>Vos inscriptions actives et réservations confirmées</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {enrollments.length === 0 && bookings.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">Aucun cours actuel</div>
+                    <div className="text-center py-8 text-muted-foreground">
+                      <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p className="mb-2">Aucun cours actuel</p>
+                      <p className="text-sm">Commencez par réserver un cours dans l'onglet "Réservation"</p>
+                    </div>
                   ) : (
                     <>
-                      {/* Enrollments */}
-                      {enrollments.map((enrollment) => (
-                        <Card key={`enrollment-${enrollment.id}`} className="p-4">
+                      {/* Show upcoming bookings first - most important */}
+                      {bookings.filter(booking => new Date(booking.class_sessions.session_date) > new Date()).map((booking) => (
+                        <Card key={`upcoming-booking-${booking.id}`} className="p-4 border-l-4 border-l-green-500 bg-green-50/50">
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
-                              <h3 className="font-semibold">{enrollment.classes.name}</h3>
-                              <p className="text-sm text-muted-foreground">
-                                Instructeur: {enrollment.classes.instructors?.profiles?.full_name || "Non assigné"}
-                              </p>
-                              <div className="flex items-center gap-2 mt-2">
-                                <Badge variant="outline">{enrollment.classes.level}</Badge>
-                                <Badge variant={enrollment.status === "active" ? "default" : "secondary"}>{enrollment.status}</Badge>
-                                <Badge variant="secondary">Inscription</Badge>
+                              <div className="flex items-center gap-2 mb-2">
+                                <Calendar className="h-4 w-4 text-green-600" />
+                                <h3 className="font-semibold">{booking.class_sessions.classes.name}</h3>
+                                <Badge variant="default" className="bg-green-600">Prochaine session</Badge>
                               </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm text-muted-foreground">Progression</p>
-                              <Progress value={enrollment.progress_level} className="w-24 mt-1" />
-                              <p className="text-xs text-muted-foreground mt-1">{enrollment.progress_level}%</p>
+                              <p className="text-sm text-muted-foreground mb-1">
+                                Instructeur: {booking.class_sessions.instructors?.profiles?.full_name || "Non assigné"}
+                              </p>
+                              <p className="text-sm font-medium text-green-700 mb-2">
+                                <Clock className="h-4 w-4 inline mr-1" />
+                                {format(new Date(booking.class_sessions.session_date), 'EEEE d MMMM yyyy à HH:mm', { locale: fr })}
+                              </p>
+                              <div className="flex items-center gap-2">
+                                <Badge variant="outline">{booking.class_sessions.classes.level}</Badge>
+                                <Badge variant="default">Réservé</Badge>
+                                {booking.total_amount > 0 && (
+                                  <Badge variant="secondary">${booking.total_amount} {booking.currency}</Badge>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </Card>
                       ))}
                       
-                      {/* Bookings */}
-                      {bookings.map((booking) => (
-                        <Card key={`booking-${booking.id}`} className="p-4 border-l-4 border-l-primary">
+                      {/* Enrollments - ongoing courses */}
+                      {enrollments.map((enrollment) => (
+                        <Card key={`enrollment-${enrollment.id}`} className="p-4 border-l-4 border-l-blue-500">
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
-                              <h3 className="font-semibold">{booking.class_sessions.classes.name}</h3>
-                              <p className="text-sm text-muted-foreground">
-                                Instructeur: {booking.class_sessions.instructors?.profiles?.full_name || "Non assigné"}
-                              </p>
-                              <p className="text-sm text-muted-foreground mt-1">
-                                <Clock className="h-4 w-4 inline mr-1" />
-                                {new Date(booking.class_sessions.session_date).toLocaleDateString('fr-FR')} à {new Date(booking.class_sessions.session_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                              </p>
-                              <div className="flex items-center gap-2 mt-2">
-                                <Badge variant="outline">{booking.class_sessions.classes.level}</Badge>
-                                <Badge variant="default">Réservé</Badge>
+                              <div className="flex items-center gap-2 mb-2">
+                                <BookOpen className="h-4 w-4 text-blue-600" />
+                                <h3 className="font-semibold">{enrollment.classes.name}</h3>
+                                <Badge variant="secondary">Cours régulier</Badge>
                               </div>
+                              <p className="text-sm text-muted-foreground mb-2">
+                                Instructeur: {enrollment.classes.instructors?.profiles?.full_name || "Non assigné"}
+                              </p>
+                              <div className="flex items-center gap-2 mb-3">
+                                <Badge variant="outline">{enrollment.classes.level}</Badge>
+                                <Badge variant={enrollment.status === "active" ? "default" : "secondary"}>
+                                  {enrollment.status === "active" ? "Actif" : enrollment.status}
+                                </Badge>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <div className="text-sm text-muted-foreground">
+                                  Progression: {enrollment.progress_level}%
+                                </div>
+                                <Progress value={enrollment.progress_level} className="w-24" />
+                              </div>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                      
+                      {/* Past bookings - less prominent */}
+                      {bookings.filter(booking => new Date(booking.class_sessions.session_date) <= new Date()).slice(0, 2).map((booking) => (
+                        <Card key={`past-booking-${booking.id}`} className="p-4 opacity-60 border-l-4 border-l-gray-400">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Clock className="h-4 w-4 text-gray-600" />
+                                <h3 className="font-semibold text-gray-700">{booking.class_sessions.classes.name}</h3>
+                                <Badge variant="outline" className="text-xs">Terminé</Badge>
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                {format(new Date(booking.class_sessions.session_date), 'dd/MM/yyyy à HH:mm', { locale: fr })} • 
+                                {booking.class_sessions.instructors?.profiles?.full_name || "Non assigné"}
+                              </p>
                             </div>
                           </div>
                         </Card>
@@ -221,67 +257,139 @@ const StudentPortal = () => {
 
           <TabsContent value="booking" className="space-y-4">
             <div className="space-y-6">
-              {/* Current Enrollments and Bookings for easy access */}
+              {/* Enhanced Active Reservations Display */}
               <Card>
                 <CardHeader>
                   <CardTitle>Mes Réservations Actives</CardTitle>
-                  <CardDescription>Vos cours réservés et inscriptions en cours</CardDescription>
+                  <CardDescription>
+                    Vos cours réservés et inscriptions en cours
+                    {enrollments.length + bookings.length > 0 && (
+                      <span className="ml-2 font-semibold">
+                        ({enrollments.length + bookings.length} total)
+                      </span>
+                    )}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     {enrollments.length === 0 && bookings.length === 0 ? (
-                      <div className="text-center py-6 text-muted-foreground">
-                        <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>Aucune réservation active</p>
-                        <p className="text-sm">Utilisez le calendrier ci-dessous pour réserver un cours</p>
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Calendar className="h-16 w-16 mx-auto mb-4 opacity-30" />
+                        <h3 className="font-semibold mb-2">Aucune réservation active</h3>
+                        <p className="text-sm mb-4">Découvrez nos cours disponibles et réservez votre première session</p>
+                        <Button 
+                          className="bg-gradient-accent" 
+                          onClick={() => {
+                            // Scroll to calendar
+                            const calendar = document.querySelector('[data-calendar]');
+                            calendar?.scrollIntoView({ behavior: 'smooth' });
+                          }}
+                        >
+                          <Calendar className="h-4 w-4 mr-2" />
+                          Voir le calendrier
+                        </Button>
                       </div>
                     ) : (
                       <>
-                        {/* Show enrollments */}
+                        {/* Priority: Upcoming single sessions */}
+                        {bookings
+                          .filter(booking => new Date(booking.class_sessions.session_date) > new Date())
+                          .sort((a, b) => new Date(a.class_sessions.session_date).getTime() - new Date(b.class_sessions.session_date).getTime())
+                          .map((booking) => (
+                            <Card key={`upcoming-booking-${booking.id}`} className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 shadow-sm">
+                              <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                    <h4 className="font-semibold text-sm">{booking.class_sessions.classes.name}</h4>
+                                    <Badge variant="default" className="text-xs bg-green-600 text-white">
+                                      Prochaine session
+                                    </Badge>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground mb-1">
+                                    📅 {format(new Date(booking.class_sessions.session_date), 'EEEE d MMMM à HH:mm', { locale: fr })}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    👨‍🏫 {booking.class_sessions.instructors?.profiles?.full_name || "Instructeur à confirmer"}
+                                  </p>
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <Badge variant="outline" className="text-xs">{booking.class_sessions.classes.level}</Badge>
+                                    {booking.total_amount > 0 && (
+                                      <Badge variant="secondary" className="text-xs">${booking.total_amount}</Badge>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <Badge variant="default" className="text-xs mb-1">Confirmé</Badge>
+                                  <p className="text-xs text-muted-foreground">
+                                    {format(new Date(booking.class_sessions.session_date), 'dd/MM', { locale: fr })}
+                                  </p>
+                                </div>
+                              </div>
+                            </Card>
+                          ))}
+                        
+                        {/* Ongoing enrollments */}
                         {enrollments.map((enrollment) => (
-                          <Card key={`booking-enrollment-${enrollment.id}`} className="p-3 bg-blue-50 border-blue-200">
+                          <Card key={`active-enrollment-${enrollment.id}`} className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
                             <div className="flex justify-between items-start">
                               <div className="flex-1">
-                                <h4 className="font-semibold text-sm">{enrollment.classes.name}</h4>
-                                <p className="text-xs text-muted-foreground">
-                                  Inscription - {enrollment.classes.instructors?.profiles?.full_name || "Non assigné"}
+                                <div className="flex items-center gap-2 mb-1">
+                                  <BookOpen className="h-4 w-4 text-blue-600" />
+                                  <h4 className="font-semibold text-sm">{enrollment.classes.name}</h4>
+                                  <Badge variant="secondary" className="text-xs">Cours régulier</Badge>
+                                </div>
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  👨‍🏫 {enrollment.classes.instructors?.profiles?.full_name || "Instructeur à confirmer"}
                                 </p>
-                                <div className="flex items-center gap-2 mt-1">
+                                <div className="flex items-center gap-2 mt-2">
                                   <Badge variant="outline" className="text-xs">{enrollment.classes.level}</Badge>
-                                  <Badge variant="default" className="text-xs">Actif</Badge>
+                                  <Badge variant="default" className="text-xs">
+                                    {enrollment.status === "active" ? "Actif" : enrollment.status}
+                                  </Badge>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-xs text-muted-foreground mb-1">Progression</div>
+                                <div className="flex items-center gap-2">
+                                  <Progress value={enrollment.progress_level} className="w-16 h-2" />
+                                  <span className="text-xs font-medium">{enrollment.progress_level}%</span>
                                 </div>
                               </div>
                             </div>
                           </Card>
                         ))}
                         
-                        {/* Show bookings */}
-                        {bookings.map((booking) => (
-                          <Card key={`booking-session-${booking.id}`} className="p-3 bg-green-50 border-green-200">
-                            <div className="flex justify-between items-start">
-                              <div className="flex-1">
-                                <h4 className="font-semibold text-sm">{booking.class_sessions.classes.name}</h4>
-                                <p className="text-xs text-muted-foreground">
-                                  {format(new Date(booking.class_sessions.session_date), 'EEEE d MMMM yyyy à HH:mm', { locale: fr })}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {booking.class_sessions.instructors?.profiles?.full_name || "Non assigné"}
-                                </p>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <Badge variant="outline" className="text-xs">{booking.class_sessions.classes.level}</Badge>
-                                  <Badge variant="default" className="text-xs">Réservé</Badge>
+                        {/* Recent past sessions - less prominent */}
+                        {bookings
+                          .filter(booking => new Date(booking.class_sessions.session_date) <= new Date())
+                          .slice(0, 3)
+                          .map((booking) => (
+                            <Card key={`past-booking-${booking.id}`} className="p-3 bg-gray-50 border-gray-200 opacity-70">
+                              <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                                    <h4 className="font-medium text-sm text-gray-700">{booking.class_sessions.classes.name}</h4>
+                                    <Badge variant="outline" className="text-xs">Terminé</Badge>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">
+                                    {format(new Date(booking.class_sessions.session_date), 'dd/MM/yyyy à HH:mm', { locale: fr })}
+                                  </p>
                                 </div>
                               </div>
-                            </div>
-                          </Card>
-                        ))}
+                            </Card>
+                          ))}
                       </>
                     )}
                   </div>
                 </CardContent>
               </Card>
               
-              <UnifiedCalendar mode="student" showBookingActions={true} maxDaysAhead={30} />
+              
+              <div data-calendar>
+                <UnifiedCalendar mode="student" showBookingActions={true} maxDaysAhead={30} />
+              </div>
             </div>
           </TabsContent>
 

@@ -410,7 +410,18 @@ export function UnifiedCalendar({
 
   const getAvailableSpots = (session: ClassSession) => {
     const confirmedBookings = session.bookings?.filter(b => b.status === 'confirmed').length || 0;
-    return session.max_participants - confirmedBookings;
+    const availableSpots = session.max_participants - confirmedBookings;
+    return Math.max(0, availableSpots); // Ensure never negative
+  };
+
+  const isSessionFull = (session: ClassSession) => {
+    return getAvailableSpots(session) === 0;
+  };
+
+  const isSessionAlmostFull = (session: ClassSession) => {
+    const available = getAvailableSpots(session);
+    const threshold = Math.ceil(session.max_participants * 0.2); // 20% or less remaining
+    return available <= threshold && available > 0;
   };
 
   const handleAttendanceMarking = async (sessionId: string, status: 'present' | 'absent') => {
