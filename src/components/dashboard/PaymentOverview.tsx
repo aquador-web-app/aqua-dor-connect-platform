@@ -116,7 +116,7 @@ export function PaymentOverview() {
       Date: format(new Date(payment.created_at), 'dd/MM/yyyy HH:mm'),
       Client: payment.profiles.full_name,
       Email: payment.profiles.email,
-      Montant: `${payment.amount} ${payment.currency}`,
+      Montant: `$${payment.amount}`,
       Statut: payment.status,
       Méthode: payment.payment_method || 'Non spécifié',
       Transaction: payment.transaction_id || 'N/A'
@@ -214,7 +214,7 @@ export function PaymentOverview() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalRevenue.toLocaleString()}€</div>
+            <div className="text-2xl font-bold">${stats.totalRevenue.toLocaleString()}</div>
           </CardContent>
         </Card>
         
@@ -227,7 +227,7 @@ export function PaymentOverview() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {stats.monthlyRevenue.toLocaleString()}€
+              ${stats.monthlyRevenue.toLocaleString()}
             </div>
           </CardContent>
         </Card>
@@ -249,7 +249,7 @@ export function PaymentOverview() {
             <CardTitle className="text-sm font-medium">Ticket Moyen</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.averageTransaction.toFixed(0)}€</div>
+            <div className="text-2xl font-bold">${stats.averageTransaction.toFixed(0)}</div>
           </CardContent>
         </Card>
         
@@ -334,7 +334,7 @@ export function PaymentOverview() {
                     </div>
                   </TableCell>
                   <TableCell className="font-semibold">
-                    {payment.amount.toLocaleString()} {payment.currency}
+                    ${payment.amount.toLocaleString()}
                   </TableCell>
                   <TableCell>
                     {payment.payment_method || 'Non spécifié'}
