@@ -112,20 +112,21 @@ export function BulletinManager() {
   const fetchStudents = async () => {
     try {
       // Get students based on role
-      let query;
+      let data, error;
+      
       if (isAdmin) {
-        query = supabase
+        const result = await supabase
           .from('profiles')
           .select('id, full_name')
           .not('full_name', 'is', null);
+        data = result.data;
+        error = result.error;
       } else {
-        // For instructors, get only their assigned students
-        query = supabase
-          .from('public_children_view')
-          .select('id, first_name');
+        // For instructors, use secure function to get only their assigned students
+        const result = await supabase.rpc('get_public_children_for_instructor');
+        data = result.data;
+        error = result.error;
       }
-
-      const { data, error } = await query;
       if (error) throw error;
       
       const studentData = data?.map(student => ({
