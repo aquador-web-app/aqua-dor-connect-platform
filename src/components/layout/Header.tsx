@@ -95,10 +95,10 @@ const Header = () => {
           {/* Portal Access Buttons */}
           <div className="hidden md:flex items-center space-x-2">
             <Button variant="outline" size="sm" asChild>
-              <Link to="/admin-portal">Admin</Link>
+              <Link to="/admin-login">Admin</Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
-              <Link to="/coach-portal">Coach</Link>
+              <Link to="/coach-login">Coach</Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
               <Link to="/student-portal">Student</Link>
