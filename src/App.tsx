@@ -20,6 +20,7 @@ import AdminPortal from "./pages/AdminPortal";
 import AdminLogin from "./pages/AdminLogin";
 import CoachLogin from "./pages/CoachLogin";
 import ParentPortal from "./pages/ParentPortal";
+import InfluencerPortal from "./pages/InfluencerPortal";
 import CompleteProfile from "./pages/CompleteProfile";
 import NotFound from "./pages/NotFound";
 
@@ -74,6 +75,14 @@ const App = () => (
                   element={
                     <ProtectedRoute allowedRoles={["parent"]}>
                       <ParentPortal />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/influencer-portal" 
+                  element={
+                    <ProtectedRoute allowedRoles={["influencer"]}>
+                      <InfluencerPortal />
                     </ProtectedRoute>
                   } 
                 />

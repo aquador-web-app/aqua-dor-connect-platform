@@ -245,6 +245,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         return '/student-portal';
       case 'parent':
         return '/parent-portal';
+      case 'influencer':
+        return '/influencer-portal';
       default:
         return '/';
     }

@@ -92,28 +92,19 @@ const Header = () => {
             </Button>
           </div>
 
-          {/* Role Buttons (hidden on portal routes) */}
-          {!isPortalRoute && (
+          {/* Universal Portal Access (hidden on portal routes) */}
+          {!isPortalRoute && user && (
             <div className="hidden md:flex items-center space-x-2">
-              {user ? (
-                <Button variant="outline" size="sm" asChild>
-                  <Link to={redirectToRoleBasedPortal(userRole || 'student')}>
-                    {userRole === 'admin' ? 'Admin' : userRole === 'instructor' ? 'Coach' : 'Student'}
-                  </Link>
-                </Button>
-              ) : (
-                <>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link to="/admin-login">Admin</Link>
-                  </Button>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link to="/coach-login">Coach</Link>
-                  </Button>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link to="/auth">Student</Link>
-                  </Button>
-                </>
-              )}
+              <Button variant="outline" size="sm" asChild>
+                <Link to={redirectToRoleBasedPortal(userRole || 'student')}>
+                  {userRole === 'admin' ? 'Portail Admin' : 
+                   userRole === 'co_admin' ? 'Portail Co-Admin' :
+                   userRole === 'instructor' ? 'Portail Coach' : 
+                   userRole === 'parent' ? 'Portail Parent' :
+                   userRole === 'influencer' ? 'Portail Influenceur' : 
+                   'Portail Étudiant'}
+                </Link>
+              </Button>
             </div>
           )}
 

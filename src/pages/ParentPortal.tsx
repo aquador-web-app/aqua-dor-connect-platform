@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ParentChildManager } from "@/components/dashboard/ParentChildManager";
 import { IntelligentCalendar } from "@/components/dashboard/IntelligentCalendar";
+import { EnhancedPaymentSystem } from "@/components/dashboard/EnhancedPaymentSystem";
 
 export default function ParentPortal() {
   const [tab, setTab] = useState("children");
@@ -35,10 +36,10 @@ export default function ParentPortal() {
           <TabsContent value="payments" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Paiements</CardTitle>
+                <CardTitle>Paiements Familiaux</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">Historique des paiements disponible prochainement.</p>
+                <EnhancedPaymentSystem isAdmin={false} />
               </CardContent>
             </Card>
           </TabsContent>
