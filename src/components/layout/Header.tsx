@@ -92,21 +92,18 @@ const Header = () => {
             </Button>
           </div>
 
-          {/* Universal Portal Access (hidden on portal routes) */}
-          {!isPortalRoute && user && (
-            <div className="hidden md:flex items-center space-x-2">
-              <Button variant="outline" size="sm" asChild>
-                <Link to={redirectToRoleBasedPortal(userRole || 'student')}>
-                  {userRole === 'admin' ? 'Portail Admin' : 
-                   userRole === 'co_admin' ? 'Portail Co-Admin' :
-                   userRole === 'instructor' ? 'Portail Coach' : 
-                   userRole === 'parent' ? 'Portail Parent' :
-                   userRole === 'influencer' ? 'Portail Influenceur' : 
-                   'Portail Étudiant'}
-                </Link>
-              </Button>
-            </div>
-          )}
+          {/* Portal Access Buttons */}
+          <div className="hidden md:flex items-center space-x-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/admin-portal">Admin</Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/coach-portal">Coach</Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/student-portal">Student</Link>
+            </Button>
+          </div>
 
           {/* Auth Section */}
           <div className="hidden md:flex items-center space-x-2">
