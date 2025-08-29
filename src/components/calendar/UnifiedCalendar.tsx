@@ -482,9 +482,10 @@ export function UnifiedCalendar({
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Calendar */}
-        <Card className="lg:col-span-1">
+      {/* 2x2 Grid Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Calendar - Top Left */}
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <CalendarIcon className="h-5 w-5" />
@@ -544,8 +545,8 @@ export function UnifiedCalendar({
           </CardContent>
         </Card>
 
-        {/* Sessions List */}
-        <Card className="lg:col-span-2">
+        {/* Sessions List - Top Right */}
+        <Card>
           <CardHeader>
             <CardTitle>
               {format(selectedDate, 'EEEE d MMMM yyyy', { locale: fr })}
