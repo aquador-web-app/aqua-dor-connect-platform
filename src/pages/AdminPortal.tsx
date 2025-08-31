@@ -18,6 +18,7 @@ import { UnifiedCalendar } from "@/components/calendar/UnifiedCalendar";
 import { useAuth } from "@/hooks/useAuth";
 import { Toaster } from "@/components/ui/toaster";
 import { AdminReservationManager } from "@/components/dashboard/AdminReservationManager";
+import { EnhancedBarcodeScanner } from "@/components/dashboard/EnhancedBarcodeScanner";
 
 function AdminPortal() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -44,6 +45,16 @@ function AdminPortal() {
         return <CourseManagement />;
         case "reservations":
           return <AdminReservationManager />;
+        case "attendance":
+          return (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold">Gestion des Présences</h2>
+                <p className="text-muted-foreground">Scanner les codes-barres des étudiants pour marquer leur présence</p>
+              </div>
+              <EnhancedBarcodeScanner />
+            </div>
+          );
         case "calendar":
           return (
             <div className="space-y-6">

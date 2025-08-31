@@ -1,58 +1,144 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Scan, User, CheckCircle, XCircle, Search } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { QrCode, Search, UserCheck, CheckCircle, AlertTriangle } from "lucide-react";
+import { format } from "date-fns";
 
-interface StudentProfile {
+interface StudentInfo {
   id: string;
   full_name: string;
   email: string;
   barcode: string;
-  avatar_url: string | null;
+  phone?: string;
+  avatar_url?: string;
 }
 
 interface AttendanceRecord {
   id: string;
   student_id: string;
+  status: string;
   marked_at: string;
-  present: boolean;
-  profiles: StudentProfile;
+  notes?: string;
+  student_profile: {
+    full_name: string;
+  };
 }
 
 export function EnhancedBarcodeScanner() {
-  const { user, hasAnyRole } = useAuth();
+  const { profile, hasRole } = useAuth();
   const { toast } = useToast();
   const [barcodeInput, setBarcodeInput] = useState("");
-  const [scannedStudent, setScannedStudent] = useState<StudentProfile | null>(null);
+  const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null);
   const [recentAttendance, setRecentAttendance] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(false);
+  const [scanning, setScanning] = useState(false);
+
+  // Only co-admins can use barcode scanning
+  const canScan = hasRole('admin') || hasRole('co_admin');
 
   useEffect(() => {
-    fetchRecentAttendance();
-  }, []);
+    if (canScan) {
+      fetchRecentAttendance();
+    }
+  }, [canScan]);
+
+  const handleBarcodeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!barcodeInput.trim()) return;
+
+    await processBarcode(barcodeInput.trim());
+  };
+
+  const processBarcode = async (barcode: string) => {
+    if (!canScan) {
+      toast({
+        title: "Accès refusé",
+        description: "Seuls les co-administrateurs peuvent scanner les codes-barres",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Find student by barcode
+      const { data: student, error } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, barcode, phone, avatar_url')
+        .eq('barcode', barcode)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (!student) {
+        toast({
+          title: "Code-barre non trouvé",
+          description: "Aucun étudiant trouvé avec ce code-barre",
+          variant: "destructive"
+        });
+        setStudentInfo(null);
+        return;
+      }
+
+      setStudentInfo(student);
+
+      // Mark attendance
+      const { error: attendanceError } = await supabase
+        .from('attendance')
+        .insert({
+          student_id: student.id,
+          status: 'present',
+          marked_by: profile?.id,
+          marked_by_role: 'co_admin',
+          marked_at: new Date().toISOString(),
+          notes: `Scanné par ${profile?.full_name || 'Co-Admin'}`
+        });
+
+      if (attendanceError) throw attendanceError;
+
+      toast({
+        title: "Présence enregistrée",
+        description: `${student.full_name} marqué(e) comme présent(e)`,
+        variant: "default"
+      });
+
+      // Fetch recent attendance
+      await fetchRecentAttendance();
+      
+      // Clear the input
+      setBarcodeInput("");
+      
+      // Auto-clear student info after 3 seconds
+      setTimeout(() => {
+        setStudentInfo(null);
+      }, 3000);
+
+    } catch (error: any) {
+      console.error('Error processing barcode:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de traiter le code-barre",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchRecentAttendance = async () => {
     try {
       const { data, error } = await supabase
         .from('attendance')
         .select(`
-          id,
-          student_id,
-          marked_at,
-          present,
-          profiles:student_id (
-            id,
-            full_name,
-            email,
-            barcode,
-            avatar_url
-          )
+          *,
+          student_profile:profiles!attendance_student_id_fkey(full_name)
         `)
         .order('marked_at', { ascending: false })
         .limit(10);
@@ -64,234 +150,146 @@ export function EnhancedBarcodeScanner() {
     }
   };
 
-  const searchStudentByBarcode = async (barcode: string) => {
-    if (!barcode.trim()) return null;
-
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select(`
-          id,
-          full_name,
-          email,
-          barcode,
-          avatar_url
-        `)
-        .eq('barcode', barcode.trim().toUpperCase())
-        .maybeSingle();
-
-      if (error) throw error;
-      return data as StudentProfile;
-    } catch (error) {
-      console.error('Error searching student:', error);
-      return null;
-    }
+  const startBarcodeScanning = () => {
+    setScanning(true);
+    toast({
+      title: "Scanner activé",
+      description: "Scannez le code-barre ou tapez-le manuellement",
+    });
   };
 
-  const markAttendance = async (studentId: string, present: boolean = true) => {
-    try {
-      const { error } = await supabase
-        .from('attendance')
-        .insert({
-          student_id: studentId,
-          marked_by: user?.id,
-          marked_by_role: hasAnyRole(['admin', 'co_admin']) ? 'admin' : 'instructor',
-          present,
-          status: present ? 'present' : 'absent',
-          marked_at: new Date().toISOString()
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Présence enregistrée",
-        description: `${scannedStudent?.full_name} a été marqué(e) comme ${present ? 'présent(e)' : 'absent(e)'}`,
-      });
-
-      // Refresh recent attendance
-      fetchRecentAttendance();
-      
-      // Clear scanned student after a short delay
-      setTimeout(() => {
-        setScannedStudent(null);
-        setBarcodeInput("");
-      }, 2000);
-
-    } catch (error) {
-      console.error('Error marking attendance:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible d'enregistrer la présence",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleBarcodeInput = async (barcode: string) => {
-    setBarcodeInput(barcode);
-    
-    if (barcode.length >= 6) { // Minimum barcode length
-      setLoading(true);
-      
-      const student = await searchStudentByBarcode(barcode);
-      
-      if (student) {
-        setScannedStudent(student);
-        toast({
-          title: "Étudiant trouvé",
-          description: `${student.full_name} identifié`,
-        });
-      } else {
-        toast({
-          title: "Code invalide",
-          description: "Aucun étudiant trouvé avec ce code-barres",
-          variant: "destructive"
-        });
-        setBarcodeInput("");
-      }
-      
-      setLoading(false);
-    }
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase();
-  };
-
-  return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold mb-2">Scanner de Présence</h2>
-        <p className="text-muted-foreground">
-          Scannez ou saisissez le code-barres de l'étudiant pour marquer sa présence
-        </p>
-      </div>
-
-      {/* Barcode Input */}
+  if (!canScan) {
+    return (
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Scan className="h-5 w-5" />
-            Scanner / Saisir le Code
+            <QrCode className="h-5 w-5" />
+            Scanner de Code-barre
           </CardTitle>
-          <CardDescription>
-            Scannez avec un lecteur de code-barres ou saisissez manuellement
-          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="flex gap-2">
-              <Input
-                placeholder="Code-barres (ex: AQ12345678)"
-                value={barcodeInput}
-                onChange={(e) => handleBarcodeInput(e.target.value.toUpperCase())}
-                className="font-mono text-lg"
-                autoFocus
-              />
-              <Button 
-                variant="outline" 
-                onClick={() => handleBarcodeInput(barcodeInput)}
-                disabled={loading || !barcodeInput.trim()}
-              >
-                <Search className="h-4 w-4" />
-              </Button>
-            </div>
-            
-            {loading && (
-              <div className="text-center text-muted-foreground">
-                Recherche en cours...
-              </div>
-            )}
-          </div>
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              Seuls les co-administrateurs ont accès au scanner de code-barre pour marquer les présences.
+            </AlertDescription>
+          </Alert>
         </CardContent>
       </Card>
+    );
+  }
 
-      {/* Scanned Student */}
-      {scannedStudent && (
-        <Card className="border-primary bg-primary/5">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-primary">
-              <User className="h-5 w-5" />
-              Étudiant Identifié
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-4 mb-6">
-              <Avatar className="h-16 w-16">
-                <AvatarImage src={scannedStudent.avatar_url || ""} />
-                <AvatarFallback className="text-lg font-bold">
-                  {getInitials(scannedStudent.full_name)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <h3 className="text-xl font-bold">{scannedStudent.full_name}</h3>
-                <p className="text-muted-foreground">{scannedStudent.email}</p>
-                <Badge variant="secondary" className="mt-1">
-                  {scannedStudent.barcode}
-                </Badge>
+  return (
+    <div className="space-y-6">
+      {/* Barcode Scanner */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <QrCode className="h-5 w-5" />
+            Scanner de Code-barre
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex gap-2">
+            <Button
+              onClick={startBarcodeScanning}
+              disabled={scanning}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <QrCode className="h-4 w-4" />
+              {scanning ? 'Scanner actif' : 'Activer scanner'}
+            </Button>
+          </div>
+
+          <form onSubmit={handleBarcodeSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="barcode">Code-barre de l'étudiant</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="barcode"
+                  value={barcodeInput}
+                  onChange={(e) => setBarcodeInput(e.target.value)}
+                  placeholder="Scannez ou tapez le code-barre..."
+                  className="font-mono"
+                  autoFocus
+                />
+                <Button type="submit" disabled={loading}>
+                  {loading ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  ) : (
+                    <Search className="h-4 w-4" />
+                  )}
+                </Button>
               </div>
             </div>
+          </form>
 
-            <div className="flex gap-3">
-              <Button 
-                onClick={() => markAttendance(scannedStudent.id, true)}
-                className="flex-1 bg-green-600 hover:bg-green-700"
-              >
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Marquer Présent
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => markAttendance(scannedStudent.id, false)}
-                className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
-              >
-                <XCircle className="h-4 w-4 mr-2" />
-                Marquer Absent
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+          {/* Student Info Display */}
+          {studentInfo && (
+            <Card className="bg-green-50 border-green-200 animate-fade-in">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <CheckCircle className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-green-800">
+                      {studentInfo.full_name}
+                    </div>
+                    <div className="text-sm text-green-600">
+                      {studentInfo.email}
+                    </div>
+                    <div className="text-xs text-green-500 font-mono">
+                      Code: {studentInfo.barcode}
+                    </div>
+                  </div>
+                  <Badge className="bg-green-500 text-white">
+                    Présent
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Recent Attendance */}
       <Card>
         <CardHeader>
-          <CardTitle>Présences Récentes</CardTitle>
-          <CardDescription>Les 10 dernières présences enregistrées</CardDescription>
+          <CardTitle className="flex items-center gap-2">
+            <UserCheck className="h-5 w-5" />
+            Présences récentes
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {recentAttendance.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Scan className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Aucune présence enregistrée aujourd'hui</p>
+            <div className="text-center py-8">
+              <UserCheck className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">Aucune présence enregistrée récemment</p>
             </div>
           ) : (
             <div className="space-y-3">
               {recentAttendance.map((record) => (
-                <div key={record.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={record.profiles.avatar_url || ""} />
-                    <AvatarFallback>
-                      {getInitials(record.profiles.full_name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  
-                  <div className="flex-1">
-                    <p className="font-medium">{record.profiles.full_name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(record.marked_at).toLocaleString('fr-FR')}
-                    </p>
+                <div
+                  key={record.id}
+                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    </div>
+                    <div>
+                      <div className="font-medium">
+                        {record.student_profile?.full_name || 'Nom non disponible'}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {format(new Date(record.marked_at), 'dd/MM/yyyy à HH:mm')}
+                      </div>
+                    </div>
                   </div>
-                  
-                  <Badge 
-                    variant={record.present ? "default" : "secondary"}
-                    className={record.present ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}
-                  >
-                    {record.present ? "Présent" : "Absent"}
+                  <Badge variant="default" className="bg-green-100 text-green-800">
+                    {record.status === 'present' ? 'Présent' : record.status}
                   </Badge>
                 </div>
               ))}

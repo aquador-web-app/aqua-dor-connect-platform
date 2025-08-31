@@ -359,8 +359,47 @@ export function UserManagement() {
                                 <SelectItem value="instructor">Instructeur</SelectItem>
                                 <SelectItem value="parent">Parent</SelectItem>
                                 <SelectItem value="student">Étudiant</SelectItem>
+                                <SelectItem value="influencer">Influenceur</SelectItem>
                               </SelectContent>
                             </Select>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={async () => {
+                                try {
+                                  // Update to influencer role
+                                  await updateUserRole(user.user_id, 'influencer');
+                                  
+                                  // Create influencer account
+                                  const { error } = await supabase
+                                    .from('influencer_accounts')
+                                    .upsert({
+                                      profile_id: user.id,
+                                      balance: 0.00,
+                                      total_referrals: 0,
+                                      commission_rate: 10.00,
+                                      status: 'active'
+                                    });
+                                  
+                                  if (error) throw error;
+                                  
+                                  toast({
+                                    title: "Influenceur mis à jour",
+                                    description: "L'utilisateur est maintenant un influenceur actif"
+                                  });
+                                } catch (error) {
+                                  console.error('Error updating to influencer:', error);
+                                  toast({
+                                    title: "Erreur",
+                                    description: "Impossible de mettre à jour vers influenceur",
+                                    variant: "destructive"
+                                  });
+                                }
+                              }}
+                              className="bg-gradient-accent text-white"
+                            >
+                              Influenceur
+                            </Button>
                             <Button 
                               variant="ghost" 
                               size="sm"

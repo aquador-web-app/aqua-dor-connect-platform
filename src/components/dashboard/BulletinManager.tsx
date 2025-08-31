@@ -149,15 +149,34 @@ export function BulletinManager() {
         .from('instructors')
         .select('id')
         .eq('profile_id', profile.id)
-        .single();
+        .maybeSingle();
 
       if (!instructorData) {
-        toast({
-          title: "Erreur",
-          description: "Profil instructeur non trouvé",
-          variant: "destructive"
-        });
-        return;
+        // Create instructor profile if it doesn't exist
+        const { data: newInstructor, error: createError } = await supabase
+          .from('instructors')
+          .insert({
+            profile_id: profile.id,
+            bio: 'Instructeur nouvellement assigné',
+            is_active: true,
+            experience_years: 0
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          toast({
+            title: "Erreur",
+            description: "Impossible de créer le profil instructeur",
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        // Use the newly created instructor
+        const instructorId = newInstructor.id;
+      } else {
+        const instructorId = instructorData.id;
       }
 
       if (selectedBulletin) {

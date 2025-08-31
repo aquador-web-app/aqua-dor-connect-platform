@@ -12,7 +12,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Home,
-  CalendarCheck
+  CalendarCheck,
+  QrCode
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ const sidebarItems = [
   { title: "Cours", href: "#courses", icon: BookOpen },
   { title: "Calendrier", href: "#calendar", icon: Calendar },
   { title: "Réservations", href: "#reservations", icon: CalendarCheck },
+  { title: "Présences", href: "#attendance", icon: QrCode },
   { title: "Paiements", href: "#payments", icon: CreditCard },
   { title: "Contenu", href: "#content", icon: FileText },
   { title: "Paramètres", href: "#settings", icon: Settings },

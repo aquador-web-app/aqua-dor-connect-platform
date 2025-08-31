@@ -33,6 +33,7 @@ const Auth = () => {
   });
   const [isAdult, setIsAdult] = useState<'yes' | 'no' | ''>('');
   const [isParent, setIsParent] = useState<'yes' | 'no'>('no');
+  const [hasReferral, setHasReferral] = useState<'yes' | 'no'>('no');
   const navigate = useNavigate();
   const {
     toast
@@ -373,20 +374,32 @@ const Auth = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="referral-code">Code de parrainage (optionnel)</Label>
-                      <Input
-                        id="referral-code"
-                        placeholder="Code de parrainage"
-                        value={signupForm.referralCode}
-                        onChange={(e) => setSignupForm(prev => ({
-                          ...prev,
-                          referralCode: e.target.value
-                        }))}
-                      />
-                      <div className="text-sm text-muted-foreground">
-                        Si quelqu'un vous a référé, entrez son code ici
-                      </div>
+                      <Label>Avez-vous été référé par quelqu'un ?</Label>
+                      <Select value={hasReferral} onValueChange={(v: any) => setHasReferral(v)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner une option" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="no">Non</SelectItem>
+                          <SelectItem value="yes">Oui</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
+
+                    {hasReferral === 'yes' && (
+                      <div className="space-y-2">
+                        <Label htmlFor="referral-code">Code de parrainage</Label>
+                        <Input
+                          id="referral-code"
+                          placeholder="Entrez le code de parrainage"
+                          value={signupForm.referralCode}
+                          onChange={e => setSignupForm(prev => ({
+                            ...prev,
+                            referralCode: e.target.value
+                          }))}
+                        />
+                      </div>
+                    )}
 
                     <div className="space-y-2">
                       <Label htmlFor="signup-password">Mot de passe</Label>

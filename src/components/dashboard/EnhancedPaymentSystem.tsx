@@ -148,14 +148,23 @@ export const EnhancedPaymentSystem = ({ isAdmin = false, studentId }: EnhancedPa
 
   const handleSubscribe = async () => {
     if (!selectedPlan || !user) {
-      toast({ title: "Please select a plan", variant: "destructive" });
+      toast({ title: "Veuillez sélectionner un plan", variant: "destructive" });
       return;
     }
 
     setLoading(true);
     try {
       const plan = pricingPlans.find(p => p.id === selectedPlan);
-      if (!plan) throw new Error("Plan not found");
+      if (!plan) throw new Error("Plan introuvable");
+
+      // Check if user is influencer for USD 0.00 pricing
+      const { data: influencerData } = await supabase
+        .from('influencer_accounts')
+        .select('*')
+        .eq('profile_id', profile?.id)
+        .maybeSingle();
+
+      const finalPrice = influencerData ? 0.00 : plan.price;
 
       // Create enrollment record
       const { data: enrollment, error: enrollmentError } = await supabase
@@ -163,8 +172,8 @@ export const EnhancedPaymentSystem = ({ isAdmin = false, studentId }: EnhancedPa
         .insert({
           student_id: profile?.id,
           class_id: null, // General subscription, not tied to specific class
-          payment_status: "pending",
-          notes: `Subscription to ${plan.name}`
+          payment_status: finalPrice === 0 ? "paid" : "pending",
+          notes: `Subscription to ${plan.name}${influencerData ? ' (Influencer pricing)' : ''}`
         })
         .select()
         .single();
@@ -177,24 +186,43 @@ export const EnhancedPaymentSystem = ({ isAdmin = false, studentId }: EnhancedPa
         .insert({
           user_id: profile?.id,
           enrollment_id: enrollment.id,
-          amount: plan.price,
+          amount: finalPrice,
           currency: "USD",
-          status: "pending",
-          payment_method: "subscription"
+          status: finalPrice === 0 ? "paid" : "pending",
+          payment_method: finalPrice === 0 ? "influencer_credit" : "card_subscription",
+          paid_at: finalPrice === 0 ? new Date().toISOString() : null
         });
 
       if (paymentError) throw paymentError;
 
-      toast({ 
-        title: "Subscription initiated", 
-        description: "Your payment is being processed. You'll receive confirmation shortly." 
-      });
+      // If not free, initiate actual payment processing
+      if (finalPrice > 0) {
+        // Simulate payment gateway integration
+        toast({ 
+          title: "Redirection vers le paiement", 
+          description: "Redirection vers la page de paiement sécurisée..." 
+        });
+        
+        // In real implementation, redirect to Stripe/payment processor
+        setTimeout(() => {
+          toast({
+            title: "Paiement simulé",
+            description: "Votre abonnement a été activé avec succès",
+          });
+        }, 2000);
+      } else {
+        toast({ 
+          title: "Abonnement activé", 
+          description: "Votre abonnement influenceur a été activé gratuitement!" 
+        });
+      }
       
       setSelectedPlan("");
       fetchPayments();
     } catch (error: any) {
+      console.error('Subscription error:', error);
       toast({ 
-        title: "Error processing subscription", 
+        title: "Erreur lors de l'abonnement", 
         description: error.message, 
         variant: "destructive" 
       });
@@ -338,13 +366,18 @@ export const EnhancedPaymentSystem = ({ isAdmin = false, studentId }: EnhancedPa
               ))}
             </div>
             
-            {selectedPlan && (
+                    {selectedPlan && (
               <Button 
                 onClick={handleSubscribe} 
                 disabled={loading} 
-                className="w-full bg-gradient-accent"
+                className="w-full bg-gradient-accent hover:shadow-glow transition-all duration-300"
               >
-                {loading ? "Processing..." : "Subscribe Now"}
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Traitement...
+                  </>
+                ) : "S'inscrire maintenant"}
               </Button>
             )}
           </CardContent>

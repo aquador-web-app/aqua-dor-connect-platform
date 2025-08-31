@@ -15,6 +15,7 @@ import { IntelligentCalendar } from "@/components/dashboard/IntelligentCalendar"
 import { ProfileModal } from "@/components/profile/ProfileModal";
 import { UnifiedCalendar } from "@/components/calendar/UnifiedCalendar";
 import { EnhancedStudentReservations } from "@/components/dashboard/EnhancedStudentReservations";
+import { StudentDashboardPayments } from "@/components/dashboard/StudentDashboardPayments";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { EnhancedPaymentSystem } from "@/components/dashboard/EnhancedPaymentSystem";
 import { ReferralDashboard } from "@/components/dashboard/ReferralDashboard";
@@ -272,6 +273,10 @@ const StudentPortal = () => {
           </TabsContent>
 
           <TabsContent value="payments">
+            <StudentDashboardPayments />
+          </TabsContent>
+
+          <TabsContent value="subscription">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Payment Summary */}
               <Card>
