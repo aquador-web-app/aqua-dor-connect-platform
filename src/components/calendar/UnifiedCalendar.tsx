@@ -67,13 +67,15 @@ export function UnifiedCalendar({
 }: UnifiedCalendarProps) {
   const { isAdmin } = useAuth();
   
-  // Use Samsung Calendar for better UX
+  // Use Samsung Calendar for better UX with animations
   return (
-    <SamsungCalendar 
-      mode={mode}
-      initialViewMode="agenda"
-      showBookingActions={showBookingActions}
-    />
+    <div className="animate-fade-in">
+      <SamsungCalendar 
+        mode={mode}
+        initialViewMode="agenda"
+        showBookingActions={showBookingActions}
+      />
+    </div>
   );
 }
 // Legacy component - now using SamsungCalendar for better UX

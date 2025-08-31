@@ -60,6 +60,7 @@ export function CourseCreator() {
           price: form.price,
           capacity: form.capacity,
           duration_minutes: form.duration_minutes,
+          instructor_id: null, // Removed coach assignment requirement
           is_active: true
         });
 

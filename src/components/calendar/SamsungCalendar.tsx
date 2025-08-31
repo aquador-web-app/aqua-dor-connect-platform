@@ -103,34 +103,69 @@ export function SamsungCalendar({
   }, [selectedDate, user]);
 
   useEffect(() => {
-    // Set up real-time subscriptions
+    // Set up comprehensive real-time subscriptions for cross-app synchronization
     const channel = supabase
-      .channel('samsung-calendar-updates')
+      .channel('samsung-calendar-sync')
       .on('postgres_changes', { 
         event: '*', 
         schema: 'public', 
         table: 'class_sessions' 
-      }, () => {
+      }, (payload) => {
+        console.log('Class session change:', payload);
         loadEvents();
+        // Dispatch global event for other calendar instances
+        window.dispatchEvent(new CustomEvent('calendarSync', { 
+          detail: { type: 'class_sessions', payload } 
+        }));
       })
       .on('postgres_changes', { 
         event: '*', 
         schema: 'public', 
         table: 'bookings' 
-      }, () => {
+      }, (payload) => {
+        console.log('Booking change:', payload);
         loadEvents();
+        // Dispatch global event for availability updates
+        window.dispatchEvent(new CustomEvent('calendarSync', { 
+          detail: { type: 'bookings', payload } 
+        }));
       })
       .on('postgres_changes', { 
         event: '*', 
         schema: 'public', 
         table: 'reservations' 
-      }, () => {
+      }, (payload) => {
+        console.log('Reservation change:', payload);
         loadEvents();
+        window.dispatchEvent(new CustomEvent('calendarSync', { 
+          detail: { type: 'reservations', payload } 
+        }));
+      })
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'classes' 
+      }, (payload) => {
+        console.log('Class change:', payload);
+        loadEvents();
+        window.dispatchEvent(new CustomEvent('calendarSync', { 
+          detail: { type: 'classes', payload } 
+        }));
       })
       .subscribe();
 
+    // Listen for external calendar sync events
+    const handleCalendarSync = (event: CustomEvent) => {
+      if (event.detail?.type) {
+        loadEvents();
+      }
+    };
+
+    window.addEventListener('calendarSync', handleCalendarSync as EventListener);
+
     return () => {
       supabase.removeChannel(channel);
+      window.removeEventListener('calendarSync', handleCalendarSync as EventListener);
     };
   }, []);
 
@@ -473,11 +508,53 @@ export function SamsungCalendar({
       });
 
       await loadEvents();
+      
+      // Trigger global sync for availability updates
+      window.dispatchEvent(new CustomEvent('calendarSync', { 
+        detail: { type: 'booking_created', eventId } 
+      }));
     } catch (error) {
       console.error('Error booking event:', error);
       toast({
         title: "Erreur",
         description: "Impossible de réserver cet événement",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleCancelBooking = async (eventId: string) => {
+    if (!profile) return;
+
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ 
+          status: 'cancelled',
+          cancelled_at: new Date().toISOString(),
+          cancellation_reason: 'Cancelled by student'
+        })
+        .eq('class_session_id', eventId)
+        .eq('user_id', profile.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Réservation annulée",
+        description: "Votre réservation a été annulée avec succès",
+      });
+
+      await loadEvents();
+      
+      // Trigger global sync for availability updates
+      window.dispatchEvent(new CustomEvent('calendarSync', { 
+        detail: { type: 'booking_cancelled', eventId } 
+      }));
+    } catch (error) {
+      console.error('Error cancelling booking:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'annuler la réservation",
         variant: "destructive"
       });
     }
@@ -582,9 +659,21 @@ export function SamsungCalendar({
                 <Button
                   size="sm"
                   onClick={() => handleBookEvent(selectedEvent.id)}
-                  className="flex-1"
+                  className="flex-1 bg-gradient-accent animate-fade-in"
                 >
                   Réserver
+                </Button>
+              )}
+
+              {selectedEvent.isUserBooked && showBookingActions && (
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => handleCancelBooking(selectedEvent.id)}
+                  className="flex-1 animate-fade-in"
+                >
+                  <XCircle className="h-4 w-4 mr-1" />
+                  Annuler Réservation
                 </Button>
               )}
 
@@ -594,7 +683,7 @@ export function SamsungCalendar({
                     size="sm"
                     variant="outline"
                     onClick={() => handleMarkAttendance(selectedEvent.id, 'present')}
-                    className="flex-1 text-green-600 hover:text-green-700"
+                    className="flex-1 text-green-600 hover:text-green-700 hover-scale"
                   >
                     <CheckCircle className="h-4 w-4 mr-1" />
                     Présent
@@ -603,7 +692,7 @@ export function SamsungCalendar({
                     size="sm"
                     variant="outline"
                     onClick={() => handleMarkAttendance(selectedEvent.id, 'absent')}
-                    className="flex-1 text-red-600 hover:text-red-700"
+                    className="flex-1 text-red-600 hover:text-red-700 hover-scale"
                   >
                     <XCircle className="h-4 w-4 mr-1" />
                     Absent
@@ -613,10 +702,10 @@ export function SamsungCalendar({
 
               {isAdmin() && (
                 <div className="flex space-x-2">
-                  <Button size="sm" variant="outline">
+                  <Button size="sm" variant="outline" className="hover-scale">
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button size="sm" variant="outline">
+                  <Button size="sm" variant="outline" className="hover-scale">
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>

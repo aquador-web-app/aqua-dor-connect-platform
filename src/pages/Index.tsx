@@ -55,7 +55,9 @@ const Index = () => {
                       </div>
                     </div>
                   </div>
-                  <UnifiedCalendar mode="public" showBookingActions={true} maxDaysAhead={90} />
+                  <div className="animate-fade-in">
+                    <UnifiedCalendar mode="public" showBookingActions={true} maxDaysAhead={90} />
+                  </div>
                 </div>
                 <div>
                   <UpcomingSessionsList mode="public" daysAhead={14} title="À venir (14 jours)" />
