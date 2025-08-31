@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { SamsungCalendar } from "./SamsungCalendar";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -60,6 +61,23 @@ interface UnifiedCalendarProps {
 }
 
 export function UnifiedCalendar({ 
+  mode = 'public', 
+  showBookingActions = true,
+  maxDaysAhead = 90 
+}: UnifiedCalendarProps) {
+  const { isAdmin } = useAuth();
+  
+  // Use Samsung Calendar for better UX
+  return (
+    <SamsungCalendar 
+      mode={mode}
+      initialViewMode="agenda"
+      showBookingActions={showBookingActions}
+    />
+  );
+}
+// Legacy component - now using SamsungCalendar for better UX
+export function LegacyUnifiedCalendar({ 
   mode = 'public', 
   showBookingActions = true,
   maxDaysAhead = 90 
