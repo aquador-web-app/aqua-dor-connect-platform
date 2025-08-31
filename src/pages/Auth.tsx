@@ -28,7 +28,8 @@ const Auth = () => {
     confirmPassword: '',
     fullName: '',
     phone: '',
-    role: 'student' as 'student' | 'instructor'
+    role: 'student' as 'student' | 'instructor',
+    referralCode: ''
   });
   const [isAdult, setIsAdult] = useState<'yes' | 'no' | ''>('');
   const [isParent, setIsParent] = useState<'yes' | 'no'>('no');
@@ -52,6 +53,13 @@ const Auth = () => {
     }
   };
   useEffect(() => {
+    // Check for referral code in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const referralCode = urlParams.get('ref');
+    if (referralCode) {
+      setSignupForm(prev => ({ ...prev, referralCode }));
+    }
+
     // Set up auth state listener FIRST
     const {
       data: {
@@ -179,7 +187,8 @@ const Auth = () => {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
             full_name: signupForm.fullName,
-            phone: signupForm.phone
+            phone: signupForm.phone,
+            referral_code: signupForm.referralCode || null
           }
         }
       });
@@ -196,7 +205,8 @@ const Auth = () => {
         confirmPassword: '',
         fullName: '',
         phone: '',
-        role: 'student'
+        role: 'student',
+        referralCode: ''
       });
     } catch (error: any) {
       toast({
@@ -360,6 +370,22 @@ const Auth = () => {
                           <SelectItem value="yes">Oui</SelectItem>
                         </SelectContent>
                       </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="referral-code">Code de parrainage (optionnel)</Label>
+                      <Input
+                        id="referral-code"
+                        placeholder="Code de parrainage"
+                        value={signupForm.referralCode}
+                        onChange={(e) => setSignupForm(prev => ({
+                          ...prev,
+                          referralCode: e.target.value
+                        }))}
+                      />
+                      <div className="text-sm text-muted-foreground">
+                        Si quelqu'un vous a référé, entrez son code ici
+                      </div>
                     </div>
 
                     <div className="space-y-2">

@@ -686,6 +686,48 @@ export type Database = {
           },
         ]
       }
+      influencer_pricing: {
+        Row: {
+          class_id: string | null
+          created_at: string
+          discounted_price: number | null
+          id: string
+          original_price: number
+          profile_id: string | null
+        }
+        Insert: {
+          class_id?: string | null
+          created_at?: string
+          discounted_price?: number | null
+          id?: string
+          original_price: number
+          profile_id?: string | null
+        }
+        Update: {
+          class_id?: string | null
+          created_at?: string
+          discounted_price?: number | null
+          id?: string
+          original_price?: number
+          profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "influencer_pricing_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "influencer_pricing_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       instructors: {
         Row: {
           availability: Json | null
@@ -936,6 +978,7 @@ export type Database = {
           medical_notes: string | null
           phone: string | null
           referral_code: string | null
+          referred_by_code: string | null
           updated_at: string
           user_id: string
         }
@@ -953,6 +996,7 @@ export type Database = {
           medical_notes?: string | null
           phone?: string | null
           referral_code?: string | null
+          referred_by_code?: string | null
           updated_at?: string
           user_id: string
         }
@@ -970,10 +1014,19 @@ export type Database = {
           medical_notes?: string | null
           phone?: string | null
           referral_code?: string | null
+          referred_by_code?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_referred_by_code_fkey"
+            columns: ["referred_by_code"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["referral_code"]
+          },
+        ]
       }
       referral_credits: {
         Row: {
