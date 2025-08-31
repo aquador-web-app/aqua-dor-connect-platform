@@ -358,7 +358,7 @@ export type Database = {
           duration_minutes: number | null
           enrolled_students: number
           id: string
-          instructor_id: string
+          instructor_id: string | null
           max_participants: number
           notes: string | null
           session_date: string
@@ -372,7 +372,7 @@ export type Database = {
           duration_minutes?: number | null
           enrolled_students?: number
           id?: string
-          instructor_id: string
+          instructor_id?: string | null
           max_participants?: number
           notes?: string | null
           session_date: string
@@ -386,7 +386,7 @@ export type Database = {
           duration_minutes?: number | null
           enrolled_students?: number
           id?: string
-          instructor_id?: string
+          instructor_id?: string | null
           max_participants?: number
           notes?: string | null
           session_date?: string
