@@ -858,7 +858,9 @@ export type Database = {
       }
       payments: {
         Row: {
+          admin_verified: boolean | null
           amount: number
+          booking_id: string | null
           created_at: string
           currency: string
           enrollment_id: string | null
@@ -872,7 +874,9 @@ export type Database = {
           verified: boolean | null
         }
         Insert: {
+          admin_verified?: boolean | null
           amount: number
+          booking_id?: string | null
           created_at?: string
           currency?: string
           enrollment_id?: string | null
@@ -886,7 +890,9 @@ export type Database = {
           verified?: boolean | null
         }
         Update: {
+          admin_verified?: boolean | null
           amount?: number
+          booking_id?: string | null
           created_at?: string
           currency?: string
           enrollment_id?: string | null
@@ -900,6 +906,13 @@ export type Database = {
           verified?: boolean | null
         }
         Relationships: [
+          {
+            foreignKeyName: "payments_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "payments_enrollment_id_fkey"
             columns: ["enrollment_id"]

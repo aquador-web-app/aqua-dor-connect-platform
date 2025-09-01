@@ -28,6 +28,7 @@ const sidebarItems = [
   { title: "Réservations", href: "#reservations", icon: CalendarCheck },
   { title: "Présences", href: "#attendance", icon: QrCode },
   { title: "Paiements", href: "#payments", icon: CreditCard },
+  { title: "Gestion Paiements", href: "#payment-manager", icon: CreditCard },
   { title: "Contenu", href: "#content", icon: FileText },
   { title: "Paramètres", href: "#settings", icon: Settings },
 ];

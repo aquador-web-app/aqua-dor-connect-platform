@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { format, isAfter, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale";
+import { ReservationFlow } from "../reservation/ReservationFlow";
 
 interface ClassSession {
   id: string;
@@ -180,6 +181,14 @@ export function CalendarBookingSystem({ onBookingSuccess }: CalendarBookingSyste
     }
   };
 
+  const [reservationFlow, setReservationFlow] = useState<{
+    isOpen: boolean;
+    session: ClassSession | null;
+  }>({
+    isOpen: false,
+    session: null
+  });
+
   const handleBookSession = async (sessionId: string) => {
     if (!user || !profile) {
       toast({
@@ -190,56 +199,21 @@ export function CalendarBookingSystem({ onBookingSuccess }: CalendarBookingSyste
       return;
     }
 
-    try {
-      setLoading(true);
-
-      // Get session details for confirmation
-      const sessionToBook = sessions.find(s => s.id === sessionId);
-      if (!sessionToBook) throw new Error("Session non trouvée");
-
-      const { error } = await supabase
-        .from('bookings')
-        .insert({
-          user_id: profile.id,
-          class_session_id: sessionId,
-          status: 'confirmed'
-        });
-
-      if (error) throw error;
-
-      // Enhanced confirmation with complete details
+    // Get session details and open payment flow
+    const sessionToBook = sessions.find(s => s.id === sessionId);
+    if (!sessionToBook) {
       toast({
-        title: "✅ Réservation Confirmée!",
-        description: (
-          <div className="space-y-1">
-            <div><strong>Cours:</strong> {sessionToBook.classes.name}</div>
-            <div><strong>Niveau:</strong> {sessionToBook.classes.level}</div>
-            <div><strong>Date:</strong> {format(new Date(sessionToBook.session_date), 'EEEE d MMMM yyyy', { locale: fr })}</div>
-            <div><strong>Heure:</strong> {format(new Date(sessionToBook.session_date), 'HH:mm')}</div>
-            <div><strong>Instructeur:</strong> {sessionToBook.instructors?.profiles?.full_name}</div>
-            <div><strong>Prix:</strong> {formatPrice(sessionToBook.classes.price)}</div>
-            <div className="text-xs text-muted-foreground mt-2">
-              Une facture a été générée automatiquement. Vous la retrouverez dans votre espace "Paiements".
-            </div>
-          </div>
-        ),
-      });
-
-      // Refresh sessions to update availability
-      fetchSessions();
-      
-      // Close modal if callback provided
-      onBookingSuccess?.();
-    } catch (error: any) {
-      console.error('Error booking session:', error);
-      toast({
-        title: "Erreur de réservation",
-        description: error.message || "Impossible de réserver ce cours",
+        title: "Erreur",
+        description: "Session non trouvée",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
+      return;
     }
+
+    setReservationFlow({
+      isOpen: true,
+      session: sessionToBook
+    });
   };
 
   const getAvailableSpots = (session: ClassSession) => {
@@ -462,6 +436,17 @@ export function CalendarBookingSystem({ onBookingSuccess }: CalendarBookingSyste
           </Card>
         </div>
       </div>
+
+      {/* Reservation Flow Modal */}
+      <ReservationFlow
+        isOpen={reservationFlow.isOpen}
+        onClose={() => setReservationFlow({ isOpen: false, session: null })}
+        session={reservationFlow.session}
+        onSuccess={() => {
+          fetchSessions();
+          onBookingSuccess?.();
+        }}
+      />
     </div>
   );
 }

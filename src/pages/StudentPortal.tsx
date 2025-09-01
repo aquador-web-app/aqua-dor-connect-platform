@@ -20,12 +20,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { EnhancedPaymentSystem } from "@/components/dashboard/EnhancedPaymentSystem";
 import { ReferralDashboard } from "@/components/dashboard/ReferralDashboard";
 import { ReferralSystem } from "@/components/dashboard/ReferralSystem";
+import { StudentBalanceIndicator } from "@/components/dashboard/StudentBalanceIndicator";
+import { CalendarBookingSystem } from "@/components/dashboard/CalendarBookingSystem";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { useLocation } from "react-router-dom";
 
 const StudentPortal = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(
+    location.state?.activeTab || "overview"
+  );
   
   const { t } = useLanguage();
   const { 
@@ -81,7 +88,10 @@ const StudentPortal = () => {
           </Dialog>
         </div>
 
-        <Tabs defaultValue="overview" className="w-full">
+        {/* Balance Indicator */}
+        <StudentBalanceIndicator />
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-5 mb-6">
             <TabsTrigger value="overview">Aperçu</TabsTrigger>
             <TabsTrigger value="booking">Réservation</TabsTrigger>
@@ -258,17 +268,10 @@ const StudentPortal = () => {
 
           <TabsContent value="booking" className="space-y-4">
             <div className="space-y-6">
-              <EnhancedStudentReservations />
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Réserver de Nouveaux Cours</CardTitle>
-                  <CardDescription>Consultez le calendrier pour voir les créneaux disponibles</CardDescription>
-                </CardHeader>
-                <CardContent data-calendar>
-                  <UnifiedCalendar mode="student" showBookingActions={true} maxDaysAhead={30} />
-                </CardContent>
-              </Card>
+              <CalendarBookingSystem onBookingSuccess={() => {
+                // Refresh data when booking is successful
+                refetch();
+              }} />
             </div>
           </TabsContent>
 
