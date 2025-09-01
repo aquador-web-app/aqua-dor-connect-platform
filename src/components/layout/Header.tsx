@@ -50,6 +50,12 @@ const Header = () => {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <Link 
+              to="/" 
+              className="text-foreground hover:text-secondary transition-colors"
+            >
+              Home
+            </Link>
+            <Link 
               to="/about" 
               className="text-foreground hover:text-secondary transition-colors"
             >
@@ -202,6 +208,13 @@ const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden bg-background border-t">
             <nav className="container py-4 space-y-3">
+              <Link 
+                to="/" 
+                className="block py-2 text-foreground hover:text-secondary transition-colors"
+                onClick={toggleMenu}
+              >
+                Home
+              </Link>
               <Link 
                 to="/about" 
                 className="block py-2 text-foreground hover:text-secondary transition-colors"
