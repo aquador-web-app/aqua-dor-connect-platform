@@ -85,19 +85,58 @@ export default function AdminCalendar() {
   }, [selectedDate]);
 
   useEffect(() => {
+    // Set up comprehensive real-time subscriptions for cross-app synchronization
     const channel = supabase
-      .channel('admin-calendar-class-sessions')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'class_sessions' }, (payload) => {
-        if (!selectedDate) return;
-        const changedAt = (payload.new as any)?.session_date || (payload.old as any)?.session_date;
-        if (changedAt && isSameDay(new Date(changedAt), selectedDate)) {
-          fetchSessionsForDate(selectedDate);
-        }
+      .channel('admin-calendar-sync')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'class_sessions' 
+      }, (payload) => {
+        console.log('Class session change in admin calendar:', payload);
+        if (selectedDate) fetchSessionsForDate(selectedDate);
+        // Dispatch global event for other calendar instances
+        window.dispatchEvent(new CustomEvent('calendarSync', { 
+          detail: { type: 'class_sessions', payload } 
+        }));
+      })
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'bookings' 
+      }, (payload) => {
+        console.log('Booking change in admin calendar:', payload);
+        if (selectedDate) fetchSessionsForDate(selectedDate);
+        window.dispatchEvent(new CustomEvent('calendarSync', { 
+          detail: { type: 'bookings', payload } 
+        }));
+      })
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'classes' 
+      }, (payload) => {
+        console.log('Class change in admin calendar:', payload);
+        fetchMeta();
+        if (selectedDate) fetchSessionsForDate(selectedDate);
+        window.dispatchEvent(new CustomEvent('calendarSync', { 
+          detail: { type: 'classes', payload } 
+        }));
       })
       .subscribe();
 
+    // Listen for external calendar sync events
+    const handleCalendarSync = (event: CustomEvent) => {
+      if (event.detail?.type) {
+        if (selectedDate) fetchSessionsForDate(selectedDate);
+      }
+    };
+
+    window.addEventListener('calendarSync', handleCalendarSync as EventListener);
+
     return () => {
       supabase.removeChannel(channel);
+      window.removeEventListener('calendarSync', handleCalendarSync as EventListener);
     };
   }, [selectedDate]);
 
@@ -292,6 +331,14 @@ export default function AdminCalendar() {
       setModalOpen(false);
       setEditingSession(null);
       await fetchSessionsForDate(selectedDate);
+      
+      // Trigger global sync for other calendars
+      window.dispatchEvent(new CustomEvent('calendarSync', { 
+        detail: { 
+          type: editingSession ? 'session_updated' : 'session_created',
+          sessionId: editingSession?.id 
+        } 
+      }));
     } catch (e: any) {
       console.error(e);
       toast({ title: 'Erreur', description: e.message || "Impossible d’enregistrer", variant: 'destructive' });
@@ -390,13 +437,17 @@ export default function AdminCalendar() {
                     size="sm"
                     onClick={async (e) => {
                       e.stopPropagation();
-                      if (!confirm('Supprimer cette session ?')) return;
+                      if (!confirm(`Supprimer cette session "${s.classes?.name}" ?`)) return;
                       const { error } = await supabase.from('class_sessions').delete().eq('id', s.id);
                       if (error) {
                         toast({ title: 'Erreur', description: "Impossible de supprimer la session", variant: 'destructive' });
                       } else {
-                        toast({ title: 'Supprimé', description: 'Session supprimée.' });
+                        toast({ title: 'Supprimé', description: 'Session supprimée avec succès.' });
                         if (selectedDate) fetchSessionsForDate(selectedDate);
+                        // Trigger global sync for other calendars
+                        window.dispatchEvent(new CustomEvent('calendarSync', { 
+                          detail: { type: 'session_deleted', sessionId: s.id } 
+                        }));
                       }
                     }}
                     aria-label="Supprimer la session"

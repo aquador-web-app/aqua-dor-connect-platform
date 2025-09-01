@@ -94,6 +94,9 @@ export function SamsungCalendar({
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [eventDetailsOpen, setEventDetailsOpen] = useState(false);
   const [createDate, setCreateDate] = useState<Date | undefined>();
+  const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const { user, profile, isAdmin, isStudent, isParent } = useAuth();
   const { toast } = useToast();
@@ -580,6 +583,11 @@ export function SamsungCalendar({
         title: "Présence marquée",
         description: `Votre présence a été marquée comme ${status === 'present' ? 'présent' : 'absent'}`,
       });
+
+      // Trigger global sync for attendance updates
+      window.dispatchEvent(new CustomEvent('calendarSync', { 
+        detail: { type: 'attendance_marked', eventId, status } 
+      }));
     } catch (error) {
       console.error('Error marking attendance:', error);
       toast({
@@ -587,6 +595,177 @@ export function SamsungCalendar({
         description: "Impossible de marquer votre présence",
         variant: "destructive"
       });
+    }
+  };
+
+  const handleEditEvent = async (event: CalendarEvent) => {
+    if (!isAdmin()) {
+      toast({
+        title: "Accès refusé",
+        description: "Seuls les administrateurs peuvent modifier les événements",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setEditingEvent(event);
+    setEditDialogOpen(true);
+    setEventDetailsOpen(false);
+  };
+
+  const handleDeleteEvent = async (event: CalendarEvent) => {
+    if (!isAdmin()) {
+      toast({
+        title: "Accès refusé",
+        description: "Seuls les administrateurs peuvent supprimer les événements",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setEditingEvent(event);
+    setDeleteDialogOpen(true);
+    setEventDetailsOpen(false);
+  };
+
+  const confirmDeleteEvent = async () => {
+    if (!editingEvent) return;
+
+    try {
+      setLoading(true);
+
+      // Delete from appropriate table based on event type
+      if (editingEvent.type === 'reservation') {
+        const reservationId = editingEvent.id.startsWith('personal-') 
+          ? editingEvent.id.replace('personal-', '') 
+          : editingEvent.id;
+        
+        const { error } = await supabase
+          .from('reservations')
+          .delete()
+          .eq('id', reservationId);
+
+        if (error) throw error;
+      } else {
+        // Class session or event
+        const { error } = await supabase
+          .from('class_sessions')
+          .delete()
+          .eq('id', editingEvent.id);
+
+        if (error) throw error;
+      }
+
+      toast({
+        title: "Événement supprimé",
+        description: "L'événement a été supprimé avec succès",
+      });
+
+      await loadEvents();
+      
+      // Trigger global sync
+      window.dispatchEvent(new CustomEvent('calendarSync', { 
+        detail: { type: 'event_deleted', eventId: editingEvent.id } 
+      }));
+
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer l'événement",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+      setDeleteDialogOpen(false);
+      setEditingEvent(null);
+    }
+  };
+
+  const handleUpdateEvent = async (eventData: EventFormData) => {
+    if (!editingEvent) return;
+
+    try {
+      setLoading(true);
+
+      // Calculate end time
+      let endDateTime = new Date(eventData.startDate);
+      if (!eventData.isAllDay) {
+        const [startHours, startMinutes] = eventData.startTime.split(':').map(Number);
+        const [endHours, endMinutes] = eventData.endTime.split(':').map(Number);
+        
+        const startTime = new Date(eventData.startDate);
+        startTime.setHours(startHours, startMinutes, 0, 0);
+        
+        endDateTime = new Date(eventData.endDate);
+        endDateTime.setHours(endHours, endMinutes, 0, 0);
+      } else {
+        endDateTime.setHours(23, 59, 59, 999);
+      }
+
+      const sessionDate = new Date(eventData.startDate);
+      if (!eventData.isAllDay) {
+        const [hours, minutes] = eventData.startTime.split(':').map(Number);
+        sessionDate.setHours(hours, minutes, 0, 0);
+      }
+
+      if (editingEvent.type === 'reservation') {
+        // Update reservation
+        const reservationId = editingEvent.id.startsWith('personal-') 
+          ? editingEvent.id.replace('personal-', '') 
+          : editingEvent.id;
+        
+        const { error } = await supabase
+          .from('reservations')
+          .update({
+            reservation_date: sessionDate.toISOString(),
+            duration_minutes: eventData.isAllDay ? 480 : Math.floor((endDateTime.getTime() - sessionDate.getTime()) / 60000),
+            purpose: eventData.title,
+            notes: eventData.description
+          })
+          .eq('id', reservationId);
+
+        if (error) throw error;
+      } else {
+        // Update class session
+        const { error } = await supabase
+          .from('class_sessions')
+          .update({
+            session_date: sessionDate.toISOString(),
+            max_participants: eventData.maxParticipants || 10,
+            notes: eventData.description,
+            duration_minutes: eventData.isAllDay ? 480 : Math.floor((endDateTime.getTime() - sessionDate.getTime()) / 60000),
+            type: eventData.type
+          })
+          .eq('id', editingEvent.id);
+
+        if (error) throw error;
+      }
+
+      toast({
+        title: "Événement modifié",
+        description: "L'événement a été modifié avec succès",
+      });
+
+      await loadEvents();
+      
+      // Trigger global sync
+      window.dispatchEvent(new CustomEvent('calendarSync', { 
+        detail: { type: 'event_updated', eventId: editingEvent.id } 
+      }));
+
+    } catch (error) {
+      console.error('Error updating event:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier l'événement",
+        variant: "destructive"
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+      setEditDialogOpen(false);
+      setEditingEvent(null);
     }
   };
 
@@ -702,10 +881,20 @@ export function SamsungCalendar({
 
               {isAdmin() && (
                 <div className="flex space-x-2">
-                  <Button size="sm" variant="outline" className="hover-scale">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="hover-scale text-blue-600 hover:text-blue-700"
+                    onClick={() => handleEditEvent(selectedEvent)}
+                  >
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button size="sm" variant="outline" className="hover-scale">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="hover-scale text-red-600 hover:text-red-700"
+                    onClick={() => handleDeleteEvent(selectedEvent)}
+                  >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -737,6 +926,80 @@ export function SamsungCalendar({
         onSave={handleSaveEvent}
         selectedDate={createDate}
       />
+
+      {/* Edit Event Dialog */}
+      <EventCreateDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onSave={handleUpdateEvent}
+        selectedDate={editingEvent?.start}
+        isEditing={true}
+        existingEvent={editingEvent ? {
+          title: editingEvent.title,
+          description: editingEvent.description || '',
+          startDate: editingEvent.start,
+          endDate: editingEvent.end,
+          startTime: format(editingEvent.start, 'HH:mm'),
+          endTime: format(editingEvent.end, 'HH:mm'),
+          isAllDay: false,
+          location: editingEvent.location || '',
+          type: editingEvent.type,
+          level: editingEvent.level,
+          maxParticipants: editingEvent.maxAttendees,
+          color: editingEvent.color,
+          alerts: [],
+          recurrence: {
+            frequency: 'none',
+            interval: 1,
+            endType: 'never'
+          }
+        } : undefined}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2 text-red-600">
+              <Trash2 className="h-5 w-5" />
+              <span>Supprimer l'événement</span>
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Êtes-vous sûr de vouloir supprimer cet événement ? Cette action ne peut pas être annulée.
+            </p>
+            
+            {editingEvent && (
+              <div className="p-3 bg-muted rounded-lg">
+                <div className="font-medium text-sm">{editingEvent.title}</div>
+                <div className="text-xs text-muted-foreground">
+                  {format(editingEvent.start, 'EEEE d MMMM yyyy à HH:mm', { locale: fr })}
+                </div>
+              </div>
+            )}
+            
+            <div className="flex space-x-2 justify-end">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setDeleteDialogOpen(false)}
+              >
+                Annuler
+              </Button>
+              <Button 
+                variant="destructive" 
+                size="sm"
+                onClick={confirmDeleteEvent}
+                disabled={loading}
+              >
+                {loading ? 'Suppression...' : 'Supprimer'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {renderEventDetails()}
     </>
