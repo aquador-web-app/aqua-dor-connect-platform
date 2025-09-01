@@ -151,7 +151,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const startTimers = () => {
     clearTimers();
-    if (!user) return;
 
     // Show warning at 14 minutes
     warningTimeoutRef.current = window.setTimeout(() => {
@@ -176,7 +175,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const resetTimers = () => {
     if (!user) return;
     setIdleWarning(false);
-    clearTimers();
     startTimers();
   };
 
