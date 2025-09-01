@@ -16,6 +16,16 @@ interface DashboardStats {
   activeBookings: number;
 }
 
+interface RevenueData {
+  month: string;
+  revenue: number;
+}
+
+interface AttendanceData {
+  week: string;
+  attendance: number;
+}
+
 export function OverviewDashboard() {
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
@@ -25,6 +35,8 @@ export function OverviewDashboard() {
     totalRevenue: 0,
     activeBookings: 0,
   });
+  const [revenueData, setRevenueData] = useState<RevenueData[]>([]);
+  const [attendanceData, setAttendanceData] = useState<AttendanceData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -77,6 +89,63 @@ export function OverviewDashboard() {
         .select('*', { count: 'exact', head: true })
         .eq('status', 'confirmed');
 
+      // Fetch revenue data for the last 6 months
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+      
+      const { data: revenuePayments } = await supabase
+        .from('payments')
+        .select('amount, created_at')
+        .eq('status', 'completed')
+        .gte('created_at', sixMonthsAgo.toISOString())
+        .order('created_at');
+
+      // Process revenue data by month
+      const monthlyRevenue = new Map<string, number>();
+      revenuePayments?.forEach(payment => {
+        const month = new Date(payment.created_at).toLocaleDateString('fr-FR', { 
+          year: 'numeric', 
+          month: 'short' 
+        });
+        monthlyRevenue.set(month, (monthlyRevenue.get(month) || 0) + Number(payment.amount));
+      });
+
+      const revenueChartData: RevenueData[] = Array.from(monthlyRevenue.entries())
+        .map(([month, revenue]) => ({ month, revenue }))
+        .sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime());
+
+      // Fetch attendance data for the last 8 weeks
+      const eightWeeksAgo = new Date();
+      eightWeeksAgo.setDate(eightWeeksAgo.getDate() - 56);
+      
+      const { data: attendanceRecords } = await supabase
+        .from('attendance')
+        .select('created_at, present')
+        .gte('created_at', eightWeeksAgo.toISOString())
+        .order('created_at');
+
+      // Process attendance data by week
+      const weeklyAttendance = new Map<string, { total: number, present: number }>();
+      attendanceRecords?.forEach(record => {
+        const weekStart = new Date(record.created_at);
+        weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+        const week = weekStart.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+        
+        if (!weeklyAttendance.has(week)) {
+          weeklyAttendance.set(week, { total: 0, present: 0 });
+        }
+        const weekData = weeklyAttendance.get(week)!;
+        weekData.total++;
+        if (record.present) weekData.present++;
+      });
+
+      const attendanceChartData: AttendanceData[] = Array.from(weeklyAttendance.entries())
+        .map(([week, data]) => ({ 
+          week, 
+          attendance: data.total > 0 ? Math.round((data.present / data.total) * 100) : 0 
+        }))
+        .sort((a, b) => new Date(a.week).getTime() - new Date(b.week).getTime());
+
       setStats({
         totalUsers: usersCount || 0,
         totalInstructors: instructorsCount || 0,
@@ -85,6 +154,10 @@ export function OverviewDashboard() {
         totalRevenue: totalRevenue,
         activeBookings: bookingsCount || 0,
       });
+
+      setRevenueData(revenueChartData);
+      setAttendanceData(attendanceChartData);
+      
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
     } finally {
@@ -183,17 +256,17 @@ export function OverviewDashboard() {
             <CardDescription>Évolution des revenus sur les 6 derniers mois</CardDescription>
           </CardHeader>
           <CardContent>
-            <RevenueChart data={[]} />
+            <RevenueChart data={revenueData} />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
             <CardTitle>Présence aux Cours</CardTitle>
-            <CardDescription>Taux de présence par type de cours</CardDescription>
+            <CardDescription>Taux de présence hebdomadaire</CardDescription>
           </CardHeader>
           <CardContent>
-            <AttendanceChart data={[]} />
+            <AttendanceChart data={attendanceData} />
           </CardContent>
         </Card>
       </div>
