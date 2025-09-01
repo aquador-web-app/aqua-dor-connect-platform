@@ -180,6 +180,17 @@ export default function AdminCalendar() {
 
   const openCreateForDate = (date?: Date) => {
     if (!date) return;
+    
+    // Prevent creating events on Sundays (pool is closed)
+    if (date.getDay() === 0) {
+      toast({
+        title: "Jour fermé",
+        description: "La piscine est fermée le dimanche, impossible de créer un événement",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setSelectedDate(date);
     setEditingSession(null);
     setForm((f) => ({

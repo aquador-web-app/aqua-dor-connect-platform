@@ -102,6 +102,11 @@ export function CalendarView({
   };
 
   const handleDateClick = (date: Date) => {
+    // Prevent interaction with Sundays (pool is closed)
+    if (date.getDay() === 0) {
+      return;
+    }
+    
     if (onEventCreate && isAdmin) {
       if (date.getTime() >= Date.now() - 24 * 60 * 60 * 1000) { // Allow creating events from yesterday
         onEventCreate(date);
@@ -435,18 +440,21 @@ export function CalendarView({
                 <div
                   key={day.toISOString()}
                   className={cn(
-                    "bg-background p-2 min-h-[100px] cursor-pointer transition-colors hover:bg-muted/50",
+                    "bg-background p-2 min-h-[100px] transition-colors",
                     !isCurrentMonth && "opacity-40",
                     isToday(day) && "bg-primary/10",
-                    isSameDay(day, selectedDate) && "ring-2 ring-primary/50"
+                    isSameDay(day, selectedDate) && "ring-2 ring-primary/50",
+                    day.getDay() === 0 ? "bg-muted/30 cursor-not-allowed opacity-50" : "cursor-pointer hover:bg-muted/50"
                   )}
                   onClick={() => handleDateClick(day)}
                 >
                   <div className={cn(
                     "text-sm mb-1",
-                    isToday(day) && "font-bold text-primary"
+                    isToday(day) && "font-bold text-primary",
+                    day.getDay() === 0 && "text-muted-foreground line-through"
                   )}>
                     {format(day, 'd')}
+                    {day.getDay() === 0 && <span className="text-xs block">Fermé</span>}
                   </div>
                   
                   <div className="space-y-1">
