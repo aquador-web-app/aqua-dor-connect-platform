@@ -72,7 +72,6 @@ export function UnifiedCalendar({
     <div className="animate-fade-in">
       <SamsungCalendar 
         mode={mode}
-        initialViewMode="agenda"
         showBookingActions={showBookingActions}
       />
     </div>

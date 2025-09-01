@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CalendarView, ViewMode } from "./CalendarView";
+import { CalendarView } from "./CalendarView";
 import { EventCreateDialog } from "./EventCreateDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
@@ -70,7 +70,6 @@ interface EventFormData {
 
 interface SamsungCalendarProps {
   mode?: 'public' | 'student' | 'admin' | 'parent';
-  initialViewMode?: ViewMode;
   showBookingActions?: boolean;
 }
 
@@ -83,10 +82,8 @@ const EVENT_COLORS = {
 
 export function SamsungCalendar({ 
   mode = 'public', 
-  initialViewMode = 'agenda',
   showBookingActions = true 
 }: SamsungCalendarProps) {
-  const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(false);
@@ -909,8 +906,6 @@ export function SamsungCalendar({
   return (
     <>
       <CalendarView
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
         onEventCreate={handleEventCreate}
         onEventSelect={handleEventSelect}
         events={events}

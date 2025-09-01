@@ -35,8 +35,6 @@ import { format,
 } from "date-fns";
 import { fr } from "date-fns/locale";
 
-export type ViewMode = 'agenda' | 'day' | 'week' | 'month';
-
 interface CalendarEvent {
   id: string;
   title: string;
@@ -54,8 +52,6 @@ interface CalendarEvent {
 }
 
 interface CalendarViewProps {
-  viewMode: ViewMode;
-  onViewModeChange: (mode: ViewMode) => void;
   onEventCreate?: (date: Date) => void;
   onEventSelect?: (event: CalendarEvent) => void;
   events: CalendarEvent[];
@@ -66,8 +62,6 @@ interface CalendarViewProps {
 }
 
 export function CalendarView({
-  viewMode,
-  onViewModeChange,
   onEventCreate,
   onEventSelect,
   events,
@@ -83,44 +77,13 @@ export function CalendarView({
   }, [selectedDate]);
 
   const navigateDate = (direction: 'prev' | 'next') => {
-    let newDate: Date;
-    
-    switch (viewMode) {
-      case 'day':
-        newDate = direction === 'next' ? addDays(currentDate, 1) : subDays(currentDate, 1);
-        break;
-      case 'week':
-        newDate = direction === 'next' ? addWeeks(currentDate, 1) : subWeeks(currentDate, 1);
-        break;
-      case 'month':
-        newDate = direction === 'next' ? addMonths(currentDate, 1) : subMonths(currentDate, 1);
-        break;
-      case 'agenda':
-        newDate = direction === 'next' ? addWeeks(currentDate, 1) : subWeeks(currentDate, 1);
-        break;
-      default:
-        newDate = currentDate;
-    }
-    
+    const newDate = direction === 'next' ? addMonths(currentDate, 1) : subMonths(currentDate, 1);
     setCurrentDate(newDate);
     onDateSelect(newDate);
   };
 
   const getViewTitle = () => {
-    switch (viewMode) {
-      case 'day':
-        return format(currentDate, 'EEEE d MMMM yyyy', { locale: fr });
-      case 'week':
-        const weekStart = getStartOfWeek(currentDate, { weekStartsOn: 1 });
-        const weekEnd = getEndOfWeek(currentDate, { weekStartsOn: 1 });
-        return `${format(weekStart, 'd', { locale: fr })} - ${format(weekEnd, 'd MMMM yyyy', { locale: fr })}`;
-      case 'month':
-        return format(currentDate, 'MMMM yyyy', { locale: fr });
-      case 'agenda':
-        return format(currentDate, 'MMMM yyyy', { locale: fr });
-      default:
-        return '';
-    }
+    return format(currentDate, 'MMMM yyyy', { locale: fr });
   };
 
   const getEventsForDate = (date: Date) => {
@@ -139,7 +102,7 @@ export function CalendarView({
   };
 
   const handleDateClick = (date: Date) => {
-    if (onEventCreate && (isAdmin || viewMode === 'agenda')) {
+    if (onEventCreate && isAdmin) {
       if (date.getTime() >= Date.now() - 24 * 60 * 60 * 1000) { // Allow creating events from yesterday
         onEventCreate(date);
       }
@@ -147,30 +110,6 @@ export function CalendarView({
     onDateSelect(date);
   };
 
-  const renderViewModeSelector = () => (
-    <div className="flex items-center space-x-1 bg-muted rounded-lg p-1">
-      {[
-        { mode: 'agenda', icon: List, label: 'Agenda' },
-        { mode: 'day', icon: Columns, label: 'Jour' },
-        { mode: 'week', icon: Grid3X3, label: 'Semaine' },
-        { mode: 'month', icon: CalendarIcon, label: 'Mois' }
-      ].map(({ mode, icon: Icon, label }) => (
-        <Button
-          key={mode}
-          variant={viewMode === mode ? "default" : "ghost"}
-          size="sm"
-          onClick={() => onViewModeChange(mode as ViewMode)}
-          className={cn(
-            "h-8 px-3 transition-all duration-200",
-            viewMode === mode && "shadow-sm"
-          )}
-        >
-          <Icon className="h-4 w-4 mr-1" />
-          <span className="hidden sm:inline">{label}</span>
-        </Button>
-      ))}
-    </div>
-  );
 
   const renderAgendaView = () => {
     const agendaStart = startOfWeek(currentDate, { weekStartsOn: 1 });
@@ -545,28 +484,13 @@ export function CalendarView({
   const renderCurrentView = () => {
     if (loading) {
       return (
-        <div className="flex items-center justify-center h-[50vh]">
-          <div className="animate-pulse space-y-4 w-full max-w-md">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-16 bg-muted rounded" />
-            ))}
-          </div>
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       );
     }
 
-    switch (viewMode) {
-      case 'agenda':
-        return renderAgendaView();
-      case 'day':
-        return renderDayView();
-      case 'week':
-        return renderWeekView();
-      case 'month':
-        return renderMonthView();
-      default:
-        return renderAgendaView();
-    }
+    return renderMonthView();
   };
 
   return (
@@ -608,16 +532,13 @@ export function CalendarView({
               </h2>
             </div>
 
-            <div className="flex items-center space-x-3">
-              {renderViewModeSelector()}
-              
-              {isAdmin && (
-                <Button onClick={() => handleDateClick(new Date())}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Créer
-                </Button>
-              )}
-            </div>
+        {/* Admin Actions */}
+        {isAdmin && (
+          <Button onClick={() => handleDateClick(new Date())} size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Nouvel événement
+          </Button>
+        )}
           </div>
         </CardHeader>
         
