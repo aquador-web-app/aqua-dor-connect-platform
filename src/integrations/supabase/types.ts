@@ -1028,6 +1028,30 @@ export type Database = {
           },
         ]
       }
+      public_children_view: {
+        Row: {
+          created_at: string | null
+          first_name: string | null
+          id: string
+          swimming_level: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          first_name?: string | null
+          id: string
+          swimming_level?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          first_name?: string | null
+          id?: string
+          swimming_level?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       referral_credits: {
         Row: {
           created_at: string
@@ -1473,24 +1497,7 @@ export type Database = {
       }
     }
     Views: {
-      public_children_view: {
-        Row: {
-          first_name: string | null
-          id: string | null
-          swimming_level: string | null
-        }
-        Insert: {
-          first_name?: never
-          id?: string | null
-          swimming_level?: string | null
-        }
-        Update: {
-          first_name?: never
-          id?: string | null
-          swimming_level?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       calculate_referral_credits: {
