@@ -43,13 +43,14 @@ export function ReservationFlow({ isOpen, onClose, session, onSuccess }: Reserva
     try {
       setLoading(true);
 
-      // Create the booking first
+      // Create the booking with pending enrollment status
       const { data: booking, error: bookingError } = await supabase
         .from('bookings')
         .insert({
           user_id: profile.id,
           class_session_id: session.id,
           status: 'confirmed',
+          enrollment_status: 'pending', // New pending workflow
           notes
         })
         .select()
@@ -57,15 +58,16 @@ export function ReservationFlow({ isOpen, onClose, session, onSuccess }: Reserva
 
       if (bookingError) throw bookingError;
 
-      // Create the payment record
+      // Create the payment record - always pending until admin approval
       const paymentData = {
         user_id: profile.id,
         booking_id: booking.id,
         amount: session.classes.price,
         currency: 'HTG',
-        status: 'pending', // All start as pending
+        status: 'pending', 
         payment_method: paymentMethod,
-        admin_verified: false // Admin needs to verify physical payments
+        admin_verified: false, // Requires admin verification
+        verified: false
       };
 
       const { error: paymentError } = await supabase
@@ -74,33 +76,33 @@ export function ReservationFlow({ isOpen, onClose, session, onSuccess }: Reserva
 
       if (paymentError) throw paymentError;
 
-      // Show success message with different instructions based on payment method
-      let successMessage = "";
+      // Show pending approval message
       let instructions = "";
 
       switch (paymentMethod) {
         case 'cash':
-          instructions = "Veuillez apporter le montant en espèces lors de votre arrivée au centre.";
+          instructions = "Votre demande d'inscription est en attente. Un administrateur validera votre paiement en espèces lors de votre arrivée.";
           break;
         case 'check':
-          instructions = "Veuillez apporter votre chèque lors de votre arrivée au centre.";
+          instructions = "Votre demande d'inscription est en attente. Un administrateur validera votre paiement par chèque lors de votre arrivée.";
           break;
         case 'moncash':
-          instructions = "Vous recevrez bientôt les instructions MonCash par email.";
+          instructions = "Votre demande d'inscription est en attente. Vous recevrez les instructions MonCash par email après validation administrative.";
           break;
         default:
-          instructions = "Veuillez contacter le centre pour finaliser votre paiement.";
+          instructions = "Votre demande d'inscription est en attente de validation administrative.";
       }
 
       toast({
-        title: "🎉 Réservation Confirmée!",
+        title: "📋 Demande d'Inscription Soumise!",
         description: (
           <div className="space-y-2">
             <div><strong>Cours:</strong> {session.classes.name}</div>
             <div><strong>Date:</strong> {format(new Date(session.session_date), 'EEEE d MMMM yyyy à HH:mm', { locale: fr })}</div>
             <div><strong>Prix:</strong> ${session.classes.price}</div>
             <div><strong>Paiement:</strong> {paymentMethod === 'cash' ? 'Espèces' : paymentMethod === 'check' ? 'Chèque' : paymentMethod === 'moncash' ? 'MonCash' : 'Carte'}</div>
-            <div className="text-sm text-muted-foreground pt-2">
+            <div><strong>Statut:</strong> <span className="text-orange-600">En attente d'approbation</span></div>
+            <div className="text-sm text-muted-foreground pt-2 border-t">
               {instructions}
             </div>
           </div>

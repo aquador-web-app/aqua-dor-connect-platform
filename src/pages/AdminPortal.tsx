@@ -20,6 +20,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Toaster } from "@/components/ui/toaster";
 import { AdminReservationManager } from "@/components/dashboard/AdminReservationManager";
 import { EnhancedBarcodeScanner } from "@/components/dashboard/EnhancedBarcodeScanner";
+import { PendingBookingsManager } from "@/components/admin/PendingBookingsManager";
 
 function AdminPortal() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -67,13 +68,19 @@ function AdminPortal() {
             </div>
           );
       case "payments":
-        return canManagePayments() ? <PaymentOverview /> : (
-          <div className="text-center p-8">
+        return canManagePayments() ? (
+          <div className="space-y-6">
+            <PendingBookingsManager />
+            <PaymentOverview />
+            <PaymentManagement />
+          </div>
+        ) : (
+          <div className="text-center py-8">
             <p className="text-muted-foreground">Vous n'avez pas les permissions pour accéder à cette section.</p>
           </div>
         );
-        case 'paiements':
-          return <PaymentManagement />;
+      case 'paiements':
+        return <PaymentManagement />;
       case "content":
         return canManageContent() ? <ContentManager /> : (
           <div className="text-center p-8">

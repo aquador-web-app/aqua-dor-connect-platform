@@ -499,27 +499,122 @@ export function SamsungCalendar({
   };
 
   const handleBookEvent = async (eventId: string) => {
-    if (!profile) return;
+    // Redirect unauthenticated users to sign in
+    if (!user) {
+      toast({
+        title: "Connexion requise",
+        description: "Veuillez vous connecter pour réserver un cours",
+        variant: "default",
+      });
+      // Redirect to auth page
+      window.location.href = '/auth';
+      return;
+    }
+
+    if (!profile) {
+      toast({
+        title: "Profil requis",
+        description: "Veuillez compléter votre profil pour réserver",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Find the event
+    const event = events.find(e => e.id === eventId);
+    if (!event || event.type !== 'class') {
+      toast({
+        title: "Erreur",
+        description: "Session non trouvée",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if session is full
+    if (event.attendees >= event.maxAttendees) {
+      toast({
+        title: "Session complète",
+        description: "Cette session a atteint sa capacité maximale",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if user already booked
+    if (event.isUserBooked) {
+      toast({
+        title: "Déjà réservé",
+        description: "Vous avez déjà réservé cette session",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
-      const { error } = await supabase
+      // Get class information for the booking
+      const { data: sessionData, error: sessionError } = await supabase
+        .from('class_sessions')
+        .select(`
+          id,
+          session_date,
+          class_id,
+          classes!inner (
+            id,
+            name,
+            level,
+            price,
+            description
+          ),
+          instructors (
+            profiles (
+              full_name
+            )
+          )
+        `)
+        .eq('id', eventId)
+        .single();
+
+      if (sessionError) throw sessionError;
+
+      // Create booking with pending enrollment status
+      const { data: booking, error: bookingError } = await supabase
         .from('bookings')
         .insert({
           user_id: profile.id,
           class_session_id: eventId,
-          status: 'confirmed'
+          status: 'confirmed',
+          enrollment_status: 'pending' // New pending workflow
+        })
+        .select()
+        .single();
+
+      if (bookingError) throw bookingError;
+
+      // Create pending payment record
+      const { error: paymentError } = await supabase
+        .from('payments')
+        .insert({
+          user_id: profile.id,
+          booking_id: booking.id,
+          amount: sessionData.classes.price,
+          currency: 'HTG',
+          status: 'pending',
+          payment_method: 'cash', // Default to cash, can be updated later
+          admin_verified: false,
+          verified: false
         });
 
-      if (error) throw error;
+      if (paymentError) throw paymentError;
 
       toast({
-        title: "Réservation confirmée",
-        description: "Votre réservation a été enregistrée avec succès",
+        title: "📋 Demande d'inscription soumise!",
+        description: `Votre demande pour "${sessionData.classes.name}" est en attente d'approbation administrative. Vous serez notifié de la validation.`,
       });
 
       await loadEvents();
       
-      // Trigger global sync for availability updates
+      // Trigger global sync
       window.dispatchEvent(new CustomEvent('calendarSync', { 
         detail: { type: 'booking_created', eventId } 
       }));
@@ -527,7 +622,7 @@ export function SamsungCalendar({
       console.error('Error booking event:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de réserver cet événement",
+        description: "Impossible de soumettre votre demande d'inscription",
         variant: "destructive"
       });
     }
