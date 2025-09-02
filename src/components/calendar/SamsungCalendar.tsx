@@ -907,15 +907,6 @@ export function SamsungCalendar({
               </div>
             )}
 
-            {selectedEvent.instructor && (
-              <div className="text-sm">
-                <strong>Instructeur:</strong> {selectedEvent.instructor}
-              </div>
-            )}
-
-            {selectedEvent.level && (
-              <Badge variant="outline">{selectedEvent.level}</Badge>
-            )}
 
             {selectedEvent.maxAttendees && (
               <div className="flex items-center space-x-2 text-sm">
