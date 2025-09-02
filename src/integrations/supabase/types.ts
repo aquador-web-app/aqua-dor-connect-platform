@@ -601,6 +601,7 @@ export type Database = {
       }
       enrollments: {
         Row: {
+          cancelled_at: string | null
           class_id: string
           enrollment_date: string
           id: string
@@ -612,6 +613,7 @@ export type Database = {
           student_id: string
         }
         Insert: {
+          cancelled_at?: string | null
           class_id: string
           enrollment_date?: string
           id?: string
@@ -623,6 +625,7 @@ export type Database = {
           student_id: string
         }
         Update: {
+          cancelled_at?: string | null
           class_id?: string
           enrollment_date?: string
           id?: string
@@ -903,10 +906,53 @@ export type Database = {
           },
         ]
       }
+      payment_events: {
+        Row: {
+          actor_id: string | null
+          id: string
+          metadata: Json | null
+          occurred_at: string
+          payment_id: string
+          type: string
+        }
+        Insert: {
+          actor_id?: string | null
+          id?: string
+          metadata?: Json | null
+          occurred_at?: string
+          payment_id: string
+          type: string
+        }
+        Update: {
+          actor_id?: string | null
+          id?: string
+          metadata?: Json | null
+          occurred_at?: string
+          payment_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_events_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_events_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           admin_verified: boolean | null
           amount: number
+          amount_usd: number | null
           approved_at: string | null
           approved_by: string | null
           booking_id: string | null
@@ -914,6 +960,7 @@ export type Database = {
           currency: string
           enrollment_id: string | null
           id: string
+          method: string | null
           paid_at: string | null
           payment_method: string | null
           status: string
@@ -925,6 +972,7 @@ export type Database = {
         Insert: {
           admin_verified?: boolean | null
           amount: number
+          amount_usd?: number | null
           approved_at?: string | null
           approved_by?: string | null
           booking_id?: string | null
@@ -932,6 +980,7 @@ export type Database = {
           currency?: string
           enrollment_id?: string | null
           id?: string
+          method?: string | null
           paid_at?: string | null
           payment_method?: string | null
           status?: string
@@ -943,6 +992,7 @@ export type Database = {
         Update: {
           admin_verified?: boolean | null
           amount?: number
+          amount_usd?: number | null
           approved_at?: string | null
           approved_by?: string | null
           booking_id?: string | null
@@ -950,6 +1000,7 @@ export type Database = {
           currency?: string
           enrollment_id?: string | null
           id?: string
+          method?: string | null
           paid_at?: string | null
           payment_method?: string | null
           status?: string
@@ -1220,6 +1271,48 @@ export type Database = {
             columns: ["referrer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reservation_events: {
+        Row: {
+          actor_id: string | null
+          enrollment_id: string
+          id: string
+          metadata: Json | null
+          occurred_at: string
+          type: string
+        }
+        Insert: {
+          actor_id?: string | null
+          enrollment_id: string
+          id?: string
+          metadata?: Json | null
+          occurred_at?: string
+          type: string
+        }
+        Update: {
+          actor_id?: string | null
+          enrollment_id?: string
+          id?: string
+          metadata?: Json | null
+          occurred_at?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservation_events_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservation_events_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "enrollments"
             referencedColumns: ["id"]
           },
         ]
@@ -1570,11 +1663,28 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_monthly_revenue: {
+        Row: {
+          month: string | null
+          month_key: string | null
+          month_name: string | null
+          payment_count: number | null
+          revenue: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      approve_payment_with_event: {
+        Args: { p_actor_id?: string; p_payment_id: string }
+        Returns: undefined
+      }
       calculate_referral_credits: {
         Args: { referrer_profile_id: string }
+        Returns: undefined
+      }
+      cancel_enrollment_with_event: {
+        Args: { p_actor_id?: string; p_enrollment_id: string }
         Returns: undefined
       }
       create_admin_notification: {

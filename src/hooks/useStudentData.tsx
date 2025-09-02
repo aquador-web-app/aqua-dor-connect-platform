@@ -166,7 +166,7 @@ export const useStudentData = () => {
 
       if (!profile) return;
 
-      // Get enrollments with class and instructor info - filter out null classes
+      // Get enrollments with class and instructor info - include cancelled ones for 24h visibility
       const { data: enrollmentsData } = await supabase
         .from("enrollments")
         .select(`
@@ -174,9 +174,9 @@ export const useStudentData = () => {
           class_id,
           progress_level,
           status,
+          cancelled_at,
           classes!inner (
             name,
-            level,
             instructor_id,
             instructors (
               profile_id,
@@ -187,8 +187,8 @@ export const useStudentData = () => {
           )
         `)
         .eq("student_id", profile.id)
-        .eq("status", "active")
-        .not("class_id", "is", null);
+        .not("class_id", "is", null)
+        .or(`status.eq.active,and(status.eq.cancelled,cancelled_at.gte.${new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()})`);
 
       // Filter out any enrollments with missing classes data
       const validEnrollments = (enrollmentsData || []).filter(enrollment => 
@@ -284,14 +284,14 @@ export const useStudentData = () => {
       setAttendanceData(chartData);
 
       setStats({
-        totalClasses: validEnrollments?.length || 0,
+        totalClasses: validEnrollments?.filter(e => e.status === 'active').length || 0,
         completedSessions: attendanceRecords?.length || 0,
         attendanceRate,
         currentLevel: "Swimming",
         nextPaymentDue,
         totalPaid,
         upcomingBookings: bookingsData?.length || 0,
-        activeEnrollments: validEnrollments?.length || 0
+        activeEnrollments: validEnrollments?.filter(e => e.status === 'active').length || 0
       });
 
     } catch (error) {

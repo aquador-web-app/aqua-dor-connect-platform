@@ -39,13 +39,28 @@ export function EnhancedRevenueChart({ title = "Revenus mensuels" }: EnhancedRev
   useEffect(() => {
     fetchRevenueData();
     
-    // Subscribe to real-time updates
+    // Subscribe to real-time payment updates for instant revenue chart refresh
     const channel = supabase
-      .channel('revenue-updates')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'payments' },
-        () => {
-          fetchRevenueData();
+      .channel('payment-revenue-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'payments'
+        },
+        (payload) => {
+          console.log('Payment update detected in revenue chart:', payload);
+          // Hot refresh on payment status changes (approval, refunds, etc.)
+          if (payload.eventType === 'UPDATE' && 
+              (['approved', 'paid', 'refunded'].includes(payload.new?.status) || 
+               payload.new?.approved_at !== payload.old?.approved_at)) {
+            fetchRevenueData();
+          }
+          // Also refresh on new payments
+          if (payload.eventType === 'INSERT') {
+            fetchRevenueData();
+          }
         }
       )
       .subscribe();
@@ -59,20 +74,19 @@ export function EnhancedRevenueChart({ title = "Revenus mensuels" }: EnhancedRev
     try {
       setLoading(true);
       
+      // Use the monthly revenue view for consistent canonical data
+      const { data: monthlyRevenue, error } = await supabase
+        .from('v_monthly_revenue')
+        .select('*')
+        .order('month', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching monthly revenue:', error);
+        return;
+      }
+
+      // Create 12-month view with current year
       const currentYear = new Date().getFullYear();
-      const startOfYear = new Date(currentYear, 0, 1);
-      const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59);
-
-      const { data: payments, error } = await supabase
-        .from('payments')
-        .select('amount, created_at, status')
-        .eq('status', 'paid')
-        .gte('created_at', startOfYear.toISOString())
-        .lte('created_at', endOfYear.toISOString());
-
-      if (error) throw error;
-
-      // Generate all 12 months
       const monthNames = [
         'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun',
         'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'
@@ -81,27 +95,25 @@ export function EnhancedRevenueChart({ title = "Revenus mensuels" }: EnhancedRev
       const monthlyData: RevenueData[] = [];
       
       for (let i = 0; i < 12; i++) {
-        const monthPayments = payments?.filter(payment => {
-          const paymentMonth = new Date(payment.created_at).getMonth();
-          return paymentMonth === i;
-        }) || [];
-
-        const monthRevenue = monthPayments.reduce((sum, payment) => sum + payment.amount, 0);
+        const monthKey = `${currentYear}-${(i + 1).toString().padStart(2, '0')}`;
+        const monthRecord = monthlyRevenue?.find(item => item.month_key === monthKey);
         
         monthlyData.push({
           month: (i + 1).toString().padStart(2, '0'),
           monthName: monthNames[i],
-          revenue: monthRevenue,
-          count: monthPayments.length
+          revenue: Number(monthRecord?.revenue) || 0,
+          count: Number(monthRecord?.payment_count) || 0
         });
       }
 
       setData(monthlyData);
       
-      // Calculate totals
-      const total = payments?.reduce((sum, payment) => sum + payment.amount, 0) || 0;
-      setTotalRevenue(total);
-      setTotalPayments(payments?.length || 0);
+      // Calculate totals from approved/paid payments only
+      const totalRevenue = monthlyRevenue?.reduce((sum, item) => sum + Number(item.revenue || 0), 0) || 0;
+      const totalPayments = monthlyRevenue?.reduce((sum, item) => sum + Number(item.payment_count || 0), 0) || 0;
+      
+      setTotalRevenue(totalRevenue);
+      setTotalPayments(totalPayments);
       
     } catch (error) {
       console.error('Error fetching revenue data:', error);

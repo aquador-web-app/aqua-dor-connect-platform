@@ -52,6 +52,28 @@ export function PaymentOverview() {
 
   useEffect(() => {
     fetchPaymentData();
+
+    // Subscribe to realtime payment updates for instant refresh
+    const channel = supabase
+      .channel('payment-overview-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'payments'
+        },
+        (payload) => {
+          console.log('Payment change detected in overview:', payload);
+          // Optimistic update for better UX
+          fetchPaymentData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchPaymentData = async () => {
