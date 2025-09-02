@@ -185,7 +185,7 @@ export function StudentPayments() {
               <span className="text-sm font-medium">Total Payé</span>
             </div>
             <div className="text-2xl font-bold text-green-600">
-              {summary.totalPaid} HTG
+              ${summary.totalPaid.toLocaleString()}
             </div>
           </CardContent>
         </Card>
@@ -197,7 +197,7 @@ export function StudentPayments() {
               <span className="text-sm font-medium">En Attente</span>
             </div>
             <div className="text-2xl font-bold text-yellow-600">
-              {summary.totalPending} HTG
+              ${summary.totalPending.toLocaleString()}
             </div>
           </CardContent>
         </Card>
@@ -226,7 +226,7 @@ export function StudentPayments() {
                   Paiements en attente
                 </h3>
                 <p className="text-sm text-yellow-700">
-                  Vous avez {summary.pendingCount} paiement(s) en attente pour un total de {summary.totalPending} HTG.
+                  Vous avez {summary.pendingCount} paiement(s) en attente pour un total de ${summary.totalPending.toLocaleString()}.
                   Veuillez contacter le centre pour finaliser vos paiements.
                 </p>
               </div>

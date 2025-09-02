@@ -63,7 +63,7 @@ export function ReservationFlow({ isOpen, onClose, session, onSuccess }: Reserva
         user_id: profile.id,
         booking_id: booking.id,
         amount: session.classes.price,
-        currency: 'HTG',
+        currency: 'USD',
         status: 'pending', 
         payment_method: paymentMethod,
         admin_verified: false, // Requires admin verification

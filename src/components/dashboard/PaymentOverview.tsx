@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { RevenueChart } from "./RevenueChart";
+import { EnhancedRevenueChart } from "./EnhancedRevenueChart";
 import { DollarSign, TrendingUp, Users, Download, Search, Filter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -271,7 +271,7 @@ export function PaymentOverview() {
       </div>
 
       {/* Revenue Chart */}
-      <RevenueChart data={[]} />
+      <EnhancedRevenueChart />
 
       {/* Filters */}
       <div className="flex gap-4 mb-6">

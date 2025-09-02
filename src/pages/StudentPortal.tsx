@@ -22,6 +22,7 @@ import { ReferralDashboard } from "@/components/dashboard/ReferralDashboard";
 import { ReferralSystem } from "@/components/dashboard/ReferralSystem";
 import { StudentBalanceIndicator } from "@/components/dashboard/StudentBalanceIndicator";
 import { CalendarBookingSystem } from "@/components/dashboard/CalendarBookingSystem";
+import { StudentReservationManager } from "@/components/dashboard/StudentReservationManager";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useLocation } from "react-router-dom";
@@ -272,6 +273,7 @@ const StudentPortal = () => {
                 // Refresh data when booking is successful
                 refetch();
               }} />
+              <StudentReservationManager />
             </div>
           </TabsContent>
 
