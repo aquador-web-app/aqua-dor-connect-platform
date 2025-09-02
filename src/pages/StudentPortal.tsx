@@ -144,8 +144,6 @@ const StudentPortal = () => {
                     </div>
                   </ProgressRing>
                   <div className="mt-4 text-center">
-                    <Badge variant="secondary">{stats.currentLevel}</Badge>
-                    <p className="text-sm text-muted-foreground mt-2">Niveau actuel</p>
                   </div>
                 </CardContent>
               </Card>
@@ -201,7 +199,7 @@ const StudentPortal = () => {
                                 {format(new Date(booking.class_sessions.session_date), 'EEEE d MMMM yyyy à HH:mm', { locale: fr })}
                               </p>
                               <div className="flex items-center gap-2">
-                                <Badge variant="outline">{booking.class_sessions?.classes?.level || "Niveau non défini"}</Badge>
+                                
                                 <Badge variant="default">Réservé</Badge>
                                 {booking.total_amount > 0 && (
                                   <Badge variant="secondary">${booking.total_amount} {booking.currency}</Badge>
@@ -226,7 +224,7 @@ const StudentPortal = () => {
                                 Instructeur: {enrollment.classes?.instructors?.profiles?.full_name || "Non assigné"}
                               </p>
                               <div className="flex items-center gap-2 mb-3">
-                                <Badge variant="outline">{enrollment.classes?.level || "Niveau non défini"}</Badge>
+                                
                                 <Badge variant={enrollment.status === "active" ? "default" : "secondary"}>
                                   {enrollment.status === "active" ? "Actif" : enrollment.status}
                                 </Badge>

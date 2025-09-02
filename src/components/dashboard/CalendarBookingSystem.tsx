@@ -297,21 +297,6 @@ export function CalendarBookingSystem({ onBookingSuccess }: CalendarBookingSyste
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="text-sm font-medium">Niveau</label>
-                <Select value={filters.level} onValueChange={(value) => setFilters(prev => ({ ...prev, level: value }))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous les niveaux</SelectItem>
-                    <SelectItem value="débutant">Débutant</SelectItem>
-                    <SelectItem value="intermédiaire">Intermédiaire</SelectItem>
-                    <SelectItem value="avancé">Avancé</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
                 <label className="text-sm font-medium">Instructeur</label>
                 <Select value={filters.instructor} onValueChange={(value) => setFilters(prev => ({ ...prev, instructor: value }))}>
                   <SelectTrigger>
@@ -380,9 +365,6 @@ export function CalendarBookingSystem({ onBookingSuccess }: CalendarBookingSyste
                               <h3 className="text-lg font-semibold">
                                 {session.classes.name}
                               </h3>
-                              <Badge className={getLevelColor(session.classes.level)}>
-                                {session.classes.level}
-                              </Badge>
                             </div>
 
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">

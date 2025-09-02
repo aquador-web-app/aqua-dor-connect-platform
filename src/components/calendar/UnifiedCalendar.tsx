@@ -600,7 +600,7 @@ export function LegacyUnifiedCalendar({
                             <div className="flex items-center gap-3">
                               <BookOpen className="h-5 w-5 text-blue-500" />
                               <h3 className="font-semibold">{session.classes.name}</h3>
-                              <Badge variant="secondary">{session.classes.level}</Badge>
+                              
                               {isEnrolled && <Badge variant="outline">Inscrit</Badge>}
                             </div>
                             

@@ -283,15 +283,11 @@ export const useStudentData = () => {
       const chartData = await calculateAttendanceData(profile.id);
       setAttendanceData(chartData);
 
-      // Determine current level based on enrollments
-      const levels = validEnrollments?.map(e => e.classes?.level).filter(Boolean) || [];
-      const currentLevel = levels.length > 0 ? levels[0] : "Débutant";
-
       setStats({
         totalClasses: validEnrollments?.length || 0,
         completedSessions: attendanceRecords?.length || 0,
         attendanceRate,
-        currentLevel,
+        currentLevel: "Swimming",
         nextPaymentDue,
         totalPaid,
         upcomingBookings: bookingsData?.length || 0,

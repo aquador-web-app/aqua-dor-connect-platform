@@ -128,7 +128,7 @@ export function AdminReservationManager() {
       'Client',
       'Email',
       'Cours',
-      'Niveau',
+      
       'Date du Cours',
       'Montant',
       'Devise',
@@ -141,7 +141,7 @@ export function AdminReservationManager() {
       reservation.profiles?.full_name || 'N/A',
       reservation.profiles?.email || 'N/A',
       reservation.class_sessions?.classes?.name || 'N/A',
-      reservation.class_sessions?.classes?.level || 'N/A',
+      
       format(new Date(reservation.class_sessions?.session_date || ''), 'dd/MM/yyyy HH:mm'),
       reservation.total_amount?.toString() || '0',
       reservation.currency || 'USD',
@@ -299,9 +299,6 @@ export function AdminReservationManager() {
                       <TableCell>
                         <div>
                           <div className="font-medium">{reservation.class_sessions?.classes?.name || 'N/A'}</div>
-                          <Badge variant="outline" className="text-xs">
-                            {reservation.class_sessions?.classes?.level || 'N/A'}
-                          </Badge>
                         </div>
                       </TableCell>
                       
