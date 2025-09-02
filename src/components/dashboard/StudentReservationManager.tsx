@@ -271,7 +271,6 @@ export function StudentReservationManager() {
                 <TableRow>
                   <TableHead>Cours</TableHead>
                   <TableHead>Date et heure</TableHead>
-                  <TableHead>Instructeur</TableHead>
                   <TableHead>Statut</TableHead>
                   <TableHead>Montant</TableHead>
                   <TableHead>Notes</TableHead>
@@ -292,15 +291,6 @@ export function StudentReservationManager() {
                         <Clock className="h-4 w-4 text-muted-foreground" />
                         <span>
                           {format(new Date(booking.class_sessions.session_date), 'dd/MM/yyyy à HH:mm', { locale: fr })}
-                        </span>
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4 text-muted-foreground" />
-                        <span>
-                          {booking.class_sessions.instructors?.profiles?.full_name || "Non assigné"}
                         </span>
                       </div>
                     </TableCell>

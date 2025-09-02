@@ -129,7 +129,6 @@ export function AdminReservationManager() {
       'Email',
       'Cours',
       'Niveau',
-      'Instructeur',
       'Date du Cours',
       'Montant',
       'Devise',
@@ -143,7 +142,6 @@ export function AdminReservationManager() {
       reservation.profiles?.email || 'N/A',
       reservation.class_sessions?.classes?.name || 'N/A',
       reservation.class_sessions?.classes?.level || 'N/A',
-      reservation.class_sessions?.instructors?.profiles?.full_name || 'N/A',
       format(new Date(reservation.class_sessions?.session_date || ''), 'dd/MM/yyyy HH:mm'),
       reservation.total_amount?.toString() || '0',
       reservation.currency || 'USD',
@@ -274,7 +272,6 @@ export function AdminReservationManager() {
                 <TableRow>
                   <TableHead>Client</TableHead>
                   <TableHead>Cours</TableHead>
-                  <TableHead>Instructeur</TableHead>
                   <TableHead>Date & Heure</TableHead>
                   <TableHead>Montant</TableHead>
                   <TableHead>Statut</TableHead>
@@ -305,15 +302,6 @@ export function AdminReservationManager() {
                           <Badge variant="outline" className="text-xs">
                             {reservation.class_sessions?.classes?.level || 'N/A'}
                           </Badge>
-                        </div>
-                      </TableCell>
-                      
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">
-                            {reservation.class_sessions?.instructors?.profiles?.full_name || 'N/A'}
-                          </span>
                         </div>
                       </TableCell>
                       
@@ -415,10 +403,6 @@ export function AdminReservationManager() {
                   <Badge variant="outline" className="text-xs mt-1">
                     {selectedReservation.class_sessions?.classes?.level || 'N/A'}
                   </Badge>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-sm text-muted-foreground">INSTRUCTEUR</h3>
-                  <p className="font-medium">{selectedReservation.class_sessions?.instructors?.profiles?.full_name || 'N/A'}</p>
                 </div>
               </div>
 
