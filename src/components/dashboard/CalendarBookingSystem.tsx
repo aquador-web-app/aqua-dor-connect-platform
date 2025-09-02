@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Users, MapPin, User, ChevronLeft, ChevronRight } from "lucide-react";
+import { Clock, Users, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -36,8 +36,6 @@ interface ClassSession {
 }
 
 interface FilterOptions {
-  level: string;
-  instructor: string;
   timeOfDay: string;
 }
 
@@ -52,36 +50,13 @@ export function CalendarBookingSystem({ onBookingSuccess }: CalendarBookingSyste
   const [sessions, setSessions] = useState<ClassSession[]>([]);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>({
-    level: 'all',
-    instructor: 'all',
     timeOfDay: 'all'
   });
-  const [instructors, setInstructors] = useState<Array<{id: string, name: string}>>([]);
   const [availableDates, setAvailableDates] = useState<Date[]>([]);
 
   useEffect(() => {
     fetchSessions();
-    fetchInstructors();
   }, [selectedDate, filters]);
-
-  const fetchInstructors = async () => {
-    try {
-      const { data } = await supabase
-        .from('instructors')
-        .select(`
-          id,
-          profiles(full_name)
-        `)
-        .eq('is_active', true);
-
-      setInstructors(data?.map(i => ({
-        id: i.id,
-        name: i.profiles?.full_name || 'Instructeur'
-      })) || []);
-    } catch (error) {
-      console.error('Error fetching instructors:', error);
-    }
-  };
 
   const fetchSessions = async () => {
     try {
@@ -119,15 +94,6 @@ export function CalendarBookingSystem({ onBookingSuccess }: CalendarBookingSyste
         .lte('session_date', endOfDay.toISOString())
         .eq('status', 'scheduled')
         .order('session_date', { ascending: true });
-
-      // Apply filters
-      if (filters.level !== 'all') {
-        query = query.eq('classes.level', filters.level);
-      }
-      
-      if (filters.instructor !== 'all') {
-        query = query.eq('instructor_id', filters.instructor);
-      }
 
       const { data, error } = await query;
 
@@ -297,23 +263,6 @@ export function CalendarBookingSystem({ onBookingSuccess }: CalendarBookingSyste
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="text-sm font-medium">Instructeur</label>
-                <Select value={filters.instructor} onValueChange={(value) => setFilters(prev => ({ ...prev, instructor: value }))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous les instructeurs</SelectItem>
-                    {instructors.map((instructor) => (
-                      <SelectItem key={instructor.id} value={instructor.id}>
-                        {instructor.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
                 <label className="text-sm font-medium">Moment de la journée</label>
                 <Select value={filters.timeOfDay} onValueChange={(value) => setFilters(prev => ({ ...prev, timeOfDay: value }))}>
                   <SelectTrigger>
@@ -367,15 +316,10 @@ export function CalendarBookingSystem({ onBookingSuccess }: CalendarBookingSyste
                               </h3>
                             </div>
 
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                               <div className="flex items-center gap-2">
                                 <Clock className="h-4 w-4 text-muted-foreground" />
                                 <span>{formatTime(session.session_date)}</span>
-                              </div>
-                              
-                              <div className="flex items-center gap-2">
-                                <User className="h-4 w-4 text-muted-foreground" />
-                                <span>{session.instructors?.profiles?.full_name || "Non assigné"}</span>
                               </div>
                               
                               <div className="flex items-center gap-2">
