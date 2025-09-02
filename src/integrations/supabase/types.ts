@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_notifications: {
+        Row: {
+          created_at: string
+          data: Json | null
+          id: string
+          message: string
+          read_at: string | null
+          title: string
+          type: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          data?: Json | null
+          id?: string
+          message: string
+          read_at?: string | null
+          title: string
+          type?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          data?: Json | null
+          id?: string
+          message?: string
+          read_at?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_settings: {
         Row: {
           created_at: string
@@ -113,6 +157,7 @@ export type Database = {
           class_session_id: string | null
           created_at: string
           currency: string | null
+          enrollment_status: string | null
           id: string
           invoice_generated_at: string | null
           invoice_number: string | null
@@ -132,6 +177,7 @@ export type Database = {
           class_session_id?: string | null
           created_at?: string
           currency?: string | null
+          enrollment_status?: string | null
           id?: string
           invoice_generated_at?: string | null
           invoice_number?: string | null
@@ -151,6 +197,7 @@ export type Database = {
           class_session_id?: string | null
           created_at?: string
           currency?: string | null
+          enrollment_status?: string | null
           id?: string
           invoice_generated_at?: string | null
           invoice_number?: string | null
@@ -860,6 +907,8 @@ export type Database = {
         Row: {
           admin_verified: boolean | null
           amount: number
+          approved_at: string | null
+          approved_by: string | null
           booking_id: string | null
           created_at: string
           currency: string
@@ -876,6 +925,8 @@ export type Database = {
         Insert: {
           admin_verified?: boolean | null
           amount: number
+          approved_at?: string | null
+          approved_by?: string | null
           booking_id?: string | null
           created_at?: string
           currency?: string
@@ -892,6 +943,8 @@ export type Database = {
         Update: {
           admin_verified?: boolean | null
           amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
           booking_id?: string | null
           created_at?: string
           currency?: string
@@ -906,6 +959,13 @@ export type Database = {
           verified?: boolean | null
         }
         Relationships: [
+          {
+            foreignKeyName: "payments_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "payments_booking_id_fkey"
             columns: ["booking_id"]
