@@ -19,6 +19,7 @@ interface Enrollment {
   class_id: string;
   progress_level: number;
   status: string;
+  cancelled_at: string | null;
   classes: {
     name: string;
     level: string;
@@ -177,6 +178,7 @@ export const useStudentData = () => {
           cancelled_at,
           classes!inner (
             name,
+            level,
             instructor_id,
             instructors (
               profile_id,

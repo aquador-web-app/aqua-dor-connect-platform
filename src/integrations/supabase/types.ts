@@ -1754,6 +1754,10 @@ export type Database = {
         }
         Returns: string
       }
+      reactivate_enrollment_with_event: {
+        Args: { p_actor_id?: string; p_enrollment_id: string }
+        Returns: undefined
+      }
       recalc_enrolled_count: {
         Args: { p_session: string }
         Returns: undefined
