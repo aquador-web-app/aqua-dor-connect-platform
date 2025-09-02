@@ -166,7 +166,7 @@ export const useStudentData = () => {
 
       if (!profile) return;
 
-      // Get enrollments with class and instructor info
+      // Get enrollments with class and instructor info - filter out null classes
       const { data: enrollmentsData } = await supabase
         .from("enrollments")
         .select(`
@@ -187,9 +187,15 @@ export const useStudentData = () => {
           )
         `)
         .eq("student_id", profile.id)
-        .eq("status", "active");
+        .eq("status", "active")
+        .not("class_id", "is", null);
 
-      setEnrollments(enrollmentsData || []);
+      // Filter out any enrollments with missing classes data
+      const validEnrollments = (enrollmentsData || []).filter(enrollment => 
+        enrollment.classes && enrollment.classes.name
+      );
+
+      setEnrollments(validEnrollments);
 
       // Get upcoming bookings with enhanced fields
       const { data: bookingsData } = await supabase
@@ -278,18 +284,18 @@ export const useStudentData = () => {
       setAttendanceData(chartData);
 
       // Determine current level based on enrollments
-      const levels = enrollmentsData?.map(e => e.classes.level) || [];
+      const levels = validEnrollments?.map(e => e.classes?.level).filter(Boolean) || [];
       const currentLevel = levels.length > 0 ? levels[0] : "Débutant";
 
       setStats({
-        totalClasses: enrollmentsData?.length || 0,
+        totalClasses: validEnrollments?.length || 0,
         completedSessions: attendanceRecords?.length || 0,
         attendanceRate,
         currentLevel,
         nextPaymentDue,
         totalPaid,
         upcomingBookings: bookingsData?.length || 0,
-        activeEnrollments: enrollmentsData?.length || 0
+        activeEnrollments: validEnrollments?.length || 0
       });
 
     } catch (error) {

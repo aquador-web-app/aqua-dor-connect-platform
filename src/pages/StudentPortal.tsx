@@ -189,18 +189,18 @@ const StudentPortal = () => {
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
                                 <Calendar className="h-4 w-4 text-green-600" />
-                                <h3 className="font-semibold">{booking.class_sessions.classes.name}</h3>
+                                <h3 className="font-semibold">{booking.class_sessions?.classes?.name || "Cours non défini"}</h3>
                                 <Badge variant="default" className="bg-green-600">Prochaine session</Badge>
                               </div>
                               <p className="text-sm text-muted-foreground mb-1">
-                                Instructeur: {booking.class_sessions.instructors?.profiles?.full_name || "Non assigné"}
+                                Instructeur: {booking.class_sessions?.instructors?.profiles?.full_name || "Non assigné"}
                               </p>
                               <p className="text-sm font-medium text-green-700 mb-2">
                                 <Clock className="h-4 w-4 inline mr-1" />
                                 {format(new Date(booking.class_sessions.session_date), 'EEEE d MMMM yyyy à HH:mm', { locale: fr })}
                               </p>
                               <div className="flex items-center gap-2">
-                                <Badge variant="outline">{booking.class_sessions.classes.level}</Badge>
+                                <Badge variant="outline">{booking.class_sessions?.classes?.level || "Niveau non défini"}</Badge>
                                 <Badge variant="default">Réservé</Badge>
                                 {booking.total_amount > 0 && (
                                   <Badge variant="secondary">${booking.total_amount} {booking.currency}</Badge>
@@ -212,20 +212,20 @@ const StudentPortal = () => {
                       ))}
                       
                       {/* Enrollments - ongoing courses */}
-                      {enrollments.map((enrollment) => (
+                      {enrollments.filter(enrollment => enrollment.classes).map((enrollment) => (
                         <Card key={`enrollment-${enrollment.id}`} className="p-4 border-l-4 border-l-blue-500">
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
                                 <BookOpen className="h-4 w-4 text-blue-600" />
-                                <h3 className="font-semibold">{enrollment.classes.name}</h3>
+                                <h3 className="font-semibold">{enrollment.classes?.name || "Cours non défini"}</h3>
                                 <Badge variant="secondary">Cours régulier</Badge>
                               </div>
                               <p className="text-sm text-muted-foreground mb-2">
-                                Instructeur: {enrollment.classes.instructors?.profiles?.full_name || "Non assigné"}
+                                Instructeur: {enrollment.classes?.instructors?.profiles?.full_name || "Non assigné"}
                               </p>
                               <div className="flex items-center gap-2 mb-3">
-                                <Badge variant="outline">{enrollment.classes.level}</Badge>
+                                <Badge variant="outline">{enrollment.classes?.level || "Niveau non défini"}</Badge>
                                 <Badge variant={enrollment.status === "active" ? "default" : "secondary"}>
                                   {enrollment.status === "active" ? "Actif" : enrollment.status}
                                 </Badge>
@@ -242,18 +242,18 @@ const StudentPortal = () => {
                       ))}
                       
                       {/* Past bookings - less prominent */}
-                      {bookings.filter(booking => new Date(booking.class_sessions.session_date) <= new Date()).slice(0, 2).map((booking) => (
+                      {bookings.filter(booking => booking.class_sessions && new Date(booking.class_sessions.session_date) <= new Date()).slice(0, 2).map((booking) => (
                         <Card key={`past-booking-${booking.id}`} className="p-4 opacity-60 border-l-4 border-l-gray-400">
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
                                 <Clock className="h-4 w-4 text-gray-600" />
-                                <h3 className="font-semibold text-gray-700">{booking.class_sessions.classes.name}</h3>
+                                <h3 className="font-semibold text-gray-700">{booking.class_sessions?.classes?.name || "Cours non défini"}</h3>
                                 <Badge variant="outline" className="text-xs">Terminé</Badge>
                               </div>
                               <p className="text-xs text-muted-foreground">
                                 {format(new Date(booking.class_sessions.session_date), 'dd/MM/yyyy à HH:mm', { locale: fr })} • 
-                                {booking.class_sessions.instructors?.profiles?.full_name || "Non assigné"}
+                                {booking.class_sessions?.instructors?.profiles?.full_name || "Non assigné"}
                               </p>
                             </div>
                           </div>
