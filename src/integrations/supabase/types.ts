@@ -1577,6 +1577,15 @@ export type Database = {
         Args: { referrer_profile_id: string }
         Returns: undefined
       }
+      create_admin_notification: {
+        Args: {
+          p_data?: Json
+          p_message: string
+          p_title: string
+          p_type?: string
+        }
+        Returns: string
+      }
       generate_barcode: {
         Args: Record<PropertyKey, never>
         Returns: string
