@@ -192,10 +192,10 @@ export const useStudentData = () => {
         .not("class_id", "is", null)
         .or(`status.eq.active,and(status.eq.cancelled,cancelled_at.gte.${new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()})`);
 
-      // Filter out any enrollments with missing classes data
+      // Filter out any enrollments with missing classes data and cast to proper type
       const validEnrollments = (enrollmentsData || []).filter(enrollment => 
         enrollment.classes && enrollment.classes.name
-      );
+      ) as Enrollment[];
 
       setEnrollments(validEnrollments);
 
