@@ -110,7 +110,9 @@ export function PaymentMethodSelector({
             </div>
             <div>
               <span className="text-muted-foreground">Instructeur:</span>
-              <div className="font-medium">{classSession.instructors.profiles.full_name}</div>
+              <div className="font-medium">
+                {classSession.instructors?.profiles?.full_name || 'Non assigné'}
+              </div>
             </div>
             <div>
               <span className="text-muted-foreground">Prix:</span>
