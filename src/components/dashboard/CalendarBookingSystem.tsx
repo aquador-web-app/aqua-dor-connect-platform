@@ -18,6 +18,7 @@ interface ClassSession {
   max_participants: number;
   status: string;
   notes?: string;
+  class_id: string;
   classes: {
     id: string;
     name: string;
@@ -100,6 +101,7 @@ export function CalendarBookingSystem({ onBookingSuccess }: CalendarBookingSyste
           max_participants,
           status,
           notes,
+          class_id,
           classes(
             id,
             name,

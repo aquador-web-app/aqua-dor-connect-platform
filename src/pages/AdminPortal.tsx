@@ -8,7 +8,7 @@ import { InstructorManagement } from "@/components/dashboard/InstructorManagemen
 import { CourseManagement } from "@/components/dashboard/CourseManagement";
 import { EnhancedCalendar } from "@/components/dashboard/EnhancedCalendar";
 import { PaymentOverview } from "@/components/dashboard/PaymentOverview";
-import { AdminPaymentManager } from "@/components/dashboard/AdminPaymentManager";
+import { PaymentManagement } from "@/components/dashboard/PaymentManagement";
 import { ContentManager } from "@/components/dashboard/ContentManager";
 import { NotificationManager } from "@/components/dashboard/NotificationManager";
 import { ParentChildManager } from "@/components/dashboard/ParentChildManager";
@@ -72,12 +72,8 @@ function AdminPortal() {
             <p className="text-muted-foreground">Vous n'avez pas les permissions pour accéder à cette section.</p>
           </div>
         );
-      case "payment-manager":
-        return canManagePayments() ? <AdminPaymentManager /> : (
-          <div className="text-center p-8">
-            <p className="text-muted-foreground">Vous n'avez pas les permissions pour accéder à cette section.</p>
-          </div>
-        );
+        case 'paiements':
+          return <PaymentManagement />;
       case "content":
         return canManageContent() ? <ContentManager /> : (
           <div className="text-center p-8">

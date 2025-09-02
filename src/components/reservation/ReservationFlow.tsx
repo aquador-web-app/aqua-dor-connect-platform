@@ -10,7 +10,9 @@ import { fr } from "date-fns/locale";
 interface ClassSession {
   id: string;
   session_date: string;
+  class_id: string;
   classes: {
+    id: string;
     name: string;
     level: string;
     price: number;
@@ -60,8 +62,8 @@ export function ReservationFlow({ isOpen, onClose, session, onSuccess }: Reserva
         user_id: profile.id,
         booking_id: booking.id,
         amount: session.classes.price,
-        currency: 'USD',
-        status: paymentMethod === 'moncash' ? 'pending' : 'pending', // All start as pending
+        currency: 'HTG',
+        status: 'pending', // All start as pending
         payment_method: paymentMethod,
         admin_verified: false // Admin needs to verify physical payments
       };

@@ -125,6 +125,25 @@ export function CalendarBooking() {
         return;
       }
 
+      // Get session details to access class information
+      const { data: sessionData, error: sessionError } = await supabase
+        .from("class_sessions")
+        .select(`
+          id,
+          class_id,
+          classes (
+            id,
+            name,
+            price
+          )
+        `)
+        .eq("id", sessionId)
+        .single();
+
+      if (sessionError || !sessionData) {
+        throw new Error("Session not found");
+      }
+
       const { error } = await supabase
         .from("bookings")
         .insert({
@@ -137,7 +156,7 @@ export function CalendarBooking() {
 
       toast({
         title: "Réservation confirmée",
-        description: "Votre cours a été réservé avec succès"
+        description: "Votre cours a été réservé avec succès. Procédez au paiement."
       });
 
       fetchSessions(); // Refresh the sessions
