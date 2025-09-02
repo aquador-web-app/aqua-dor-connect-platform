@@ -73,26 +73,33 @@ export function StudentPayments() {
     try {
       setLoading(true);
       
-      const { data, error } = await supabase
-        .from('payments')
-        .select(`
-          *,
-          profiles!inner(full_name, email),
-          bookings(
-            invoice_number,
-            class_sessions(
-              session_date,
-              classes(name, level)
-            )
+    const { data, error } = await supabase
+      .from('payments')
+      .select(`
+        *,
+        profiles!payments_user_id_fkey(full_name, email),
+        bookings(
+          invoice_number,
+          class_sessions(
+            session_date,
+            classes(name, level)
           )
-        `)
-        .eq('user_id', profile.id)
-        .order('created_at', { ascending: false });
+        )
+      `)
+      .eq('user_id', profile.id)
+      .order('created_at', { ascending: false });
 
-      if (error) throw error;
+    if (error) throw error;
 
-      setPayments(data || []);
-      calculateSummary(data || []);
+    // Filter out any payments with missing profile data
+    const validPayments = (data || []).filter(payment => 
+      payment.profiles && 
+      typeof payment.profiles === 'object' && 
+      !('error' in payment.profiles)
+    );
+
+    setPayments(validPayments);
+    calculateSummary(validPayments);
     } catch (error) {
       console.error('Error fetching payments:', error);
       toast({

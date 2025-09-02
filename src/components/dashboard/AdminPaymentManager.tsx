@@ -87,7 +87,7 @@ export function AdminPaymentManager() {
         .from('payments')
         .select(`
           *,
-          profiles!inner(full_name, email),
+          profiles!payments_user_id_fkey(full_name, email),
           bookings(
             class_sessions(
               session_date,
@@ -99,8 +99,15 @@ export function AdminPaymentManager() {
 
       if (error) throw error;
 
-      setPayments(data || []);
-      calculateStats(data || []);
+      // Filter out any payments with missing profile data
+      const validPayments = (data || []).filter(payment => 
+        payment.profiles && 
+        typeof payment.profiles === 'object' && 
+        !('error' in payment.profiles)
+      );
+
+      setPayments(validPayments);
+      calculateStats(validPayments);
     } catch (error) {
       console.error('Error fetching payments:', error);
       toast({

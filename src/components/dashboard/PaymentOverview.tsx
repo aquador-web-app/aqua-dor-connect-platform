@@ -58,23 +58,30 @@ export function PaymentOverview() {
     try {
       setLoading(true);
       
-      // Fetch payments with user profiles
-      const { data: paymentsData, error: paymentsError } = await supabase
-        .from('payments')
-        .select(`
-          *,
-          profiles!inner(full_name, email)
-        `)
-        .order('created_at', { ascending: false });
+    // Fetch payments with user profiles
+    const { data: paymentsData, error: paymentsError } = await supabase
+      .from('payments')
+      .select(`
+        *,
+        profiles!payments_user_id_fkey(full_name, email)
+      `)
+      .order('created_at', { ascending: false });
 
-      if (paymentsError) throw paymentsError;
+    if (paymentsError) throw paymentsError;
 
-      setPayments(paymentsData || []);
+    // Filter out any payments with missing profile data
+    const validPayments = (paymentsData || []).filter(payment => 
+      payment.profiles && 
+      typeof payment.profiles === 'object' && 
+      !('error' in payment.profiles)
+    );
 
-      // Calculate statistics
-      const allPayments = paymentsData || [];
-      const currentMonth = new Date();
-      const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+    setPayments(validPayments);
+
+    // Calculate statistics
+    const allPayments = validPayments;
+    const currentMonth = new Date();
+    const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
 
       const totalRevenue = allPayments
         .filter(p => p.status === 'paid')
