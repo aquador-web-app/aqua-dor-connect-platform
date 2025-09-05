@@ -68,10 +68,10 @@ const Header = () => {
               {t('nav.instructors')}
             </Link>
             <Link 
-              to="/courses" 
+              to="/store" 
               className="text-foreground hover:text-secondary transition-colors"
             >
-              {t('nav.courses')}
+              Boutique
             </Link>
             <Link 
               to="/gallery" 
@@ -230,11 +230,11 @@ const Header = () => {
                 {t('nav.instructors')}
               </Link>
               <Link 
-                to="/courses" 
+                to="/store" 
                 className="block py-2 text-foreground hover:text-secondary transition-colors"
                 onClick={toggleMenu}
               >
-                {t('nav.courses')}
+                Boutique
               </Link>
               <Link 
                 to="/gallery" 

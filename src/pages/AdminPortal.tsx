@@ -18,7 +18,8 @@ import { IntelligentCalendar } from "@/components/dashboard/IntelligentCalendar"
 import { UnifiedCalendar } from "@/components/calendar/UnifiedCalendar";
 import { useAuth } from "@/hooks/useAuth";
 import { Toaster } from "@/components/ui/toaster";
-import { AdminReservationManager } from "@/components/dashboard/AdminReservationManager";
+import { ProductManagement } from "@/components/dashboard/ProductManagement";
+import { SubscriptionPlansManagement } from "@/components/dashboard/SubscriptionPlansManagement";
 import { EnhancedBarcodeScanner } from "@/components/dashboard/EnhancedBarcodeScanner";
 import { PendingBookingsManager } from "@/components/admin/PendingBookingsManager";
 
@@ -45,8 +46,20 @@ function AdminPortal() {
         return <InstructorManagement />;
       case "courses":
         return <CourseManagement />;
+        case 'products':
+          return <ProductManagement />;
+        case 'subscriptions':
+          return <SubscriptionPlansManagement />;
         case "reservations":
-          return <AdminReservationManager />;
+          return (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold">Gestion des Réservations</h2>
+                <p className="text-muted-foreground">Gérez les réservations et les demandes d'inscription</p>
+              </div>
+              <PendingBookingsManager />
+            </div>
+          );
         case "attendance":
           return (
             <div className="space-y-6">
