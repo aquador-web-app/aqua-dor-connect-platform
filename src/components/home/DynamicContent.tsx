@@ -44,25 +44,28 @@ export function DynamicContent() {
     fetchDynamicContent();
   }, []);
 
-  const fetchDynamicContent = async () => {
+  const fetchDynamicContent = async (retryCount = 0) => {
     try {
-      // Fetch announcements and featured content
-      const { data: contentData, error: contentError } = await supabase
+      // Fetch announcements and featured content with timeout
+      const contentPromise = supabase
         .from('content')
         .select('*')
         .eq('is_active', true)
         .in('type', ['announcement', 'banner', 'featured'])
         .order('display_order', { ascending: true })
-        .limit(3);
+        .limit(3)
+        .abortSignal(AbortSignal.timeout(10000));
 
-      if (contentError) throw contentError;
+      const { data: contentData, error: contentError } = await contentPromise;
+
+      if (contentError && !contentError.message.includes('aborted')) throw contentError;
       setAnnouncements(contentData || []);
 
-      // Fetch upcoming classes
+      // Fetch upcoming classes with timeout
       const now = new Date();
       const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
       
-      const { data: classesData, error: classesError } = await supabase
+      const classesPromise = supabase
         .from('class_sessions')
         .select(`
           id,
@@ -84,34 +87,56 @@ export function DynamicContent() {
         .lte('session_date', nextWeek.toISOString())
         .eq('status', 'scheduled')
         .order('session_date', { ascending: true })
-        .limit(4);
+        .limit(4)
+        .abortSignal(AbortSignal.timeout(10000));
 
-      if (classesError) throw classesError;
+      const { data: classesData, error: classesError } = await classesPromise;
+
+      if (classesError && !classesError.message.includes('aborted')) throw classesError;
 
       // Get booking counts for each session
       if (classesData && classesData.length > 0) {
-        const sessionIds = classesData.map(s => s.id);
-        const { data: bookingCounts } = await supabase
-          .from('bookings')
-          .select('class_session_id')
-          .in('class_session_id', sessionIds)
-          .eq('status', 'confirmed');
+        try {
+          const sessionIds = classesData.map(s => s.id);
+          const { data: bookingCounts } = await supabase
+            .from('bookings')
+            .select('class_session_id')
+            .in('class_session_id', sessionIds)
+            .eq('status', 'confirmed')
+            .abortSignal(AbortSignal.timeout(5000));
 
-        const bookingCountMap: {[key: string]: number} = {};
-        bookingCounts?.forEach(booking => {
-          bookingCountMap[booking.class_session_id] = (bookingCountMap[booking.class_session_id] || 0) + 1;
-        });
+          const bookingCountMap: {[key: string]: number} = {};
+          bookingCounts?.forEach(booking => {
+            bookingCountMap[booking.class_session_id] = (bookingCountMap[booking.class_session_id] || 0) + 1;
+          });
 
-        const classesWithCounts = classesData.map(session => ({
-          ...session,
-          booking_count: bookingCountMap[session.id] || 0
-        }));
+          const classesWithCounts = classesData.map(session => ({
+            ...session,
+            booking_count: bookingCountMap[session.id] || 0
+          }));
 
-        setUpcomingClasses(classesWithCounts);
+          setUpcomingClasses(classesWithCounts);
+        } catch (bookingError) {
+          console.warn('Failed to fetch booking counts, using data without counts:', bookingError);
+          setUpcomingClasses(classesData.map(session => ({
+            ...session,
+            booking_count: 0
+          })));
+        }
       }
     } catch (error) {
       console.error('Error fetching dynamic content:', error);
-      // Use fallback content if needed
+      
+      // Retry logic for network failures
+      if (retryCount < 2 && (error instanceof TypeError || error?.message?.includes('fetch'))) {
+        console.log(`Retrying dynamic content fetch (attempt ${retryCount + 1})`);
+        setTimeout(() => fetchDynamicContent(retryCount + 1), 1000 * (retryCount + 1));
+        return;
+      }
+      
+      // Set empty data as fallback
+      setAnnouncements([]);
+      setUpcomingClasses([]);
     } finally {
       setLoading(false);
     }

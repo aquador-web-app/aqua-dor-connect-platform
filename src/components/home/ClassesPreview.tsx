@@ -81,7 +81,7 @@ const ClassesPreview = () => {
     };
   }, []);
 
-  const fetchClasses = async () => {
+  const fetchClasses = async (retryCount = 0) => {
     try {
       const { data, error } = await supabase
         .from('classes')
@@ -100,12 +100,23 @@ const ClassesPreview = () => {
           )
         `)
         .eq('is_active', true)
-        .limit(3);
+        .limit(3)
+        .abortSignal(AbortSignal.timeout(10000));
 
-      if (error) throw error;
+      if (error && !error.message.includes('aborted')) throw error;
       setClasses(data || []);
     } catch (error) {
       console.error('Error fetching classes:', error);
+      
+      // Retry logic for network failures
+      if (retryCount < 2 && (error instanceof TypeError || error?.message?.includes('fetch'))) {
+        console.log(`Retrying classes fetch (attempt ${retryCount + 1})`);
+        setTimeout(() => fetchClasses(retryCount + 1), 1000 * (retryCount + 1));
+        return;
+      }
+      
+      // Use fallback classes if fetch fails completely
+      setClasses([]);
     } finally {
       setLoading(false);
     }

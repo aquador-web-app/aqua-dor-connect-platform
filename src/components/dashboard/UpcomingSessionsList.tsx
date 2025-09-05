@@ -54,10 +54,10 @@ export function UpcomingSessionsList({ mode = 'public', daysAhead = 14, title }:
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [range.from, range.to]);
 
-  async function fetchSessions() {
+  async function fetchSessions(retryCount = 0) {
     try {
       setLoading(true);
-      // Primary fetch: sessions in range [now, daysAhead]
+      // Primary fetch: sessions in range [now, daysAhead] with timeout
       const { data, error } = await supabase
         .from('class_sessions')
         .select(`
@@ -72,31 +72,38 @@ export function UpcomingSessionsList({ mode = 'public', daysAhead = 14, title }:
         .gte('session_date', range.from)
         .lte('session_date', range.to)
         .eq('status', 'scheduled')
-        .order('session_date', { ascending: true });
+        .order('session_date', { ascending: true })
+        .abortSignal(AbortSignal.timeout(10000));
 
-      if (error) throw error;
+      if (error && !error.message.includes('aborted')) throw error;
 
       let rows = data || [];
 
       // Fallback: if none in range, fetch next 8 upcoming scheduled sessions
       if (rows.length === 0) {
-        const { data: fallback, error: fallbackError } = await supabase
-          .from('class_sessions')
-          .select(`
-            id,
-            session_date,
-            type,
-            status,
-            max_participants,
-            duration_minutes,
-            classes:class_id ( id, name )
-          `)
-          .gte('session_date', range.from)
-          .eq('status', 'scheduled')
-          .order('session_date', { ascending: true })
-          .limit(8);
-        if (fallbackError) throw fallbackError;
-        rows = fallback || [];
+        try {
+          const { data: fallback, error: fallbackError } = await supabase
+            .from('class_sessions')
+            .select(`
+              id,
+              session_date,
+              type,
+              status,
+              max_participants,
+              duration_minutes,
+              classes:class_id ( id, name )
+            `)
+            .gte('session_date', range.from)
+            .eq('status', 'scheduled')
+            .order('session_date', { ascending: true })
+            .limit(8)
+            .abortSignal(AbortSignal.timeout(10000));
+          if (fallbackError && !fallbackError.message.includes('aborted')) throw fallbackError;
+          rows = fallback || [];
+        } catch (fallbackError) {
+          console.warn('Fallback query also failed:', fallbackError);
+          rows = [];
+        }
       }
 
       const mapped: SessionItem[] = rows.map((row: any) => ({
@@ -113,6 +120,16 @@ export function UpcomingSessionsList({ mode = 'public', daysAhead = 14, title }:
       setSessions(mapped);
     } catch (e) {
       console.error('Failed to fetch upcoming sessions', e);
+      
+      // Retry logic for network failures
+      if (retryCount < 2 && (e instanceof TypeError || e?.message?.includes('fetch'))) {
+        console.log(`Retrying sessions fetch (attempt ${retryCount + 1})`);
+        setTimeout(() => fetchSessions(retryCount + 1), 1500 * (retryCount + 1));
+        return;
+      }
+      
+      // Set empty sessions as fallback
+      setSessions([]);
     } finally {
       setLoading(false);
     }

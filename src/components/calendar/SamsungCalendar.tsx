@@ -169,7 +169,7 @@ export function SamsungCalendar({
     };
   }, []);
 
-  const loadEvents = async () => {
+  const loadEvents = async (retryCount = 0) => {
     setLoading(true);
     try {
       // Calculate date range based on view mode
@@ -181,7 +181,7 @@ export function SamsungCalendar({
 
       const events: CalendarEvent[] = [];
 
-      // Fetch class sessions
+      // Fetch class sessions with timeout
       const { data: sessions, error: sessionsError } = await supabase
         .from('class_sessions')
         .select(`
@@ -214,9 +214,10 @@ export function SamsungCalendar({
         .gte('session_date', startDate.toISOString())
         .lte('session_date', endDate.toISOString())
         .eq('status', 'scheduled')
-        .order('session_date');
+        .order('session_date')
+        .abortSignal(AbortSignal.timeout(15000));
 
-      if (sessionsError) throw sessionsError;
+      if (sessionsError && !sessionsError.message.includes('aborted')) throw sessionsError;
 
       sessions?.forEach((session: any) => {
         const startTime = parseISO(session.session_date);
@@ -322,11 +323,23 @@ export function SamsungCalendar({
       setEvents(events);
     } catch (error) {
       console.error('Error loading events:', error);
+      
+      // Retry logic for network failures
+      if (retryCount < 2 && (error instanceof TypeError || error?.message?.includes('fetch'))) {
+        console.log(`Retrying events load (attempt ${retryCount + 1})`);
+        setTimeout(() => loadEvents(retryCount + 1), 2000 * (retryCount + 1));
+        return;
+      }
+      
+      // Show error toast only after all retries failed
       toast({
-        title: "Erreur",
-        description: "Impossible de charger les événements",
+        title: "Erreur de connexion",
+        description: "Impossible de charger les événements. Vérifiez votre connexion internet.",
         variant: "destructive"
       });
+      
+      // Set empty events as fallback
+      setEvents([]);
     } finally {
       setLoading(false);
     }
