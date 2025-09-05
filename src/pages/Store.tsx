@@ -12,6 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 
 interface Product {
   id: string;
@@ -291,7 +293,9 @@ export default function Store() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <>
+      <Header />
+      <main className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Boutique</h1>
         
@@ -520,6 +524,8 @@ export default function Store() {
           <p className="text-muted-foreground">Aucun produit trouvé.</p>
         </div>
       )}
-    </div>
+      </main>
+      <Footer />
+    </>
   );
 }

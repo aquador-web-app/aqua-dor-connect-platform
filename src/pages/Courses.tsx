@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Clock, Users, Award, DollarSign } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -26,6 +28,8 @@ interface CourseClass {
 
 const Courses = () => {
   const { t } = useLanguage();
+  const { user, profile } = useAuth();
+  const { toast } = useToast();
   const [classes, setClasses] = useState<CourseClass[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -83,6 +87,77 @@ const Courses = () => {
     }
   };
 
+  const handleEnrollInCourse = async (classId: string, price: number) => {
+    if (!user) {
+      toast({
+        title: "Connexion requise",
+        description: "Veuillez vous connecter pour vous inscrire à un cours",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!profile?.id) return;
+
+    try {
+      // Check if already enrolled
+      const { data: existingEnrollment } = await supabase
+        .from('enrollments')
+        .select('id')
+        .eq('student_id', profile.id)
+        .eq('class_id', classId)
+        .eq('status', 'active')
+        .single();
+
+      if (existingEnrollment) {
+        toast({
+          title: "Déjà inscrit",
+          description: "Vous êtes déjà inscrit à ce cours",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Create enrollment
+      const { error: enrollmentError } = await supabase
+        .from('enrollments')
+        .insert({
+          student_id: profile.id,
+          class_id: classId,
+          status: 'active',
+          payment_status: 'pending'
+        });
+
+      if (enrollmentError) throw enrollmentError;
+
+      // Create payment record
+      const { error: paymentError } = await supabase
+        .from('payments')
+        .insert({
+          user_id: profile.id,
+          amount: price,
+          currency: 'USD',
+          status: 'pending',
+          method: 'cash'
+        });
+
+      if (paymentError) throw paymentError;
+
+      toast({
+        title: "Inscription réussie",
+        description: "Votre inscription a été enregistrée. Veuillez effectuer le paiement pour confirmer.",
+      });
+
+    } catch (error) {
+      console.error('Error enrolling in course:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de s'inscrire au cours",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getLevelColor = (level: string) => {
     switch (level) {
       case 'beginner': return 'bg-green-100 text-green-800';
@@ -136,6 +211,7 @@ const Courses = () => {
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {[
                 {
+                  id: "sample-1",
                   name: "Initiation Aquatique",
                   level: "beginner",
                   description: "Premiers pas dans l'eau, familiarisation et techniques de base",
@@ -144,6 +220,7 @@ const Courses = () => {
                   price: 25
                 },
                 {
+                  id: "sample-2",
                   name: "Perfectionnement",
                   level: "intermediate", 
                   description: "Amélioration des techniques de nage et développement de l'endurance",
@@ -152,6 +229,7 @@ const Courses = () => {
                   price: 30
                 },
                 {
+                  id: "sample-3",
                   name: "Natation Avancée",
                   level: "advanced",
                   description: "Techniques avancées et préparation à la compétition",
@@ -160,6 +238,7 @@ const Courses = () => {
                   price: 40
                 },
                 {
+                  id: "sample-4",
                   name: "Sauvetage Aquatique",
                   level: "lifesaving",
                   description: "Formation aux techniques de sauvetage et premiers secours",
@@ -168,6 +247,7 @@ const Courses = () => {
                   price: 50
                 },
                 {
+                  id: "sample-5",
                   name: "Compétition",
                   level: "competition",
                   description: "Entraînement intensif pour nageurs de compétition",
@@ -203,9 +283,12 @@ const Courses = () => {
                       </div>
                     </div>
                     
-                    <Button className="w-full">
-                      {t('courses.register')}
-                    </Button>
+                  <Button 
+                    className="w-full"
+                    onClick={() => handleEnrollInCourse(course.id, course.price)}
+                  >
+                    {t('courses.register')} - ${course.price}
+                  </Button>
                   </CardContent>
                 </Card>
               ))}
@@ -248,9 +331,12 @@ const Courses = () => {
                     </div>
                   )}
                   
-                  <Button className="w-full">
-                    {t('courses.register')}
-                  </Button>
+                <Button 
+                  className="w-full"
+                  onClick={() => handleEnrollInCourse(courseClass.id, courseClass.price)}
+                >
+                  {t('courses.register')} - ${courseClass.price}
+                </Button>
                 </CardContent>
               </Card>
             ))}
