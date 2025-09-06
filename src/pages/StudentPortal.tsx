@@ -23,6 +23,8 @@ import { ReferralSystem } from "@/components/dashboard/ReferralSystem";
 import { StudentBalanceIndicator } from "@/components/dashboard/StudentBalanceIndicator";
 import { CalendarBookingSystem } from "@/components/dashboard/CalendarBookingSystem";
 import { StudentReservationManager } from "@/components/dashboard/StudentReservationManager";
+import { PaymentNotificationBell } from "@/components/dashboard/PaymentNotificationBell";
+import { StudentNotificationSystem } from "@/components/dashboard/StudentNotificationSystem";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useLocation } from "react-router-dom";
@@ -82,6 +84,8 @@ const StudentPortal = () => {
         <div className="mb-8">
           <StudentNotificationSystem />
         </div>
+        
+        <div className="mb-8 flex items-center justify-between">
           <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
             <DialogTrigger asChild>
               <Button size="lg" className="flex items-center gap-2">
