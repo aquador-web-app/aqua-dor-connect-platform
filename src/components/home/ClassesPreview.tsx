@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Users, Star } from "lucide-react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 interface CourseClass {
@@ -203,8 +204,8 @@ const ClassesPreview = () => {
         </div>
         
         <div className="text-center">
-          <Button size="lg" variant="outline" className="px-8">
-            Voir Tous les Cours
+          <Button size="lg" variant="outline" className="px-8" asChild>
+            <Link to="/courses">Voir Tous les Cours</Link>
           </Button>
         </div>
       </div>

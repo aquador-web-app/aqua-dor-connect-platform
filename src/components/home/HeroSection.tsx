@@ -8,7 +8,7 @@ const HeroSection = () => {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background Image */}
+      {/* Optimized Background Image with preload */}
       <div 
         className="absolute inset-0 z-0"
         style={{
@@ -18,6 +18,27 @@ const HeroSection = () => {
           backgroundRepeat: 'no-repeat'
         }}
       />
+      
+      {/* Preload link for faster loading */}
+      <link rel="preload" as="image" href="/src/assets/pool-hero-background.jpg" />
+      
+      {/* Loading placeholder with fade-in effect */}
+      <style>{`
+        .hero-bg {
+          background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('/src/assets/pool-hero-background.jpg');
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+          opacity: 0;
+          animation: fadeIn 0.8s ease-in-out forwards;
+        }
+        
+        @keyframes fadeIn {
+          to {
+            opacity: 1;
+          }
+        }
+      `}</style>
       
       {/* Content */}
       <div className="relative z-10 text-center text-white px-4 max-w-4xl mx-auto">
