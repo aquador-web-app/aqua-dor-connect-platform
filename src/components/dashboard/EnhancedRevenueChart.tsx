@@ -74,11 +74,9 @@ export function EnhancedRevenueChart({ title = "Revenus mensuels" }: EnhancedRev
     try {
       setLoading(true);
       
-      // Use the monthly revenue view for consistent canonical data
+      // Use the secure monthly revenue function
       const { data: monthlyRevenue, error } = await supabase
-        .from('v_monthly_revenue')
-        .select('*')
-        .order('month', { ascending: true });
+        .rpc('get_monthly_revenue');
 
       if (error) {
         console.error('Error fetching monthly revenue:', error);
