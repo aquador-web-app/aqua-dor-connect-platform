@@ -12,6 +12,7 @@ import {
   Grid3X3,
   Columns
 } from "lucide-react";
+import { ReservationForm, ReservationData } from "./ReservationForm";
 import { format, 
   startOfMonth, 
   endOfMonth, 
@@ -73,6 +74,8 @@ export function CalendarView({
   loading = false
 }: CalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(selectedDate);
+  const [showReservationForm, setShowReservationForm] = useState(false);
+  const [reservationDate, setReservationDate] = useState<Date>(new Date());
 
   useEffect(() => {
     setCurrentDate(selectedDate);
@@ -123,13 +126,22 @@ export function CalendarView({
         onEventCreate(date);
       }
     }
-    // If no events and visitor, allow pool rental booking
-    else if (onPoolRental && !isAdmin) {
+    // If no events and visitor, show reservation form
+    else if (!isAdmin) {
       if (date.getTime() >= Date.now() - 24 * 60 * 60 * 1000) { // Allow booking from today
-        onPoolRental(date);
+        setReservationDate(date);
+        setShowReservationForm(true);
       }
     }
     onDateSelect(date);
+  };
+
+  const handleReservationSubmit = (reservationData: ReservationData) => {
+    // Call the existing onPoolRental function if it exists
+    onPoolRental?.(reservationData.date);
+    // Here you would typically save the reservation data to your backend
+    console.log('Reservation submitted:', reservationData);
+    setShowReservationForm(false);
   };
 
 
@@ -610,6 +622,14 @@ export function CalendarView({
           {renderCurrentView()}
         </CardContent>
       </Card>
+
+      {/* Reservation Form Modal */}
+      <ReservationForm
+        isOpen={showReservationForm}
+        onClose={() => setShowReservationForm(false)}
+        selectedDate={reservationDate}
+        onSubmit={handleReservationSubmit}
+      />
     </div>
   );
 }
