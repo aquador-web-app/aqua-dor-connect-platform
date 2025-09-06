@@ -125,7 +125,7 @@ export function AdminPaymentManager() {
     const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
 
     const totalRevenue = paymentData
-      .filter(p => p.status === 'paid')
+      .filter(p => p.status === 'paid' || p.status === 'approved')
       .reduce((sum, p) => sum + p.amount, 0);
 
     const pendingPayments = paymentData.filter(p => p.status === 'pending').length;
@@ -133,7 +133,7 @@ export function AdminPaymentManager() {
 
     const monthlyRevenue = paymentData
       .filter(p => 
-        p.status === 'paid' && 
+        (p.status === 'paid' || p.status === 'approved') && 
         new Date(p.created_at) >= firstDayOfMonth
       )
       .reduce((sum, p) => sum + p.amount, 0);
@@ -158,12 +158,12 @@ export function AdminPaymentManager() {
       
       const updateData: any = { admin_verified: verified };
       
-      // If marking as verified and payment is pending, also mark as paid
+      // If marking as verified and payment is pending, mark as approved (not paid)
       if (verified) {
         const payment = payments.find(p => p.id === paymentId);
         if (payment?.status === 'pending') {
-          updateData.status = 'paid';
-          updateData.paid_at = new Date().toISOString();
+          updateData.status = 'approved';
+          updateData.approved_at = new Date().toISOString();
         }
       }
 
@@ -177,7 +177,7 @@ export function AdminPaymentManager() {
       toast({
         title: verified ? "Paiement Vérifié" : "Vérification Annulée",
         description: verified 
-          ? "Le paiement a été marqué comme vérifié et payé" 
+          ? "Le paiement a été marqué comme vérifié et approuvé" 
           : "La vérification du paiement a été annulée"
       });
 
@@ -210,6 +210,8 @@ export function AdminPaymentManager() {
     switch (status) {
       case 'paid':
         return <Badge className="bg-green-100 text-green-800">Payé</Badge>;
+      case 'approved':
+        return <Badge className="bg-blue-100 text-blue-800">Approuvé</Badge>;
       case 'pending':
         return <Badge variant="secondary">En attente</Badge>;
       case 'failed':
@@ -344,6 +346,7 @@ export function AdminPaymentManager() {
               <SelectContent>
                 <SelectItem value="all">Tous les statuts</SelectItem>
                 <SelectItem value="pending">En attente</SelectItem>
+                <SelectItem value="approved">Approuvé</SelectItem>
                 <SelectItem value="paid">Payé</SelectItem>
                 <SelectItem value="failed">Échoué</SelectItem>
               </SelectContent>
@@ -443,7 +446,7 @@ export function AdminPaymentManager() {
                           disabled={updating === payment.id}
                         />
                         <Label className="text-sm cursor-pointer">
-                          {payment.admin_verified ? 'Vérifié' : 'Marquer comme payé'}
+                          {payment.admin_verified ? 'Vérifié' : 'Approuver le paiement'}
                         </Label>
                       </div>
                     </TableCell>
