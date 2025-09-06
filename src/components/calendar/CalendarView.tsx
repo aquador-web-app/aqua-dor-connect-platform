@@ -107,6 +107,15 @@ export function CalendarView({
       return;
     }
     
+    const dayEvents = getEventsForDate(date);
+    
+    // If there are events on this date, show details of the first event
+    if (dayEvents.length > 0) {
+      onEventSelect?.(dayEvents[0]);
+      return;
+    }
+    
+    // If no events and admin can create, allow event creation
     if (onEventCreate && isAdmin) {
       if (date.getTime() >= Date.now() - 24 * 60 * 60 * 1000) { // Allow creating events from yesterday
         onEventCreate(date);
@@ -440,13 +449,16 @@ export function CalendarView({
                 <div
                   key={day.toISOString()}
                   className={cn(
-                    "bg-background p-2 min-h-[100px] transition-colors",
+                    "bg-background p-2 min-h-[100px] transition-colors relative",
                     !isCurrentMonth && "opacity-40",
                     isToday(day) && "bg-primary/10",
                     isSameDay(day, selectedDate) && "ring-2 ring-primary/50",
-                    day.getDay() === 0 ? "bg-muted/30 cursor-not-allowed opacity-50" : "cursor-pointer hover:bg-muted/50"
+                    day.getDay() === 0 ? "bg-muted/30 cursor-not-allowed opacity-50" : 
+                    dayEvents.length > 0 ? "cursor-pointer hover:bg-blue-50/50" : 
+                    (isAdmin ? "cursor-pointer hover:bg-green-50/50" : "cursor-pointer hover:bg-muted/50")
                   )}
                   onClick={() => handleDateClick(day)}
+                  title={dayEvents.length > 0 ? "Cliquer pour voir les détails" : (isAdmin ? "Cliquer pour ajouter un événement" : "")}
                 >
                   <div className={cn(
                     "text-sm mb-1",
@@ -461,7 +473,7 @@ export function CalendarView({
                     {dayEvents.slice(0, 3).map((event) => (
                       <div
                         key={event.id}
-                        className="text-xs p-1 rounded truncate cursor-pointer"
+                        className="text-xs p-1 rounded truncate cursor-pointer hover:opacity-80 transition-opacity"
                         style={{ 
                           backgroundColor: event.color + '30',
                           color: event.color
@@ -471,12 +483,38 @@ export function CalendarView({
                           onEventSelect?.(event);
                         }}
                       >
-                        {event.title}
+                        <div className="font-medium">{event.title}</div>
+                        <div className="text-xs opacity-75">
+                          {format(event.start, 'HH:mm')}
+                        </div>
                       </div>
                     ))}
                     {dayEvents.length > 3 && (
-                      <div className="text-xs text-muted-foreground">
-                        +{dayEvents.length - 3} plus
+                      <div 
+                        className="text-xs text-muted-foreground cursor-pointer hover:text-primary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDateClick(day);
+                        }}
+                      >
+                        +{dayEvents.length - 3} autres
+                      </div>
+                    )}
+                    
+                    {/* Add event button for empty cells (admin only) */}
+                    {dayEvents.length === 0 && isAdmin && day.getDay() !== 0 && isCurrentMonth && (
+                      <div className="flex items-center justify-center h-full min-h-[60px] absolute inset-0 top-6">
+                        <div className="text-center">
+                          <Plus className="h-6 w-6 text-muted-foreground mx-auto mb-1" />
+                          <div className="text-xs text-muted-foreground">Ajouter</div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Show details hint for occupied cells */}
+                    {dayEvents.length > 0 && (
+                      <div className="absolute bottom-1 right-1 text-xs text-muted-foreground bg-background/80 px-1 rounded">
+                        Détails
                       </div>
                     )}
                   </div>
