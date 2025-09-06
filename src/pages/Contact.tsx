@@ -9,9 +9,10 @@ import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { useLanguage } from "@/contexts/LanguageContext";
-
 const Contact = () => {
-  const { t } = useLanguage();
+  const {
+    t
+  } = useLanguage();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -20,27 +21,29 @@ const Contact = () => {
     message: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+    const {
+      name,
+      value
+    } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     // Simulate form submission
     setTimeout(() => {
       toast({
         title: "Message envoyé!",
-        description: "Nous vous répondrons dans les plus brefs délais.",
+        description: "Nous vous répondrons dans les plus brefs délais."
       });
-      
       setFormData({
         name: '',
         email: '',
@@ -51,16 +54,13 @@ const Contact = () => {
       setIsSubmitting(false);
     }, 1000);
   };
-
   const openWhatsApp = () => {
     const phoneNumber = "+50937654321"; // Replace with actual WhatsApp number
     const message = "Bonjour! Je souhaite obtenir des informations sur vos cours de natation.";
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };
-
-  return (
-    <div className="min-h-screen">
+  return <div className="min-h-screen">
       <Header />
       <div className="bg-gradient-subtle">
       <div className="container py-16">
@@ -101,9 +101,7 @@ const Contact = () => {
                   </CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground">
-                      <a href="tel:+50937654321" className="hover:text-accent transition-colors">
-                        +509 3765-4321
-                      </a>
+                      <a href="tel:+50937654321" className="hover:text-accent transition-colors">+509 3891-2429</a>
                     </p>
                     <p className="text-sm text-muted-foreground/80">
                       Lundi - Vendredi: 8h00 - 18h00
@@ -163,10 +161,7 @@ const Contact = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button 
-                  onClick={openWhatsApp}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white"
-                >
+                <Button onClick={openWhatsApp} className="w-full bg-green-600 hover:bg-green-700 text-white">
                   <MessageCircle className="h-4 w-4 mr-2" />
                   Ouvrir WhatsApp
                 </Button>
@@ -205,79 +200,34 @@ const Contact = () => {
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="name">Nom complet *</Label>
-                      <Input
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        placeholder="Votre nom complet"
-                        required
-                      />
+                      <Input id="name" name="name" value={formData.name} onChange={handleInputChange} placeholder="Votre nom complet" required />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="email">Email *</Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        placeholder="votre@email.com"
-                        required
-                      />
+                      <Input id="email" name="email" type="email" value={formData.email} onChange={handleInputChange} placeholder="votre@email.com" required />
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="phone">Téléphone</Label>
-                    <Input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      placeholder="+509 XXXX-XXXX"
-                    />
+                    <Input id="phone" name="phone" type="tel" value={formData.phone} onChange={handleInputChange} placeholder="+509 XXXX-XXXX" />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="subject">Sujet *</Label>
-                    <Input
-                      id="subject"
-                      name="subject"
-                      value={formData.subject}
-                      onChange={handleInputChange}
-                      placeholder="Informations sur les cours"
-                      required
-                    />
+                    <Input id="subject" name="subject" value={formData.subject} onChange={handleInputChange} placeholder="Informations sur les cours" required />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="message">Message *</Label>
-                    <Textarea
-                      id="message"
-                      name="message"
-                      value={formData.message}
-                      onChange={handleInputChange}
-                      placeholder="Décrivez votre demande..."
-                      rows={5}
-                      required
-                    />
+                    <Textarea id="message" name="message" value={formData.message} onChange={handleInputChange} placeholder="Décrivez votre demande..." rows={5} required />
                   </div>
 
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <>
+                  <Button type="submit" className="w-full" disabled={isSubmitting}>
+                    {isSubmitting ? <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                         Envoi en cours...
-                      </>
-                    ) : (
-                      'Envoyer le Message'
-                    )}
+                      </> : 'Envoyer le Message'}
                   </Button>
 
                   <p className="text-xs text-muted-foreground text-center">
@@ -291,8 +241,6 @@ const Contact = () => {
       </div>
       </div>
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default Contact;
