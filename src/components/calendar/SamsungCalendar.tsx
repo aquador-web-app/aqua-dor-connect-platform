@@ -15,6 +15,7 @@ import {
   addDays, 
   addWeeks, 
   addMonths, 
+  addYears,
   eachDayOfInterval,
   startOfWeek,
   endOfWeek,
@@ -426,13 +427,17 @@ export function SamsungCalendar({
     }
 
     const endCondition = recurrence.endType;
-    const maxOccurrences = recurrence.endCount || 100;
-    const endDate = recurrence.endDate || addMonths(startDate, 12);
+    const maxOccurrences = recurrence.endCount || 1000; // Increased default limit
+    // Set end date to 3 years in the future if no specific end date is provided
+    const defaultEndDate = addYears(startDate, 3);
+    const endDate = recurrence.endDate || defaultEndDate;
 
     let currentDate = new Date(startDate);
     let count = 0;
+    // Safety limit to prevent infinite loops - but much higher
+    const safetyLimit = endCondition === 'never' ? 1000 : maxOccurrences * 2;
 
-    while (count < maxOccurrences) {
+    while (count < safetyLimit) {
       events.push({ startDate: new Date(currentDate) });
       count++;
 
@@ -468,6 +473,7 @@ export function SamsungCalendar({
       // Check end conditions
       if (endCondition === 'date' && currentDate > endDate) break;
       if (endCondition === 'count' && count >= maxOccurrences) break;
+      if (endCondition === 'never' && currentDate > addYears(startDate, 3)) break; // Limit "never" to 3 years for performance
     }
 
     return events;
