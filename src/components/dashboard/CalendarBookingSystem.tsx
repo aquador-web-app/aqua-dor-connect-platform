@@ -329,7 +329,7 @@ export function CalendarBookingSystem({ onBookingSuccess }: CalendarBookingSyste
                               
                               <div className="flex items-center gap-2">
                                 <span className="font-semibold text-primary">
-                                  {formatPrice(session.classes.price)}
+                                  {formatPrice(session.classes.price)}/m
                                 </span>
                               </div>
                             </div>
