@@ -98,6 +98,8 @@ export function SamsungCalendar({
   const [eventDetailsOpen, setEventDetailsOpen] = useState(false);
   const [createDate, setCreateDate] = useState<Date | undefined>();
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
+  const [poolRentalDialogOpen, setPoolRentalDialogOpen] = useState(false);
+  const [poolRentalDate, setPoolRentalDate] = useState<Date | undefined>();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [expandedDay, setExpandedDay] = useState<Date | null>(null);
@@ -393,6 +395,21 @@ export function SamsungCalendar({
     
     setCreateDate(date);
     setCreateDialogOpen(true);
+  };
+
+  const handlePoolRental = (date: Date) => {
+    // Prevent rentals on Sundays (pool is closed)
+    if (date.getDay() === 0) {
+      toast({
+        title: "Jour fermé",
+        description: "La piscine est fermée le dimanche",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setPoolRentalDate(date);
+    setPoolRentalDialogOpen(true);
   };
 
   const handleEventSelect = (event: CalendarEvent) => {
@@ -1043,6 +1060,7 @@ export function SamsungCalendar({
       <CalendarView
         onEventCreate={handleEventCreate}
         onEventSelect={handleEventSelect}
+        onPoolRental={handlePoolRental}
         events={events}
         selectedDate={selectedDate}
         onDateSelect={setSelectedDate}
@@ -1132,6 +1150,49 @@ export function SamsungCalendar({
       </Dialog>
 
       {renderEventDetails()}
+
+      {/* Pool Rental Dialog */}
+      <Dialog open={poolRentalDialogOpen} onOpenChange={setPoolRentalDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Réserver la piscine</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="text-center">
+              <div className="text-lg font-semibold">
+                {poolRentalDate && poolRentalDate.toLocaleDateString('fr-FR', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </div>
+              <p className="text-muted-foreground mt-2">
+                Contactez-nous pour réserver la piscine pour cette journée.
+              </p>
+            </div>
+            <div className="flex justify-center space-x-2">
+              <Button
+                onClick={() => {
+                  window.open('tel:+33123456789', '_self');
+                }}
+                className="flex-1"
+              >
+                Appeler
+              </Button>
+              <Button
+                onClick={() => {
+                  window.open('mailto:contact@aquador.com?subject=Réservation piscine&body=Je souhaite réserver la piscine pour le ' + poolRentalDate?.toLocaleDateString('fr-FR'), '_blank');
+                }}
+                variant="outline"
+                className="flex-1"
+              >
+                Email
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
