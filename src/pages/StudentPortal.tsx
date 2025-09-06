@@ -73,6 +73,15 @@ const StudentPortal = () => {
             <h1 className="text-3xl font-bold">Portail Étudiant</h1>
             <p className="text-muted-foreground">Suivez votre progression et gérez vos cours</p>
           </div>
+          <div className="flex items-center gap-2">
+            <PaymentNotificationBell />
+          </div>
+        </div>
+        
+        {/* Notification System */}
+        <div className="mb-8">
+          <StudentNotificationSystem />
+        </div>
           <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
             <DialogTrigger asChild>
               <Button size="lg" className="flex items-center gap-2">

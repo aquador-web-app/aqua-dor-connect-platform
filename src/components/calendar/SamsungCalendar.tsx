@@ -31,6 +31,8 @@ import {
   CheckCircle,
   XCircle
 } from "lucide-react";
+import { ExpandableDayEvents } from "./ExpandableDayEvents";
+import { isSameDay } from "date-fns";
 
 interface CalendarEvent {
   id: string;
@@ -49,6 +51,10 @@ interface CalendarEvent {
   isUserBooked?: boolean;
   canBook?: boolean;
   canMarkAttendance?: boolean;
+  price?: number;
+  classId?: string;
+  sessionId?: string;
+  isEnrolled?: boolean;
 }
 
 interface EventFormData {
@@ -94,6 +100,8 @@ export function SamsungCalendar({
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [expandedDay, setExpandedDay] = useState<Date | null>(null);
+  const [userEnrollments, setUserEnrollments] = useState<Set<string>>(new Set());
 
   const { user, profile, isAdmin, isStudent, isParent } = useAuth();
   const { toast } = useToast();
@@ -219,13 +227,27 @@ export function SamsungCalendar({
 
       if (sessionsError && !sessionsError.message.includes('aborted')) throw sessionsError;
 
+      // Fetch user enrollments first
+      let enrollmentSet = new Set<string>();
+      if (profile?.id) {
+        const { data: enrollments } = await supabase
+          .from('enrollments')
+          .select('class_id')
+          .eq('student_id', profile.id)
+          .eq('status', 'active');
+        
+        enrollmentSet = new Set(enrollments?.map(e => e.class_id) || []);
+        setUserEnrollments(enrollmentSet);
+      }
+
       sessions?.forEach((session: any) => {
         const startTime = parseISO(session.session_date);
         const endTime = new Date(startTime.getTime() + (session.duration_minutes || session.classes.duration_minutes || 60) * 60000);
         
         const confirmedBookings = session.bookings?.filter((b: any) => b.status === 'confirmed') || [];
         const userBooking = confirmedBookings.find((b: any) => b.user_id === profile?.id);
-        const canBook = confirmedBookings.length < session.max_participants && !userBooking && (isStudent() || isParent());
+        const isEnrolled = enrollmentSet.has(session.class_id);
+        const canBook = confirmedBookings.length < session.max_participants && !userBooking && (isStudent() || isParent()) && !isEnrolled;
 
         events.push({
           id: session.id,
@@ -243,7 +265,11 @@ export function SamsungCalendar({
           instructor: session.instructors?.profiles?.full_name || 'Non assigné',
           isUserBooked: !!userBooking,
           canBook,
-          canMarkAttendance: !!userBooking && (isStudent() || isParent())
+          canMarkAttendance: !!userBooking && (isStudent() || isParent()),
+          price: session.classes.price,
+          classId: session.class_id,
+          sessionId: session.id,
+          isEnrolled
         });
       });
 

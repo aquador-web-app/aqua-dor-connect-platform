@@ -119,14 +119,16 @@ const Courses = () => {
       }
 
       // Create enrollment
-      const { error: enrollmentError } = await supabase
+      const { data: enrollment, error: enrollmentError } = await supabase
         .from('enrollments')
         .insert({
           student_id: profile.id,
           class_id: classId,
           status: 'active',
           payment_status: 'pending'
-        });
+        })
+        .select()
+        .single();
 
       if (enrollmentError) throw enrollmentError;
 
@@ -135,17 +137,19 @@ const Courses = () => {
         .from('payments')
         .insert({
           user_id: profile.id,
+          enrollment_id: enrollment.id,
           amount: price,
           currency: 'USD',
           status: 'pending',
-          method: 'cash'
+          method: 'cash',
+          admin_verified: false
         });
 
       if (paymentError) throw paymentError;
 
       toast({
-        title: "Inscription réussie",
-        description: "Votre inscription a été enregistrée. Veuillez effectuer le paiement pour confirmer.",
+        title: "🎉 Inscription réussie!",
+        description: "Votre inscription a été enregistrée. Le paiement est en attente de validation administrative.",
       });
 
     } catch (error) {

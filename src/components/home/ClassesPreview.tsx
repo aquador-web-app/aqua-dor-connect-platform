@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Users, Star } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 interface CourseClass {
@@ -57,6 +60,9 @@ const fallbackClasses = [
 const ClassesPreview = () => {
   const [classes, setClasses] = useState<CourseClass[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchClasses();
@@ -154,6 +160,19 @@ const ClassesPreview = () => {
     }
   };
 
+  const handleReserveClick = (classId: string) => {
+    if (!user) {
+      navigate('/auth', { 
+        state: { 
+          redirectTo: '/courses',
+          classId 
+        }
+      });
+      return;
+    }
+    navigate(`/courses?class=${classId}`);
+  };
+
   const displayClasses = classes.length > 0 ? classes : fallbackClasses;
 
   return (
@@ -194,7 +213,10 @@ const ClassesPreview = () => {
                   <div className="text-2xl font-bold text-primary">
                     ${Number(classItem.price).toFixed(2)} USD
                   </div>
-                  <Button className="bg-gradient-accent">
+                  <Button 
+                    className="bg-gradient-accent"
+                    onClick={() => handleReserveClick(classItem.id)}
+                  >
                     Réserver
                   </Button>
                 </div>
