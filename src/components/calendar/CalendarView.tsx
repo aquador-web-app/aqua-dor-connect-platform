@@ -54,6 +54,7 @@ interface CalendarEvent {
 interface CalendarViewProps {
   onEventCreate?: (date: Date) => void;
   onEventSelect?: (event: CalendarEvent) => void;
+  onPoolRental?: (date: Date) => void;
   events: CalendarEvent[];
   selectedDate: Date;
   onDateSelect: (date: Date) => void;
@@ -64,6 +65,7 @@ interface CalendarViewProps {
 export function CalendarView({
   onEventCreate,
   onEventSelect,
+  onPoolRental,
   events,
   selectedDate,
   onDateSelect,
@@ -119,6 +121,12 @@ export function CalendarView({
     if (onEventCreate && isAdmin) {
       if (date.getTime() >= Date.now() - 24 * 60 * 60 * 1000) { // Allow creating events from yesterday
         onEventCreate(date);
+      }
+    }
+    // If no events and visitor, allow pool rental booking
+    else if (onPoolRental && !isAdmin) {
+      if (date.getTime() >= Date.now() - 24 * 60 * 60 * 1000) { // Allow booking from today
+        onPoolRental(date);
       }
     }
     onDateSelect(date);
@@ -455,10 +463,10 @@ export function CalendarView({
                     isSameDay(day, selectedDate) && "ring-2 ring-primary/50",
                     day.getDay() === 0 ? "bg-muted/30 cursor-not-allowed opacity-50" : 
                     dayEvents.length > 0 ? "cursor-pointer hover:bg-blue-50/50" : 
-                    (isAdmin ? "cursor-pointer hover:bg-green-50/50" : "cursor-pointer hover:bg-muted/50")
+                    (isAdmin ? "cursor-pointer hover:bg-green-50/50" : "cursor-pointer hover:bg-blue-50/30")
                   )}
                   onClick={() => handleDateClick(day)}
-                  title={dayEvents.length > 0 ? "Cliquer pour voir les détails" : (isAdmin ? "Cliquer pour ajouter un événement" : "")}
+                  title={dayEvents.length > 0 ? "Cliquer pour voir les détails" : (isAdmin ? "Cliquer pour ajouter un événement" : "Cliquer pour réserver la piscine")}
                 >
                   <div className={cn(
                     "text-sm mb-1",
@@ -507,6 +515,16 @@ export function CalendarView({
                         <div className="text-center">
                           <Plus className="h-6 w-6 text-muted-foreground mx-auto mb-1" />
                           <div className="text-xs text-muted-foreground">Ajouter</div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Pool rental button for empty cells (visitors only) */}
+                    {dayEvents.length === 0 && !isAdmin && onPoolRental && day.getDay() !== 0 && isCurrentMonth && (
+                      <div className="flex items-center justify-center h-full min-h-[60px] absolute inset-0 top-6">
+                        <div className="text-center">
+                          <CalendarIcon className="h-6 w-6 text-primary mx-auto mb-1" />
+                          <div className="text-xs text-primary font-medium">Réserver</div>
                         </div>
                       </div>
                     )}
