@@ -1285,6 +1285,7 @@ export type Database = {
           phone: string | null
           referral_code: string | null
           referred_by_code: string | null
+          Role: Database["public"]["Enums"]["app_role"] | null
           updated_at: string
           user_id: string
         }
@@ -1303,6 +1304,7 @@ export type Database = {
           phone?: string | null
           referral_code?: string | null
           referred_by_code?: string | null
+          Role?: Database["public"]["Enums"]["app_role"] | null
           updated_at?: string
           user_id: string
         }
@@ -1321,6 +1323,7 @@ export type Database = {
           phone?: string | null
           referral_code?: string | null
           referred_by_code?: string | null
+          Role?: Database["public"]["Enums"]["app_role"] | null
           updated_at?: string
           user_id?: string
         }
