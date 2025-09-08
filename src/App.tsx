@@ -15,6 +15,7 @@ import Gallery from "./pages/Gallery";
 import Store from "./pages/Store";
 import Contact from "./pages/Contact";
 import Auth from "./pages/Auth";
+import EnhancedAuth from "./pages/EnhancedAuth";
 import StudentPortal from "./pages/StudentPortal";
 import CoachPortal from "./pages/CoachPortal";
 import AdminPortal from "./pages/AdminPortal";
@@ -45,6 +46,7 @@ const App = () => (
                 <Route path="/gallery" element={<Gallery />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/enhanced-auth" element={<EnhancedAuth />} />
                 <Route path="/admin-login" element={<AdminLogin />} />
                 <Route path="/coach-login" element={<CoachLogin />} />
                 <Route path="/complete-profile" element={<CompleteProfile />} />

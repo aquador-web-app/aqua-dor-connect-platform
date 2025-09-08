@@ -83,7 +83,18 @@ export const EnhancedProfileForm = ({ onComplete }: EnhancedProfileFormProps) =>
         .eq("parent_id", profile.id);
       
       if (error) throw error;
-      setChildren(data || []);
+        const mappedChildren: Child[] = (data || []).map((child: any) => ({
+          id: child.id,
+          name: `${child.first_name} ${child.last_name}`,
+          age: child.date_of_birth ? new Date().getFullYear() - new Date(child.date_of_birth).getFullYear() : 0,
+          swimming_level: child.swimming_level || 'débutant',
+          first_name: child.first_name,
+          last_name: child.last_name,
+          date_of_birth: child.date_of_birth,
+          sex: child.sex,
+          health_notes: child.health_notes
+        }));
+        setChildren(mappedChildren);
     } catch (error) {
       console.error("Error fetching children:", error);
     }
@@ -236,9 +247,11 @@ export const EnhancedProfileForm = ({ onComplete }: EnhancedProfileFormProps) =>
         // Insert new children
         const childrenData = children.map(child => ({
           parent_id: profile.id,
-          name: child.name,
-          age: Number(child.age),
-          swimming_level: child.swimming_level,
+          first_name: child.name.split(' ')[0] || child.name,
+          last_name: child.name.split(' ').slice(1).join(' ') || '',
+          date_of_birth: new Date(new Date().getFullYear() - Number(child.age), 0, 1).toISOString().split('T')[0],
+          sex: 'Non spécifié',
+          health_notes: ''
         }));
 
         const { error: childrenError } = await supabase
