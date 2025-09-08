@@ -85,6 +85,39 @@ export type Database = {
           },
         ]
       }
+      admin_notifications_queue: {
+        Row: {
+          created_at: string | null
+          data: Json | null
+          id: string
+          message: string
+          notification_type: string
+          priority: string | null
+          read_at: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          message: string
+          notification_type: string
+          priority?: string | null
+          read_at?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          message?: string
+          notification_type?: string
+          priority?: string | null
+          read_at?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       admin_settings: {
         Row: {
           created_at: string
@@ -1261,6 +1294,41 @@ export type Database = {
           },
         ]
       }
+      payment_events_audit: {
+        Row: {
+          actor_id: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          occurred_at: string | null
+          payment_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          occurred_at?: string | null
+          payment_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          occurred_at?: string | null
+          payment_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_events_audit_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments_normalized"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           admin_verified: boolean | null
@@ -1372,6 +1440,82 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments_normalized: {
+        Row: {
+          amount: number
+          approved_at: string | null
+          approved_by: string | null
+          booking_id: string | null
+          created_at: string | null
+          currency: string | null
+          enrollment_id: string | null
+          id: string
+          notes: string | null
+          order_id: string | null
+          payment_method: string
+          reference_number: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          approved_at?: string | null
+          approved_by?: string | null
+          booking_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          enrollment_id?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string | null
+          payment_method: string
+          reference_number?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          booking_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          enrollment_id?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string | null
+          payment_method?: string
+          reference_number?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_normalized_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_normalized_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "enrollments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_normalized_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
         ]
@@ -2215,6 +2359,83 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_credits: {
+        Row: {
+          amount: number
+          created_at: string | null
+          credit_type: string
+          expires_at: string | null
+          id: string
+          status: string | null
+          updated_at: string | null
+          used_amount: number | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          credit_type: string
+          expires_at?: string | null
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+          used_amount?: number | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          credit_type?: string
+          expires_at?: string | null
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+          used_amount?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_plan_assignments: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          expires_at: string | null
+          hours_remaining: number | null
+          id: string
+          plan_id: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          expires_at?: string | null
+          hours_remaining?: number | null
+          id?: string
+          plan_id: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          expires_at?: string | null
+          hours_remaining?: number | null
+          id?: string
+          plan_id?: string
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_plan_assignments_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
             referencedColumns: ["id"]
           },
         ]

@@ -201,26 +201,25 @@ export const useUnifiedCalendar = (dateRange?: { start: Date; end: Date }) => {
         throw new Error('User profile not found');
       }
 
-      // Create basic enrollment for now (will use atomic function after migration)
-      const { data: enrollment, error: enrollmentError } = await supabase
-        .from('enrollments')
-        .insert({
-          student_id: userProfile.id,
-          class_id: sessionId, // Using session_id temporarily
-          status: 'pending',
-          payment_status: 'pending'
-        })
-        .select()
-        .single();
+      // Call the atomic enrollment function
+      const { data, error } = await supabase.rpc('create_enrollment_atomic', {
+        p_student_id: userProfile.id,
+        p_class_session_id: sessionId,
+        p_payment_method: paymentMethod
+      });
 
-      if (enrollmentError) throw enrollmentError;
+      if (error) throw error;
+
+      if (!data.success) {
+        throw new Error(data.error || 'Enrollment failed');
+      }
 
       toast({
         title: "Réservation créée",
         description: "Votre réservation a été créée avec succès. Paiement en attente.",
       });
 
-      return enrollment;
+      return data;
     } catch (error) {
       console.error('Error creating enrollment:', error);
       toast({

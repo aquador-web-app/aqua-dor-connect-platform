@@ -46,35 +46,26 @@ export const PaymentWorkflow: React.FC<PaymentWorkflowProps> = ({
         throw new Error('User profile not found');
       }
 
-      // Create basic enrollment and payment for now (will use atomic function after migration)
-      const { data: enrollment, error: enrollmentError } = await supabase
-        .from('enrollments')
-        .insert({
-          student_id: userProfile.id,
-          class_id: session.class_id || session.id,
-          status: 'pending',
-          payment_status: 'pending'
-        })
-        .select()
-        .single();
+      // Create enrollment with payment using atomic function
+      const { data, error } = await supabase.rpc('create_enrollment_atomic', {
+        p_student_id: userProfile.id,
+        p_class_session_id: session.id,
+        p_payment_method: paymentMethod
+      });
 
-      if (enrollmentError) throw enrollmentError;
+      if (error) throw error;
 
-      // Create payment record
-      const { data: payment, error: paymentError } = await supabase
-        .from('payments')
-        .insert({
-          user_id: userProfile.id,
-          enrollment_id: enrollment.id,
-          amount: session.class?.price || 0,
-          payment_method: paymentMethod,
-          status: 'pending',
-          notes
-        })
-        .select()
-        .single();
+      if (!data.success) {
+        throw new Error(data.error || 'Payment failed');
+      }
 
-      if (paymentError) throw paymentError;
+      // Update payment with notes if provided
+      if (notes) {
+        await supabase
+          .from('payments_normalized')
+          .update({ notes })
+          .eq('id', data.payment_id);
+      }
 
       toast({
         title: "Paiement créé",
