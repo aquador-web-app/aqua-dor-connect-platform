@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_config: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string
+          value: Json
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       admin_notifications: {
         Row: {
           created_at: string
@@ -88,40 +115,49 @@ export type Database = {
       attendance: {
         Row: {
           class_session_id: string | null
+          consecutive_absences: number | null
           course_id: string | null
           created_at: string
+          event_type: string | null
           id: string
           marked_at: string | null
           marked_by: string | null
           marked_by_role: string
           notes: string | null
           present: boolean
+          qr_scanned: boolean | null
           status: string
           student_id: string | null
         }
         Insert: {
           class_session_id?: string | null
+          consecutive_absences?: number | null
           course_id?: string | null
           created_at?: string
+          event_type?: string | null
           id?: string
           marked_at?: string | null
           marked_by?: string | null
           marked_by_role?: string
           notes?: string | null
           present?: boolean
+          qr_scanned?: boolean | null
           status?: string
           student_id?: string | null
         }
         Update: {
           class_session_id?: string | null
+          consecutive_absences?: number | null
           course_id?: string | null
           created_at?: string
+          event_type?: string | null
           id?: string
           marked_at?: string | null
           marked_by?: string | null
           marked_by_role?: string
           notes?: string | null
           present?: boolean
+          qr_scanned?: boolean | null
           status?: string
           student_id?: string | null
         }
@@ -362,35 +398,47 @@ export type Database = {
       }
       children: {
         Row: {
-          age: number | null
           created_at: string
+          date_of_birth: string
+          first_name: string
+          health_notes: string | null
           id: string
-          name: string
+          is_first_lesson: boolean
+          last_name: string
           parent_id: string
-          swimming_level: string | null
+          qr_code: string | null
+          sex: string
           updated_at: string
         }
         Insert: {
-          age?: number | null
           created_at?: string
+          date_of_birth: string
+          first_name: string
+          health_notes?: string | null
           id?: string
-          name: string
+          is_first_lesson?: boolean
+          last_name: string
           parent_id: string
-          swimming_level?: string | null
+          qr_code?: string | null
+          sex: string
           updated_at?: string
         }
         Update: {
-          age?: number | null
           created_at?: string
+          date_of_birth?: string
+          first_name?: string
+          health_notes?: string | null
           id?: string
-          name?: string
+          is_first_lesson?: boolean
+          last_name?: string
           parent_id?: string
-          swimming_level?: string | null
+          qr_code?: string | null
+          sex?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "fk_children_parent_profile"
+            foreignKeyName: "children_parent_id_fkey"
             columns: ["parent_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -555,6 +603,36 @@ export type Database = {
           },
         ]
       }
+      documents: {
+        Row: {
+          created_at: string
+          id: string
+          is_mandatory: boolean
+          name: string
+          type: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_mandatory?: boolean
+          name: string
+          type: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_mandatory?: boolean
+          name?: string
+          type?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       email_logs: {
         Row: {
           created_at: string
@@ -599,11 +677,46 @@ export type Database = {
           },
         ]
       }
+      email_templates: {
+        Row: {
+          body_html: string
+          created_at: string
+          id: string
+          is_active: boolean
+          subject: string
+          type: string
+          updated_at: string
+          variables: Json | null
+        }
+        Insert: {
+          body_html: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          subject: string
+          type: string
+          updated_at?: string
+          variables?: Json | null
+        }
+        Update: {
+          body_html?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          subject?: string
+          type?: string
+          updated_at?: string
+          variables?: Json | null
+        }
+        Relationships: []
+      }
       enrollments: {
         Row: {
           cancelled_at: string | null
           class_id: string
           enrollment_date: string
+          hours_remaining: number | null
+          hours_used: number | null
           id: string
           notes: string | null
           payment_status: string | null
@@ -611,11 +724,14 @@ export type Database = {
           progress_level: number | null
           status: string | null
           student_id: string
+          subscription_plan_id: string | null
         }
         Insert: {
           cancelled_at?: string | null
           class_id: string
           enrollment_date?: string
+          hours_remaining?: number | null
+          hours_used?: number | null
           id?: string
           notes?: string | null
           payment_status?: string | null
@@ -623,11 +739,14 @@ export type Database = {
           progress_level?: number | null
           status?: string | null
           student_id: string
+          subscription_plan_id?: string | null
         }
         Update: {
           cancelled_at?: string | null
           class_id?: string
           enrollment_date?: string
+          hours_remaining?: number | null
+          hours_used?: number | null
           id?: string
           notes?: string | null
           payment_status?: string | null
@@ -635,6 +754,7 @@ export type Database = {
           progress_level?: number | null
           status?: string | null
           student_id?: string
+          subscription_plan_id?: string | null
         }
         Relationships: [
           {
@@ -649,6 +769,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollments_subscription_plan_id_fkey"
+            columns: ["subscription_plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
             referencedColumns: ["id"]
           },
         ]
@@ -822,6 +949,94 @@ export type Database = {
           {
             foreignKeyName: "instructors_profile_id_fkey"
             columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_items: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          invoice_id: string
+          quantity: number
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          invoice_id: string
+          quantity?: number
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          invoice_id?: string
+          quantity?: number
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          amount_usd: number
+          created_at: string
+          due_date: string
+          id: string
+          invoice_number: string
+          invoice_type: string
+          pdf_url: string | null
+          related_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_usd: number
+          created_at?: string
+          due_date: string
+          id?: string
+          invoice_number: string
+          invoice_type?: string
+          pdf_url?: string | null
+          related_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_usd?: number
+          created_at?: string
+          due_date?: string
+          id?: string
+          invoice_number?: string
+          invoice_type?: string
+          pdf_url?: string | null
+          related_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1055,10 +1270,13 @@ export type Database = {
           approved_by: string | null
           booking_id: string | null
           created_at: string
+          credits_used: number | null
           currency: string
           enrollment_id: string | null
           id: string
+          invoice_id: string | null
           method: string | null
+          order_id: string | null
           paid_at: string | null
           payment_method: string | null
           status: string
@@ -1075,10 +1293,13 @@ export type Database = {
           approved_by?: string | null
           booking_id?: string | null
           created_at?: string
+          credits_used?: number | null
           currency?: string
           enrollment_id?: string | null
           id?: string
+          invoice_id?: string | null
           method?: string | null
+          order_id?: string | null
           paid_at?: string | null
           payment_method?: string | null
           status?: string
@@ -1095,10 +1316,13 @@ export type Database = {
           approved_by?: string | null
           booking_id?: string | null
           created_at?: string
+          credits_used?: number | null
           currency?: string
           enrollment_id?: string | null
           id?: string
+          invoice_id?: string | null
           method?: string | null
+          order_id?: string | null
           paid_at?: string | null
           payment_method?: string | null
           status?: string
@@ -1127,6 +1351,20 @@ export type Database = {
             columns: ["enrollment_id"]
             isOneToOne: false
             referencedRelation: "enrollments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
           {
@@ -1280,12 +1518,17 @@ export type Database = {
           email: string
           emergency_contact: string | null
           full_name: string | null
+          health_notes: string | null
           id: string
+          is_first_lesson: boolean | null
           medical_notes: string | null
           phone: string | null
+          qr_code: string | null
           referral_code: string | null
           referred_by_code: string | null
           Role: Database["public"]["Enums"]["app_role"] | null
+          sex: string | null
+          signup_type: string | null
           updated_at: string
           user_id: string
         }
@@ -1299,12 +1542,17 @@ export type Database = {
           email: string
           emergency_contact?: string | null
           full_name?: string | null
+          health_notes?: string | null
           id?: string
+          is_first_lesson?: boolean | null
           medical_notes?: string | null
           phone?: string | null
+          qr_code?: string | null
           referral_code?: string | null
           referred_by_code?: string | null
           Role?: Database["public"]["Enums"]["app_role"] | null
+          sex?: string | null
+          signup_type?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1318,12 +1566,17 @@ export type Database = {
           email?: string
           emergency_contact?: string | null
           full_name?: string | null
+          health_notes?: string | null
           id?: string
+          is_first_lesson?: boolean | null
           medical_notes?: string | null
           phone?: string | null
+          qr_code?: string | null
           referral_code?: string | null
           referred_by_code?: string | null
           Role?: Database["public"]["Enums"]["app_role"] | null
+          sex?: string | null
+          signup_type?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -1416,7 +1669,9 @@ export type Database = {
         Row: {
           commission_amount: number | null
           created_at: string
+          first_payment_date: string | null
           id: string
+          is_active: boolean | null
           referral_code: string
           referred_id: string | null
           referrer_id: string | null
@@ -1426,7 +1681,9 @@ export type Database = {
         Insert: {
           commission_amount?: number | null
           created_at?: string
+          first_payment_date?: string | null
           id?: string
+          is_active?: boolean | null
           referral_code: string
           referred_id?: string | null
           referrer_id?: string | null
@@ -1436,7 +1693,9 @@ export type Database = {
         Update: {
           commission_amount?: number | null
           created_at?: string
+          first_payment_date?: string | null
           id?: string
+          is_active?: boolean | null
           referral_code?: string
           referred_id?: string | null
           referrer_id?: string | null
@@ -1670,6 +1929,44 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_doc_acceptances: {
+        Row: {
+          accepted_at: string
+          document_id: string
+          id: string
+          ip_address: unknown | null
+          signature_data: string | null
+          signature_type: string
+          user_id: string
+        }
+        Insert: {
+          accepted_at?: string
+          document_id: string
+          id?: string
+          ip_address?: unknown | null
+          signature_data?: string | null
+          signature_type: string
+          user_id: string
+        }
+        Update: {
+          accepted_at?: string
+          document_id?: string
+          id?: string
+          ip_address?: unknown | null
+          signature_data?: string | null
+          signature_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_doc_acceptances_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
             referencedColumns: ["id"]
           },
         ]
@@ -1948,7 +2245,16 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_monthly_revenue: {
+        Row: {
+          month: string | null
+          month_key: string | null
+          month_name: string | null
+          payment_count: number | null
+          revenue: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       approve_payment_with_event: {
@@ -1972,6 +2278,14 @@ export type Database = {
         }
         Returns: string
       }
+      create_signup_invoice: {
+        Args: {
+          p_children_count?: number
+          p_signup_type: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       generate_barcode: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -1981,6 +2295,10 @@ export type Database = {
         Returns: string
       }
       generate_order_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_qr_code: {
         Args: Record<PropertyKey, never>
         Returns: string
       }
