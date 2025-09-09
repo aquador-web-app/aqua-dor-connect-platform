@@ -47,24 +47,26 @@ export const PaymentWorkflow: React.FC<PaymentWorkflowProps> = ({
       }
 
       // Create enrollment with payment using atomic function
-      const { data, error } = await supabase.rpc('create_enrollment_atomic', {
-        p_student_id: userProfile.id,
-        p_class_session_id: session.id,
-        p_payment_method: paymentMethod
-      });
+      const { data, error } = await supabase
+        .rpc('create_enrollment_atomic' as any, {
+          p_student_id: userProfile.id,
+          p_class_session_id: session.id,
+          p_payment_method: paymentMethod
+        });
 
       if (error) throw error;
 
-      if (!data.success) {
-        throw new Error(data.error || 'Payment failed');
+      const result = data as unknown as { success: boolean; error?: string; payment_id?: string };
+      if (!result.success) {
+        throw new Error(result.error || 'Payment failed');
       }
 
       // Update payment with notes if provided
-      if (notes) {
+      if (notes && result.payment_id) {
         await supabase
           .from('payments_normalized')
           .update({ notes })
-          .eq('id', data.payment_id);
+          .eq('id', result.payment_id);
       }
 
       toast({

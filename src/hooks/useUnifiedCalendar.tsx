@@ -202,16 +202,18 @@ export const useUnifiedCalendar = (dateRange?: { start: Date; end: Date }) => {
       }
 
       // Call the atomic enrollment function
-      const { data, error } = await supabase.rpc('create_enrollment_atomic', {
-        p_student_id: userProfile.id,
-        p_class_session_id: sessionId,
-        p_payment_method: paymentMethod
-      });
+      const { data, error } = await supabase
+        .rpc('create_enrollment_atomic' as any, {
+          p_student_id: userProfile.id,
+          p_class_session_id: sessionId,
+          p_payment_method: paymentMethod
+        });
 
       if (error) throw error;
 
-      if (!data.success) {
-        throw new Error(data.error || 'Enrollment failed');
+      const result = data as unknown as { success: boolean; error?: string; payment_id?: string };
+      if (!result.success) {
+        throw new Error(result.error || 'Enrollment failed');
       }
 
       toast({
