@@ -22,6 +22,12 @@ import { ProductManagement } from "@/components/dashboard/ProductManagement";
 import { SubscriptionPlansManagement } from "@/components/dashboard/SubscriptionPlansManagement";
 import { EnhancedBarcodeScanner } from "@/components/dashboard/EnhancedBarcodeScanner";
 import { PendingBookingsManager } from "@/components/admin/PendingBookingsManager";
+import { DocumentManagement } from "@/components/admin/DocumentManagement";
+import { ReferralManagement } from "@/components/admin/ReferralManagement";
+import { InvoiceManagement } from "@/components/admin/InvoiceManagement";
+import { NotificationBell } from "@/components/admin/NotificationBell";
+import { BarcodeScanner } from "@/components/barcode/BarcodeScanner";
+import { StoreManagement } from "@/components/store/StoreManagement";
 
 function AdminPortal() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -50,6 +56,46 @@ function AdminPortal() {
           return <ProductManagement />;
         case 'subscriptions':
           return <SubscriptionPlansManagement />;
+        case "documents":
+          return (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold">Gestion des Documents</h2>
+                <p className="text-muted-foreground">Gérez les documents obligatoires et les ressources</p>
+              </div>
+              <DocumentManagement />
+            </div>
+          );
+        case "referrals":
+          return (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold">Gestion des Parrainages</h2>
+                <p className="text-muted-foreground">Suivez et gérez le programme de parrainage</p>
+              </div>
+              <ReferralManagement />
+            </div>
+          );
+        case "invoices":
+          return (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold">Gestion des Factures</h2>
+                <p className="text-muted-foreground">Créez et gérez les factures</p>
+              </div>
+              <InvoiceManagement />
+            </div>
+          );
+        case "store":
+          return (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold">Gestion de la Boutique</h2>
+                <p className="text-muted-foreground">Gérez les produits, catégories et commandes</p>
+              </div>
+              <StoreManagement />
+            </div>
+          );
         case "reservations":
           return (
             <div className="space-y-6">
@@ -130,7 +176,12 @@ function AdminPortal() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <AdminNavbar />
+      <div className="relative">
+        <AdminNavbar />
+        <div className="absolute top-4 right-4 z-50">
+          <NotificationBell />
+        </div>
+      </div>
       
       <div className="flex flex-1">
         <div className="hidden md:block">

@@ -14,7 +14,11 @@ import {
   Home,
   CalendarCheck,
   QrCode,
-  Package
+  Package,
+  FileText as DocumentIcon,
+  UserPlus,
+  Receipt,
+  Store
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -31,6 +35,10 @@ const sidebarItems = [
   { title: "Réservations", href: "#reservations", icon: CalendarCheck },
   { title: "Présences", href: "#attendance", icon: QrCode },
   { title: "Paiements", href: "#payments", icon: CreditCard },
+  { title: "Documents", href: "#documents", icon: DocumentIcon },
+  { title: "Parrainages", href: "#referrals", icon: UserPlus },
+  { title: "Factures", href: "#invoices", icon: Receipt },
+  { title: "Boutique", href: "#store", icon: Store },
   { title: "Contenu", href: "#content", icon: FileText },
   { title: "Paramètres", href: "#settings", icon: Settings },
 ];
