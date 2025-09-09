@@ -813,6 +813,83 @@ export type Database = {
           },
         ]
       }
+      financial_documents: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          currency: string
+          document_number: string
+          document_type: string
+          id: string
+          package_id: string | null
+          pdf_url: string | null
+          reservation_id: string | null
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          document_number: string
+          document_type: string
+          id?: string
+          package_id?: string | null
+          pdf_url?: string | null
+          reservation_id?: string | null
+          status?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          document_number?: string
+          document_type?: string
+          id?: string
+          package_id?: string | null
+          pdf_url?: string | null
+          reservation_id?: string | null
+          status?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_documents_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_documents_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "session_packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_documents_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "session_reservations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_documents_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gallery_items: {
         Row: {
           created_at: string
@@ -1248,6 +1325,77 @@ export type Database = {
             columns: ["parent_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_confirmations: {
+        Row: {
+          amount_confirmed: number
+          confirmation_notes: string | null
+          confirmation_type: string
+          confirmed_at: string
+          confirmed_by: string
+          id: string
+          invoice_number: string | null
+          package_id: string | null
+          payment_id: string | null
+          receipt_generated: boolean | null
+          reservation_id: string | null
+        }
+        Insert: {
+          amount_confirmed: number
+          confirmation_notes?: string | null
+          confirmation_type: string
+          confirmed_at?: string
+          confirmed_by: string
+          id?: string
+          invoice_number?: string | null
+          package_id?: string | null
+          payment_id?: string | null
+          receipt_generated?: boolean | null
+          reservation_id?: string | null
+        }
+        Update: {
+          amount_confirmed?: number
+          confirmation_notes?: string | null
+          confirmation_type?: string
+          confirmed_at?: string
+          confirmed_by?: string
+          id?: string
+          invoice_number?: string | null
+          package_id?: string | null
+          payment_id?: string | null
+          receipt_generated?: boolean | null
+          reservation_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_confirmations_confirmed_by_fkey"
+            columns: ["confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_confirmations_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "session_packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_confirmations_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_confirmations_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "session_reservations"
             referencedColumns: ["id"]
           },
         ]
@@ -2035,6 +2183,124 @@ export type Database = {
         }
         Relationships: []
       }
+      session_packages: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          package_type: string
+          price_per_session: number
+          status: string
+          student_id: string
+          total_paid: number
+          total_sessions: number
+          updated_at: string
+          used_sessions: number
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          package_type: string
+          price_per_session: number
+          status?: string
+          student_id: string
+          total_paid: number
+          total_sessions: number
+          updated_at?: string
+          used_sessions?: number
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          package_type?: string
+          price_per_session?: number
+          status?: string
+          student_id?: string
+          total_paid?: number
+          total_sessions?: number
+          updated_at?: string
+          used_sessions?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_packages_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      session_reservations: {
+        Row: {
+          admin_confirmed_at: string | null
+          admin_confirmed_by: string | null
+          class_session_id: string
+          created_at: string
+          id: string
+          package_id: string
+          reservation_notes: string | null
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          admin_confirmed_at?: string | null
+          admin_confirmed_by?: string | null
+          class_session_id: string
+          created_at?: string
+          id?: string
+          package_id: string
+          reservation_notes?: string | null
+          status?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          admin_confirmed_at?: string | null
+          admin_confirmed_by?: string | null
+          class_session_id?: string
+          created_at?: string
+          id?: string
+          package_id?: string
+          reservation_notes?: string | null
+          status?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_reservations_admin_confirmed_by_fkey"
+            columns: ["admin_confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_reservations_class_session_id_fkey"
+            columns: ["class_session_id"]
+            isOneToOne: false
+            referencedRelation: "class_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_reservations_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "session_packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_reservations_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shopping_cart: {
         Row: {
           created_at: string
@@ -2510,6 +2776,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      generate_document_number: {
+        Args: { doc_type: string }
+        Returns: string
+      }
       generate_invoice_number: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -2600,6 +2870,14 @@ export type Database = {
       recalc_enrolled_count: {
         Args: { p_session: string }
         Returns: undefined
+      }
+      reserve_session_from_package: {
+        Args: {
+          p_class_session_id: string
+          p_notes?: string
+          p_package_id: string
+        }
+        Returns: Json
       }
     }
     Enums: {
