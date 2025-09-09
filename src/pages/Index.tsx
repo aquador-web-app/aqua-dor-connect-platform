@@ -4,7 +4,7 @@ import HeroSection from "@/components/home/HeroSection";
 import FeaturesSection from "@/components/home/FeaturesSection";
 import ClassesPreview from "@/components/home/ClassesPreview";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
-import { UnifiedMonthCalendar } from "@/components/calendar/UnifiedMonthCalendar";
+import { PublicCalendarWithReservation } from "@/components/calendar/PublicCalendarWithReservation";
 import { DynamicContent } from "@/components/home/DynamicContent";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -56,7 +56,7 @@ const Index = () => {
                     </div>
                   </div>
                   <div className="animate-fade-in">
-                    <UnifiedMonthCalendar />
+                    <PublicCalendarWithReservation />
                   </div>
                 </div>
                 <div>

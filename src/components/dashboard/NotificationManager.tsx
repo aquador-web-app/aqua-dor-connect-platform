@@ -131,11 +131,7 @@ export function NotificationManager() {
       } else {
         const { data } = await supabase
           .from('profiles')
-          .select(`
-            user_id, email, full_name,
-            user_roles!inner(role)
-          `)
-          .eq('user_roles.role', formData.recipient_type as any);
+          .select('user_id, email, full_name');
         recipients = data || [];
       }
 

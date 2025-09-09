@@ -2747,6 +2747,14 @@ export type Database = {
         Args: { p_actor_id?: string; p_enrollment_id: string }
         Returns: undefined
       }
+      confirm_reservation_payment: {
+        Args: {
+          p_admin_profile_id: string
+          p_confirmation_notes?: string
+          p_reservation_id: string
+        }
+        Returns: Json
+      }
       create_admin_notification: {
         Args: {
           p_data?: Json
@@ -2862,6 +2870,16 @@ export type Database = {
           p_resource_type: string
         }
         Returns: string
+      }
+      purchase_session_package: {
+        Args: {
+          p_package_type: string
+          p_payment_method?: string
+          p_price_per_session: number
+          p_student_id: string
+          p_total_sessions: number
+        }
+        Returns: Json
       }
       reactivate_enrollment_with_event: {
         Args: { p_actor_id?: string; p_enrollment_id: string }

@@ -21,7 +21,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { ProductManagement } from "@/components/dashboard/ProductManagement";
 import { SubscriptionPlansManagement } from "@/components/dashboard/SubscriptionPlansManagement";
 import { EnhancedBarcodeScanner } from "@/components/dashboard/EnhancedBarcodeScanner";
-import { PendingBookingsManager } from "@/components/admin/PendingBookingsManager";
+import { PendingReservationsManager } from "@/components/admin/PendingReservationsManager";
 import { DocumentManagement } from "@/components/admin/DocumentManagement";
 import { ReferralManagement } from "@/components/admin/ReferralManagement";
 import { InvoiceManagement } from "@/components/admin/InvoiceManagement";
@@ -102,7 +102,7 @@ function AdminPortal() {
                 <h2 className="text-2xl font-bold">Gestion des Réservations</h2>
                 <p className="text-muted-foreground">Gérez les réservations et les demandes d'inscription</p>
               </div>
-              <PendingBookingsManager />
+              <PendingReservationsManager />
             </div>
           );
         case "attendance":
@@ -128,7 +128,7 @@ function AdminPortal() {
       case "payments":
         return canManagePayments() ? (
           <div className="space-y-6">
-            <PendingBookingsManager />
+            <PendingReservationsManager />
             <PaymentOverview />
             <AdminPaymentManager />
           </div>
