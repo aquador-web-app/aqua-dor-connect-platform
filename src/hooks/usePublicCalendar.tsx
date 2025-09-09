@@ -19,39 +19,6 @@ export interface PublicCalendarSession {
   instructor_name?: string;
 }
 
-// Fallback data for when network fails
-const fallbackSessions: PublicCalendarSession[] = [
-  {
-    id: 'fallback-1',
-    class_id: 'fallback-class-1',
-    session_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    duration_minutes: 60,
-    max_participants: 8,
-    enrolled_students: 3,
-    status: 'scheduled',
-    type: 'class',
-    class_name: 'Natation Débutant',
-    class_level: 'beginner',
-    class_price: 35,
-    class_description: 'Cours de natation pour débutants',
-    instructor_name: 'Instructeur Principal'
-  },
-  {
-    id: 'fallback-2', 
-    class_id: 'fallback-class-2',
-    session_date: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
-    duration_minutes: 60,
-    max_participants: 6,
-    enrolled_students: 2,
-    status: 'scheduled',
-    type: 'class',
-    class_name: 'Natation Intermédiaire',
-    class_level: 'intermediate', 
-    class_price: 40,
-    class_description: 'Perfectionnement technique',
-    instructor_name: 'Instructeur Expert'
-  }
-];
 
 export const usePublicCalendar = (dateRange?: { start: Date; end: Date }) => {
   const [sessions, setSessions] = useState<PublicCalendarSession[]>([]);
@@ -68,26 +35,20 @@ export const usePublicCalendar = (dateRange?: { start: Date; end: Date }) => {
     return { start, end };
   };
 
-  const fetchPublicSessions = useCallback(async (retryCount = 0) => {
+  const fetchPublicSessions = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       const { start, end } = getDateRange();
 
-      // Use simple direct query with minimal timeout for better reliability
-      const { data: sessionsData, error: sessionsError } = await Promise.race([
-        supabase
-          .from('class_sessions')
-          .select('id, session_date, duration_minutes, max_participants, enrolled_students, status, type, class_id, instructor_id')
-          .gte('session_date', start.toISOString())
-          .lte('session_date', end.toISOString())
-          .eq('status', 'scheduled')
-          .order('session_date', { ascending: true })
-          .limit(50),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Query timeout')), 3000)
-        )
-      ]) as any;
+      const { data: sessionsData, error: sessionsError } = await supabase
+        .from('class_sessions')
+        .select('id, session_date, duration_minutes, max_participants, enrolled_students, status, type, class_id, instructor_id')
+        .gte('session_date', start.toISOString())
+        .lte('session_date', end.toISOString())
+        .eq('status', 'scheduled')
+        .order('session_date', { ascending: true })
+        .limit(50);
 
       if (sessionsError) throw sessionsError;
 
@@ -114,34 +75,13 @@ export const usePublicCalendar = (dateRange?: { start: Date; end: Date }) => {
     } catch (error: any) {
       console.error('Error fetching public sessions:', error);
       setError(error.message);
+      setSessions([]);
       
-      // Retry logic for network failures
-      if (retryCount < 2 && (
-        error.message?.includes('fetch') || 
-        error.message?.includes('timeout') ||
-        error.name === 'TypeError'
-      )) {
-        console.log(`Retrying public sessions fetch (attempt ${retryCount + 1})`);
-        setTimeout(() => fetchPublicSessions(retryCount + 1), 1000 * (retryCount + 1));
-        return;
-      }
-      
-      // Use fallback data on final failure
-      console.log('Using fallback session data');
-      setSessions(fallbackSessions.filter(session => {
-        const sessionDate = new Date(session.session_date);
-        const { start, end } = getDateRange();
-        return sessionDate >= start && sessionDate <= end;
-      }));
-      
-      // Don't show error toast for fallback - show a subtle notification
-      if (retryCount >= 2) {
-        toast({
-          title: "Mode hors ligne",
-          description: "Affichage des données de démonstration",
-          variant: "default"
-        });
-      }
+      toast({
+        title: "Erreur de chargement",
+        description: "Impossible de charger les sessions",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
