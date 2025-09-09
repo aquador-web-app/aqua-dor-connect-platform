@@ -2469,10 +2469,11 @@ export type Database = {
       v_monthly_revenue: {
         Row: {
           month: string | null
-          month_key: string | null
           month_name: string | null
+          month_num: number | null
           payment_count: number | null
-          revenue: number | null
+          total_revenue: number | null
+          year: number | null
         }
         Relationships: []
       }
@@ -2498,6 +2499,14 @@ export type Database = {
           p_type?: string
         }
         Returns: string
+      }
+      create_enrollment_atomic: {
+        Args: {
+          p_class_session_id: string
+          p_payment_method?: string
+          p_student_id: string
+        }
+        Returns: Json
       }
       create_signup_invoice: {
         Args: {
