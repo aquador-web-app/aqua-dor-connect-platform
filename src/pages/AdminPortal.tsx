@@ -25,7 +25,6 @@ import { PendingBookingsManager } from "@/components/admin/PendingBookingsManage
 import { DocumentManagement } from "@/components/admin/DocumentManagement";
 import { ReferralManagement } from "@/components/admin/ReferralManagement";
 import { InvoiceManagement } from "@/components/admin/InvoiceManagement";
-import { NotificationBell } from "@/components/admin/NotificationBell";
 import { BarcodeScanner } from "@/components/barcode/BarcodeScanner";
 import { StoreManagement } from "@/components/store/StoreManagement";
 
@@ -176,12 +175,7 @@ function AdminPortal() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <div className="relative">
-        <AdminNavbar />
-        <div className="absolute top-4 right-4 z-50">
-          <NotificationBell />
-        </div>
-      </div>
+      <AdminNavbar />
       
       <div className="flex flex-1">
         <div className="hidden md:block">
