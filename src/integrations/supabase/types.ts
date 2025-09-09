@@ -203,6 +203,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "attendance_class_session_id_fkey"
+            columns: ["class_session_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendar_sessions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "attendance_course_id_fkey"
             columns: ["course_id"]
             isOneToOne: false
@@ -285,6 +292,13 @@ export type Database = {
             columns: ["class_session_id"]
             isOneToOne: false
             referencedRelation: "class_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_class_session_id_fkey"
+            columns: ["class_session_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendar_sessions"
             referencedColumns: ["id"]
           },
           {
@@ -2129,6 +2143,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "reviews_class_session_id_fkey"
+            columns: ["class_session_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendar_sessions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "reviews_instructor_id_fkey"
             columns: ["instructor_id"]
             isOneToOne: false
@@ -2283,6 +2304,13 @@ export type Database = {
             columns: ["class_session_id"]
             isOneToOne: false
             referencedRelation: "class_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_reservations_class_session_id_fkey"
+            columns: ["class_session_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendar_sessions"
             referencedColumns: ["id"]
           },
           {
@@ -2732,7 +2760,32 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_calendar_sessions: {
+        Row: {
+          class_description: string | null
+          class_level: string | null
+          class_name: string | null
+          class_price: number | null
+          duration_minutes: number | null
+          enrolled_students: number | null
+          id: string | null
+          instructor_id: string | null
+          instructor_name: string | null
+          max_participants: number | null
+          session_date: string | null
+          status: string | null
+          type: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_sessions_instructor_id_fkey"
+            columns: ["instructor_id"]
+            isOneToOne: false
+            referencedRelation: "instructors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       approve_payment_with_event: {
