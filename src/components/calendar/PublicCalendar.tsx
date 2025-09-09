@@ -173,7 +173,7 @@ export const PublicCalendar: React.FC<PublicCalendarProps> = ({ onSessionSelect 
                           className="p-2 bg-muted rounded text-xs space-y-2"
                         >
                           <div className="font-medium truncate">
-                            {session.classes.name}
+                            {session.class_name}
                           </div>
                           
                           <div className="flex items-center gap-1 text-muted-foreground">
@@ -188,7 +188,7 @@ export const PublicCalendar: React.FC<PublicCalendarProps> = ({ onSessionSelect 
 
                           <div className="flex items-center gap-1 text-muted-foreground">
                             <DollarSign className="h-3 w-3" />
-                            ${session.classes.price}
+                            ${session.class_price}
                           </div>
 
                           <div className="flex items-center justify-between">

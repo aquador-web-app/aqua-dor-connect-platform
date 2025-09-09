@@ -2,7 +2,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import HeroSection from "@/components/home/HeroSection";
 import FeaturesSection from "@/components/home/FeaturesSection";
-import ClassesPreview from "@/components/home/ClassesPreview";
+import { RobustClassesPreview } from "@/components/home/RobustClassesPreview";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
 import { PublicCalendarWithReservation } from "@/components/calendar/PublicCalendarWithReservation";
 import { DynamicContent } from "@/components/home/DynamicContent";
@@ -43,17 +43,20 @@ const Index = () => {
                     <div className="flex items-center gap-4 text-sm mb-2">
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 bg-primary rounded-full"></div>
-                        <span>Cours programmés par l'admin</span>
+                        <span>Sessions disponibles</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                        <span>Places limitées</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 bg-destructive rounded-full"></div>
-                        <span>Réservations étudiantes</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-accent rounded-full"></div>
-                        <span>Événements spéciaux</span>
+                        <span>Complet</span>
                       </div>
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                      🔒 Connexion requise pour réserver • 📱 Mise à jour temps réel
+                    </p>
                   </div>
                   <div className="animate-fade-in">
                     <PublicCalendarWithReservation />
@@ -125,7 +128,7 @@ const Index = () => {
 
       <DynamicContent />
       <FeaturesSection />
-      <ClassesPreview />
+      <RobustClassesPreview />
       <TestimonialsSection />
       <Footer />
     </div>

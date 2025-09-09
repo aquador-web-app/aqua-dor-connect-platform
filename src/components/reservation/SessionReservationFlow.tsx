@@ -116,9 +116,9 @@ export function SessionReservationFlow({ isOpen, onClose, session, onSuccess }: 
         title: "📅 Réservation Soumise!",
         description: (
           <div className="space-y-2">
-            <div><strong>Cours:</strong> {session.classes.name}</div>
+            <div><strong>Cours:</strong> {session.class_name}</div>
             <div><strong>Date:</strong> {format(new Date(session.session_date), 'EEEE d MMMM yyyy à HH:mm', { locale: fr })}</div>
-            <div><strong>Prix:</strong> ${session.classes.price}</div>
+            <div><strong>Prix:</strong> ${session.class_price}</div>
             <div><strong>Statut:</strong> <span className="text-orange-600">En attente de confirmation admin</span></div>
             <div className="text-sm text-muted-foreground pt-2 border-t">
               Votre session sera confirmée après validation par un administrateur.
@@ -288,8 +288,8 @@ export function SessionReservationFlow({ isOpen, onClose, session, onSuccess }: 
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">{session.classes.name}</h3>
-                  <Badge variant="outline">{session.classes.description}</Badge>
+                  <h3 className="text-lg font-semibold">{session.class_name}</h3>
+                  <Badge variant="outline">{session.class_level}</Badge>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4 text-sm">
@@ -308,7 +308,7 @@ export function SessionReservationFlow({ isOpen, onClose, session, onSuccess }: 
                   <div>
                     <span className="text-muted-foreground">Instructeur:</span>
                     <div className="font-medium">
-                      {session.instructors?.profiles?.full_name || 'Non assigné'}
+                      {session.instructor_name || 'Non assigné'}
                     </div>
                   </div>
                   <div>
@@ -322,7 +322,7 @@ export function SessionReservationFlow({ isOpen, onClose, session, onSuccess }: 
                 
                 <div className="text-center p-3 bg-primary/10 rounded-lg">
                   <div className="text-lg font-bold text-primary">
-                    ${session.classes.price}
+                    ${session.class_price}
                   </div>
                   <div className="text-sm text-muted-foreground">
                     Sera débité de votre pack

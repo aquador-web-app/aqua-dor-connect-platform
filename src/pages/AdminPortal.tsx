@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from "react";
+import { AdminNotificationBell } from "@/components/admin/AdminNotificationBell";
 import { AdminNavbar } from "@/components/layout/AdminNavbar";
 import { AdminSidebar } from "@/components/layout/AdminSidebar";
 import { OverviewDashboard } from "@/components/dashboard/OverviewDashboard";
@@ -98,9 +99,13 @@ function AdminPortal() {
         case "reservations":
           return (
             <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold">Gestion des Réservations</h2>
-                <p className="text-muted-foreground">Gérez les réservations et les demandes d'inscription</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold">🔄 Gestion des Réservations</h2>
+                  <p className="text-muted-foreground">
+                    Gérez les demandes de réservation et confirmez les paiements • Mises à jour temps réel
+                  </p>
+                </div>
               </div>
               <PendingReservationsManager />
             </div>
@@ -128,6 +133,12 @@ function AdminPortal() {
       case "payments":
         return canManagePayments() ? (
           <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold">💳 Gestion des Paiements</h2>
+              <p className="text-muted-foreground">
+                Confirmez les paiements et gérez les finances • Synchronisation automatique
+              </p>
+            </div>
             <PendingReservationsManager />
             <PaymentOverview />
             <AdminPaymentManager />
@@ -175,7 +186,13 @@ function AdminPortal() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <AdminNavbar />
+      <div className="flex items-center justify-between p-4 border-b">
+        <h1 className="text-2xl font-bold">Admin Portal</h1>
+        <div className="flex items-center gap-4">
+          <AdminNotificationBell />
+          <AdminNavbar />
+        </div>
+      </div>
       
       <div className="flex flex-1">
         <div className="hidden md:block">
