@@ -74,41 +74,23 @@ export const usePublicCalendar = (dateRange?: { start: Date; end: Date }) => {
       setError(null);
       const { start, end } = getDateRange();
 
-      // Use simplified query with timeout
+      // Use the public view for better performance
       const { data: sessionsData, error: sessionsError } = await Promise.race([
         supabase
-          .from('class_sessions')
-          .select(`
-            id,
-            session_date,
-            duration_minutes,
-            max_participants,
-            enrolled_students,
-            status,
-            type,
-            class_id,
-            instructor_id,
-            classes!inner (
-              name,
-              level,
-              price,
-              description
-            )
-          `)
+          .from('public_calendar_sessions')
+          .select('*')
           .gte('session_date', start.toISOString())
           .lte('session_date', end.toISOString())
-          .eq('status', 'scheduled')
-          .eq('classes.is_active', true)
           .order('session_date', { ascending: true })
-          .limit(50),
+          .limit(100),
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Query timeout')), 8000)
+          setTimeout(() => reject(new Error('Query timeout')), 5000)
         )
       ]) as any;
 
       if (sessionsError) throw sessionsError;
 
-      // Transform data to match interface
+      // Data from public view is already flattened
       const transformedSessions: PublicCalendarSession[] = (sessionsData || []).map((session: any) => ({
         id: session.id,
         class_id: session.class_id,
@@ -116,49 +98,15 @@ export const usePublicCalendar = (dateRange?: { start: Date; end: Date }) => {
         duration_minutes: session.duration_minutes || 60,
         max_participants: session.max_participants || 10,
         enrolled_students: session.enrolled_students || 0,
-        status: session.status,
-        type: session.type,
+        status: session.status || 'scheduled',
+        type: session.type || 'class',
         instructor_id: session.instructor_id,
-        class_name: session.classes?.name || 'Cours',
-        class_level: session.classes?.level || 'beginner',
-        class_price: session.classes?.price || 0,
-        class_description: session.classes?.description,
-        instructor_name: undefined // Will be fetched separately if needed
+        class_name: session.class_name || 'Cours',
+        class_level: session.class_level || 'beginner',
+        class_price: session.class_price || 0,
+        class_description: session.class_description,
+        instructor_name: session.instructor_name || 'Instructeur'
       }));
-
-      // Try to fetch instructor names
-      if (transformedSessions.length > 0) {
-        try {
-          const instructorIds = [...new Set(transformedSessions.map(s => s.instructor_id).filter(Boolean))];
-          if (instructorIds.length > 0) {
-            const { data: instructors } = await Promise.race([
-              supabase
-                .from('instructors')
-                .select('id, profiles!inner(full_name)')
-                .in('id', instructorIds),
-              new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Instructor query timeout')), 3000)
-              )
-            ]) as any;
-
-            if (instructors) {
-              const instructorMap = new Map();
-              instructors.forEach((inst: any) => {
-                instructorMap.set(inst.id, inst.profiles?.full_name || 'Instructeur');
-              });
-
-              transformedSessions.forEach(session => {
-                if (session.instructor_id && instructorMap.has(session.instructor_id)) {
-                  session.instructor_name = instructorMap.get(session.instructor_id);
-                }
-              });
-            }
-          }
-        } catch (instructorError) {
-          console.warn('Failed to fetch instructor names:', instructorError);
-          // Continue without instructor names
-        }
-      }
 
       setSessions(transformedSessions);
       
