@@ -10,7 +10,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useState } from "react";
 import { ProfileModal } from "@/components/profile/ProfileModal";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { NotificationBell } from "@/components/admin/NotificationBell";
 
 export function AdminNavbar() {
   const { user, profile, signOut } = useAuth();
@@ -107,9 +106,6 @@ export function AdminNavbar() {
               <Globe className="h-4 w-4 mr-1" />
               {language.toUpperCase()}
             </Button>
-
-            {/* Notification Bell */}
-            <NotificationBell />
 
             {/* User Menu */}
             <DropdownMenu>
