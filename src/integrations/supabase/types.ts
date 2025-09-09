@@ -2466,17 +2466,7 @@ export type Database = {
       }
     }
     Views: {
-      v_monthly_revenue: {
-        Row: {
-          month: string | null
-          month_name: string | null
-          month_num: number | null
-          payment_count: number | null
-          total_revenue: number | null
-          year: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       approve_payment_with_event: {
@@ -2552,6 +2542,17 @@ export type Database = {
           month_name: string
           payment_count: number
           revenue: number
+        }[]
+      }
+      get_monthly_revenue_view: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          month: string
+          month_name: string
+          month_num: number
+          payment_count: number
+          total_revenue: number
+          year: number
         }[]
       }
       get_public_children_for_instructor: {
