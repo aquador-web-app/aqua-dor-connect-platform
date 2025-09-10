@@ -42,20 +42,19 @@ export const usePublicCalendar = (dateRange?: { start: Date; end: Date }) => {
       const { start, end } = getDateRange();
 
       const { data: sessionsData, error: sessionsError } = await supabase
-        .from('class_sessions')
-        .select('id, session_date, duration_minutes, max_participants, enrolled_students, status, type, class_id, instructor_id')
+        .from('public_calendar_sessions')
+        .select('*')
         .gte('session_date', start.toISOString())
         .lte('session_date', end.toISOString())
-        .eq('status', 'scheduled')
         .order('session_date', { ascending: true })
         .limit(50);
 
       if (sessionsError) throw sessionsError;
 
-      // Transform minimal data with defaults
+      // Transform data from the secure view
       const transformedSessions: PublicCalendarSession[] = (sessionsData || []).map((session: any) => ({
         id: session.id,
-        class_id: session.class_id,
+        class_id: session.class_id || '',
         session_date: session.session_date,
         duration_minutes: session.duration_minutes || 60,
         max_participants: session.max_participants || 10,
@@ -63,11 +62,11 @@ export const usePublicCalendar = (dateRange?: { start: Date; end: Date }) => {
         status: session.status || 'scheduled',
         type: session.type || 'class',
         instructor_id: session.instructor_id,
-        class_name: 'Cours de Natation',
-        class_level: 'beginner',
-        class_price: 35,
-        class_description: 'Séance de natation',
-        instructor_name: 'Instructeur'
+        class_name: session.class_name || 'Cours de Natation',
+        class_level: session.class_level || 'beginner',
+        class_price: session.class_price || 35,
+        class_description: session.class_description || 'Séance de natation',
+        instructor_name: session.instructor_name || 'Instructeur'
       }));
 
       setSessions(transformedSessions);
