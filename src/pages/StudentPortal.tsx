@@ -211,7 +211,7 @@ const StudentPortal = () => {
                                 )}
                               </div>
                               <p className="text-sm text-muted-foreground mb-1">
-                                Instructeur: {booking.class_sessions?.instructors?.profiles?.full_name || "Non assigné"}
+                                {booking.class_sessions?.instructors?.profiles?.full_name || "Non assigné"}
                               </p>
                               <p className={`text-sm font-medium mb-2 ${isCancelled ? 'text-red-700' : 'text-green-700'}`}>
                                 <Clock className="h-4 w-4 inline mr-1" />
