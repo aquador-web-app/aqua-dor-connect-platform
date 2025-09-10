@@ -6,6 +6,7 @@ import { RobustClassesPreview } from "@/components/home/RobustClassesPreview";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
 import { PublicCalendarWithReservation } from "@/components/calendar/PublicCalendarWithReservation";
 import { DynamicContent } from "@/components/home/DynamicContent";
+import { ReservationNotificationBell } from "@/components/admin/ReservationNotificationBell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UpcomingSessionsList } from "@/components/dashboard/UpcomingSessionsList";
@@ -58,9 +59,12 @@ const Index = () => {
                       🔒 Connexion requise pour réserver • 📱 Mise à jour temps réel
                     </p>
                   </div>
-                  <div className="animate-fade-in">
-                    <PublicCalendarWithReservation />
-                  </div>
+        <div className="animate-fade-in">
+          <PublicCalendarWithReservation />
+        </div>
+        <div className="fixed top-4 right-4 z-50">
+          <ReservationNotificationBell />
+        </div>
                 </div>
                 <div>
                   <UpcomingSessionsList mode="public" daysAhead={14} title="À venir (14 jours)" />

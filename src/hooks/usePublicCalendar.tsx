@@ -106,10 +106,32 @@ export const usePublicCalendar = (dateRange?: { start: Date; end: Date }) => {
             fetchPublicSessions();
           }
         )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'session_reservations'
+          },
+          () => {
+            console.log('Reservation update received, refreshing sessions...');
+            fetchPublicSessions();
+          }
+        )
         .subscribe();
     } catch (realtimeError) {
       console.warn('Failed to setup real-time subscription:', realtimeError);
     }
+
+    // Listen for calendar sync events from admin/other calendars
+    const handleCalendarSync = (event: CustomEvent) => {
+      if (event.detail?.type) {
+        console.log('Calendar sync event received:', event.detail.type);
+        fetchPublicSessions();
+      }
+    };
+
+    window.addEventListener('calendarSync', handleCalendarSync as EventListener);
 
     return () => {
       if (channel) {
@@ -119,6 +141,7 @@ export const usePublicCalendar = (dateRange?: { start: Date; end: Date }) => {
           console.warn('Failed to cleanup real-time subscription:', cleanupError);
         }
       }
+      window.removeEventListener('calendarSync', handleCalendarSync as EventListener);
     };
   }, [fetchPublicSessions]);
 

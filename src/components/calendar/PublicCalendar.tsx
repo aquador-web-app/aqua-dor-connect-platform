@@ -9,6 +9,7 @@ import { fr } from 'date-fns/locale';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { AttendanceButton } from './AttendanceButton';
 
 interface PublicCalendarProps {
   onSessionSelect?: (session: PublicCalendarSession) => void;
@@ -55,6 +56,13 @@ export const PublicCalendar: React.FC<PublicCalendarProps> = ({ onSessionSelect 
     if (onSessionSelect) {
       onSessionSelect(session);
     }
+  };
+
+  const triggerCalendarSync = () => {
+    // Trigger global sync event when reservations are made
+    window.dispatchEvent(new CustomEvent('calendarSync', { 
+      detail: { type: 'reservation_created', source: 'public_calendar' } 
+    }));
   };
 
   const getAvailabilityBadge = (session: PublicCalendarSession) => {
@@ -194,26 +202,36 @@ export const PublicCalendar: React.FC<PublicCalendarProps> = ({ onSessionSelect 
                           <div className="flex items-center justify-between">
                             {getAvailabilityBadge(session)}
                             
-                            {session.enrolled_students < session.max_participants && (
-                              <Button
-                                size="sm"
-                                variant={user ? "default" : "outline"}
-                                className="text-xs h-6 px-2"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleSessionAction(session);
-                                }}
-                              >
-                                {user ? (
-                                  'Réserver'
-                                ) : (
-                                  <div className="flex items-center gap-1">
-                                    <LogIn className="h-3 w-3" />
-                                    Se connecter
-                                  </div>
-                                )}
-                              </Button>
-                            )}
+                            <div className="flex items-center gap-1">
+                              {user && (
+                                <AttendanceButton 
+                                  session={session} 
+                                  variant="ghost" 
+                                  size="sm" 
+                                />
+                              )}
+                              
+                              {session.enrolled_students < session.max_participants && (
+                                <Button
+                                  size="sm"
+                                  variant={user ? "default" : "outline"}
+                                  className="text-xs h-6 px-2"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSessionAction(session);
+                                  }}
+                                >
+                                  {user ? (
+                                    'Réserver'
+                                  ) : (
+                                    <div className="flex items-center gap-1">
+                                      <LogIn className="h-3 w-3" />
+                                      Se connecter
+                                    </div>
+                                  )}
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))}

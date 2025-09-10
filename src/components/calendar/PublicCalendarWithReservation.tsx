@@ -18,7 +18,10 @@ export const PublicCalendarWithReservation: React.FC = () => {
   };
 
   const handleReservationSuccess = () => {
-    // Optionally trigger a refresh of the calendar
+    // Trigger calendar sync to update all calendars
+    window.dispatchEvent(new CustomEvent('calendarSync', { 
+      detail: { type: 'reservation_created', source: 'public_calendar' } 
+    }));
     setReservationFlowOpen(false);
     setSelectedSession(null);
   };
