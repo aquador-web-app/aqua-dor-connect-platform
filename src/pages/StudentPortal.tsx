@@ -80,11 +80,6 @@ const StudentPortal = () => {
           </div>
         </div>
         
-        {/* Notification System */}
-        <div className="mb-8">
-          <StudentNotificationSystem />
-        </div>
-        
         <div className="mb-8 flex items-center justify-between">
           <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
             <DialogTrigger asChild>
