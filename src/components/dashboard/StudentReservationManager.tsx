@@ -159,6 +159,7 @@ export function StudentReservationManager() {
         .from('bookings')
         .update({ 
           status: 'cancelled',
+          enrollment_status: 'cancelled',
           cancellation_reason: 'Annulé par l\'étudiant',
           cancelled_at: new Date().toISOString()
         })

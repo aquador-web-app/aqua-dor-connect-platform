@@ -195,25 +195,34 @@ const StudentPortal = () => {
                   ) : (
                     <>
                       {/* Show upcoming bookings first - most important */}
-                      {bookings.filter(booking => new Date(booking.class_sessions.session_date) > new Date()).map((booking) => (
-                        <Card key={`upcoming-booking-${booking.id}`} className="p-4 border-l-4 border-l-green-500 bg-green-50/50">
+                      {bookings.filter(booking => new Date(booking.class_sessions.session_date) > new Date()).map((booking) => {
+                        const isCancelled = booking.status === 'cancelled';
+                        return (
+                        <Card key={`upcoming-booking-${booking.id}`} className={`p-4 border-l-4 ${isCancelled ? 'border-l-red-500 bg-red-50/50' : 'border-l-green-500 bg-green-50/50'}`}>
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
-                                <Calendar className="h-4 w-4 text-green-600" />
-                                <h3 className="font-semibold">{booking.class_sessions?.classes?.name || "Cours non défini"}</h3>
-                                <Badge variant="default" className="bg-green-600">Prochaine session</Badge>
+                                <Calendar className={`h-4 w-4 ${isCancelled ? 'text-red-600' : 'text-green-600'}`} />
+                                <h3 className={`font-semibold ${isCancelled ? 'text-red-800' : ''}`}>{booking.class_sessions?.classes?.name || "Cours non défini"}</h3>
+                                {isCancelled ? (
+                                  <Badge variant="destructive">Annulée</Badge>
+                                ) : (
+                                  <Badge variant="default" className="bg-green-600">Prochaine session</Badge>
+                                )}
                               </div>
                               <p className="text-sm text-muted-foreground mb-1">
                                 Instructeur: {booking.class_sessions?.instructors?.profiles?.full_name || "Non assigné"}
                               </p>
-                              <p className="text-sm font-medium text-green-700 mb-2">
+                              <p className={`text-sm font-medium mb-2 ${isCancelled ? 'text-red-700' : 'text-green-700'}`}>
                                 <Clock className="h-4 w-4 inline mr-1" />
                                 {format(new Date(booking.class_sessions.session_date), 'EEEE d MMMM yyyy à HH:mm', { locale: fr })}
                               </p>
                               <div className="flex items-center gap-2">
-                                
-                                <Badge variant="default">Réservé</Badge>
+                                {isCancelled ? (
+                                  <Badge variant="destructive">Annulée</Badge>
+                                ) : (
+                                  <Badge variant="default">Réservé</Badge>
+                                )}
                                 {booking.total_amount > 0 && (
                                   <Badge variant="secondary">${booking.total_amount} {booking.currency}</Badge>
                                 )}
@@ -221,7 +230,8 @@ const StudentPortal = () => {
                             </div>
                           </div>
                         </Card>
-                      ))}
+                        );
+                      })}
                       
                       {/* Enrollments - ongoing courses */}
                       {enrollments.filter(enrollment => enrollment.classes).map((enrollment) => (
