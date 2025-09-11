@@ -42,20 +42,43 @@ export const usePublicCalendar = (dateRange?: { start: Date; end: Date }) => {
       setError(null);
       const { start, end } = getDateRange();
 
+      // Use direct class_sessions table with proper joins for public view
       const { data: sessionsData, error: sessionsError } = await supabase
-        .from('public_calendar_sessions')
-        .select('*')
+        .from('class_sessions')
+        .select(`
+          id,
+          session_date,
+          duration_minutes,
+          max_participants,
+          enrolled_students,
+          status,
+          type,
+          instructor_id,
+          classes!inner (
+            id,
+            name,
+            level,
+            price,
+            description
+          ),
+          instructors (
+            profiles (
+              full_name
+            )
+          )
+        `)
         .gte('session_date', start.toISOString())
         .lte('session_date', end.toISOString())
+        .eq('status', 'scheduled')
         .order('session_date', { ascending: true })
         .limit(50);
 
       if (sessionsError) throw sessionsError;
 
-      // Transform data from the secure view
+      // Transform data from direct table query
       const transformedSessions: PublicCalendarSession[] = (sessionsData || []).map((session: any) => ({
         id: session.id,
-        class_id: session.class_id || '',
+        class_id: session.classes?.id || '',
         session_date: session.session_date,
         duration_minutes: session.duration_minutes || 60,
         max_participants: session.max_participants || 10,
@@ -63,11 +86,11 @@ export const usePublicCalendar = (dateRange?: { start: Date; end: Date }) => {
         status: session.status || 'scheduled',
         type: session.type || 'class',
         instructor_id: session.instructor_id,
-        class_name: session.class_name || 'Cours de Natation',
-        class_level: session.class_level || 'beginner',
-        class_price: session.class_price || 35,
-        class_description: session.class_description || 'Séance de natation',
-        instructor_name: session.instructor_name || 'Instructeur'
+        class_name: session.classes?.name || 'Cours de Natation',
+        class_level: session.classes?.level || 'beginner',
+        class_price: session.classes?.price || 35,
+        class_description: session.classes?.description || 'Séance de natation',
+        instructor_name: session.instructors?.profiles?.full_name || 'Instructeur'
       }));
 
       setSessions(transformedSessions);

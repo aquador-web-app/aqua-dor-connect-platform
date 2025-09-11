@@ -24,7 +24,7 @@ export const PublicCalendar: React.FC<PublicCalendarProps> = ({ onSessionSelect 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
   
-  const { sessions, loading } = usePublicCalendar({
+  const { sessions, loading, error, fetchPublicSessions } = usePublicCalendar({
     start: monthStart,
     end: monthEnd
   });
@@ -95,6 +95,19 @@ export const PublicCalendar: React.FC<PublicCalendarProps> = ({ onSessionSelect 
     return (
       <div className="flex items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center text-destructive">
+          <p>Erreur de chargement du calendrier</p>
+          <Button onClick={fetchPublicSessions} className="mt-2">
+            Réessayer
+          </Button>
+        </div>
       </div>
     );
   }

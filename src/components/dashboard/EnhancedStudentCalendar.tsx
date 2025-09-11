@@ -102,7 +102,7 @@ export function EnhancedStudentCalendar() {
               )
             )
           ),
-          session_packages!inner (
+          session_packages (
             package_type,
             price_per_session
           )
@@ -119,7 +119,7 @@ export function EnhancedStudentCalendar() {
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
         .select(`
-          class_sessions!inner (
+          class_sessions!bookings_class_session_id_fkey (
             id,
             session_date,
             max_participants,

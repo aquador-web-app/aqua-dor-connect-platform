@@ -103,7 +103,7 @@ export function PendingReservationsManager() {
         .from('session_reservations')
         .select(`
           *,
-          session_packages!inner (
+          session_packages (
             package_type,
             total_sessions,
             used_sessions,

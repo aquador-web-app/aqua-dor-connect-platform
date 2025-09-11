@@ -21,7 +21,7 @@ export const useRealTimeCalendarSync = ({
         schema: 'public',
         table
       }, (payload) => {
-        console.log(`Calendar sync triggered by ${table} change:`, payload);
+        // Calendar sync triggered by table change
         onSync();
         
         // Dispatch global event for cross-component synchronization
@@ -40,7 +40,7 @@ export const useRealTimeCalendarSync = ({
     // Listen for external calendar sync events
     const handleExternalSync = (event: CustomEvent) => {
       if (event.detail?.type) {
-        console.log('External calendar sync received:', event.detail.type);
+        // External calendar sync received
         onSync();
       }
     };
