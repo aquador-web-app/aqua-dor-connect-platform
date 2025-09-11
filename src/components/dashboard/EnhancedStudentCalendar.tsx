@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useRealTimeCalendarSync } from "@/hooks/useRealTimeCalendarSync";
 import { format, isSameDay, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon, Clock, Users, BookOpen, UserCheck } from "lucide-react";
@@ -66,56 +67,6 @@ export function EnhancedStudentCalendar() {
   
   const { profile } = useAuth();
   const { toast } = useToast();
-
-  useEffect(() => {
-    if (profile) {
-      fetchStudentCalendarData();
-    }
-    
-    // Set up real-time subscriptions
-    const reservationsChannel = supabase
-      .channel('student-reservations')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'session_reservations'
-      }, () => {
-        fetchStudentCalendarData();
-      })
-      .subscribe();
-      
-    const sessionsChannel = supabase
-      .channel('student-sessions')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'class_sessions'
-      }, () => {
-        fetchStudentCalendarData();
-      })
-      .subscribe();
-
-    // Listen for calendar sync events
-    const handleCalendarSync = (event: CustomEvent) => {
-      if (event.detail?.type) {
-        fetchStudentCalendarData();
-      }
-    };
-
-    window.addEventListener('calendarSync', handleCalendarSync as EventListener);
-
-    return () => {
-      supabase.removeChannel(reservationsChannel);
-      supabase.removeChannel(sessionsChannel);
-      window.removeEventListener('calendarSync', handleCalendarSync as EventListener);
-    };
-  }, [profile]);
-
-  useEffect(() => {
-    if (profile) {
-      fetchStudentCalendarData();
-    }
-  }, [selectedDate, profile]);
 
   const fetchStudentCalendarData = async () => {
     if (!profile) return;
@@ -209,6 +160,24 @@ export function EnhancedStudentCalendar() {
       setLoading(false);
     }
   };
+
+  // Use centralized real-time sync
+  useRealTimeCalendarSync({
+    onSync: fetchStudentCalendarData,
+    tables: ['session_reservations', 'bookings', 'enrollments', 'class_sessions']
+  });
+
+  useEffect(() => {
+    if (profile) {
+      fetchStudentCalendarData();
+    }
+  }, [profile]);
+
+  useEffect(() => {
+    if (profile) {
+      fetchStudentCalendarData();
+    }
+  }, [selectedDate, profile]);
 
   const getSessionsForDay = (day: Date) => {
     const reservationsForDay = reservations.filter(reservation => 

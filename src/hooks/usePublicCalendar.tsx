@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useRealTimeCalendarSync } from './useRealTimeCalendarSync';
 
 export interface PublicCalendarSession {
   id: string;
@@ -86,63 +87,14 @@ export const usePublicCalendar = (dateRange?: { start: Date; end: Date }) => {
     }
   }, [dateRange, toast]);
 
+  // Use the centralized real-time sync hook
+  useRealTimeCalendarSync({
+    onSync: fetchPublicSessions,
+    tables: ['class_sessions', 'session_reservations', 'bookings']
+  });
+
   useEffect(() => {
     fetchPublicSessions();
-
-    // Set up realtime subscription for session updates (with error handling)
-    let channel: any = null;
-    try {
-      channel = supabase
-        .channel('public_sessions')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'class_sessions'
-          },
-          () => {
-            console.log('Real-time update received, refreshing sessions...');
-            fetchPublicSessions();
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'session_reservations'
-          },
-          () => {
-            console.log('Reservation update received, refreshing sessions...');
-            fetchPublicSessions();
-          }
-        )
-        .subscribe();
-    } catch (realtimeError) {
-      console.warn('Failed to setup real-time subscription:', realtimeError);
-    }
-
-    // Listen for calendar sync events from admin/other calendars
-    const handleCalendarSync = (event: CustomEvent) => {
-      if (event.detail?.type) {
-        console.log('Calendar sync event received:', event.detail.type);
-        fetchPublicSessions();
-      }
-    };
-
-    window.addEventListener('calendarSync', handleCalendarSync as EventListener);
-
-    return () => {
-      if (channel) {
-        try {
-          supabase.removeChannel(channel);
-        } catch (cleanupError) {
-          console.warn('Failed to cleanup real-time subscription:', cleanupError);
-        }
-      }
-      window.removeEventListener('calendarSync', handleCalendarSync as EventListener);
-    };
   }, [fetchPublicSessions]);
 
   return {

@@ -103,6 +103,17 @@ export default function AdminCalendar() {
       .on('postgres_changes', { 
         event: '*', 
         schema: 'public', 
+        table: 'session_reservations' 
+      }, (payload) => {
+        console.log('Session reservation change in admin calendar:', payload);
+        if (selectedDate) fetchSessionsForDate(selectedDate);
+        window.dispatchEvent(new CustomEvent('calendarSync', { 
+          detail: { type: 'session_reservations', payload } 
+        }));
+      })
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
         table: 'bookings' 
       }, (payload) => {
         console.log('Booking change in admin calendar:', payload);
