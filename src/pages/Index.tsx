@@ -4,7 +4,7 @@ import HeroSection from "@/components/home/HeroSection";
 import FeaturesSection from "@/components/home/FeaturesSection";
 import { RobustClassesPreview } from "@/components/home/RobustClassesPreview";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
-import { PublicCalendarWithReservation } from "@/components/calendar/PublicCalendarWithReservation";
+import { CalendarWithReservations } from "@/components/calendar/CalendarWithReservations";
 import { DynamicContent } from "@/components/home/DynamicContent";
 import { ReservationNotificationBell } from "@/components/admin/ReservationNotificationBell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -60,7 +60,7 @@ const Index = () => {
                     </p>
                   </div>
         <div className="animate-fade-in">
-          <PublicCalendarWithReservation />
+          <CalendarWithReservations />
         </div>
         <div className="fixed top-4 right-4 z-50">
           <ReservationNotificationBell />

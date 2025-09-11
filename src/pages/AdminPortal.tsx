@@ -22,7 +22,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { ProductManagement } from "@/components/dashboard/ProductManagement";
 import { SubscriptionPlansManagement } from "@/components/dashboard/SubscriptionPlansManagement";
 import { EnhancedBarcodeScanner } from "@/components/dashboard/EnhancedBarcodeScanner";
-import { PendingReservationsManager } from "@/components/admin/PendingReservationsManager";
+import { SimpleAdminReservations } from "@/components/admin/SimpleAdminReservations";
 import { DocumentManagement } from "@/components/admin/DocumentManagement";
 import { ReferralManagement } from "@/components/admin/ReferralManagement";
 import { InvoiceManagement } from "@/components/admin/InvoiceManagement";
@@ -107,7 +107,7 @@ function AdminPortal() {
                   </p>
                 </div>
               </div>
-              <PendingReservationsManager />
+            <SimpleAdminReservations />
             </div>
           );
         case "attendance":
@@ -139,7 +139,7 @@ function AdminPortal() {
                 Confirmez les paiements et gérez les finances • Synchronisation automatique
               </p>
             </div>
-            <PendingReservationsManager />
+            <SimpleAdminReservations />
             <PaymentOverview />
             <AdminPaymentManager />
           </div>

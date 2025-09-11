@@ -1,6 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { EnhancedStudentCalendar } from "./EnhancedStudentCalendar";
+import { SimpleStudentCalendar } from "./SimpleStudentCalendar";
 import { StudentBookingManager } from "./StudentBookingManager";
 import { StudentPayments } from "./StudentPayments";
 import { Calendar, CreditCard, BookOpen, Bell } from "lucide-react";
@@ -38,7 +38,7 @@ export function StudentPortalLayout() {
         </TabsList>
 
         <TabsContent value="calendar">
-          <EnhancedStudentCalendar />
+          <SimpleStudentCalendar />
         </TabsContent>
 
         <TabsContent value="bookings">
