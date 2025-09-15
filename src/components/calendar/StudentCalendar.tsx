@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { SamsungCalendar } from './SamsungCalendar';
+import { CalendarErrorBoundary } from './CalendarErrorBoundary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -114,12 +115,14 @@ export function StudentCalendar({ className }: StudentCalendarProps) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <SamsungCalendar
-                userRole="student"
-                showOnlyUserEvents={false}
-                onEventClick={handleEventClick}
-                className="animate-fade-in"
-              />
+              <CalendarErrorBoundary>
+                <SamsungCalendar
+                  userRole="student"
+                  showOnlyUserEvents={false}
+                  onEventClick={handleEventClick}
+                  className="animate-fade-in"
+                />
+              </CalendarErrorBoundary>
             </CardContent>
           </Card>
         </TabsContent>

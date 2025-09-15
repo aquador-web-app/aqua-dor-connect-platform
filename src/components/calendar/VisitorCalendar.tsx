@@ -1,5 +1,6 @@
 import React from 'react';
 import { SamsungCalendar } from './SamsungCalendar';
+import { CalendarErrorBoundary } from './CalendarErrorBoundary';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar as CalendarIcon, Users, Clock } from 'lucide-react';
 import { CalendarEvent } from '@/hooks/useUniversalCalendar';
@@ -53,12 +54,14 @@ export function VisitorCalendar({ className }: VisitorCalendarProps) {
         </CardContent>
       </Card>
 
-      <SamsungCalendar
-        userRole="visitor"
-        showOnlyUserEvents={false}
-        onEventClick={handleEventClick}
-        className="animate-fade-in"
-      />
+      <CalendarErrorBoundary>
+        <SamsungCalendar
+          userRole="visitor"
+          showOnlyUserEvents={false}
+          onEventClick={handleEventClick}
+          className="animate-fade-in"
+        />
+      </CalendarErrorBoundary>
     </div>
   );
 }

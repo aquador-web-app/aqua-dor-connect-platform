@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { SamsungCalendar } from './SamsungCalendar';
+import { CalendarErrorBoundary } from './CalendarErrorBoundary';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -160,13 +161,15 @@ export function AdminCalendar({ className }: AdminCalendarProps) {
           {/* Calendar Component */}
           <Card>
             <CardContent className="p-0">
-              <SamsungCalendar
-                userRole="admin"
-                showOnlyUserEvents={false}
-                onEventClick={handleEventClick}
-                onCreateEvent={handleCreateEvent}
-                className="animate-fade-in"
-              />
+              <CalendarErrorBoundary>
+                <SamsungCalendar
+                  userRole="admin"
+                  showOnlyUserEvents={false}
+                  onEventClick={handleEventClick}
+                  onCreateEvent={handleCreateEvent}
+                  className="animate-fade-in"
+                />
+              </CalendarErrorBoundary>
             </CardContent>
           </Card>
         </TabsContent>

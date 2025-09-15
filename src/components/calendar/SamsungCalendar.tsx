@@ -29,8 +29,11 @@ import {
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useUniversalCalendar, CalendarEvent } from '@/hooks/useUniversalCalendar';
+import { useCalendarOptimization } from '@/hooks/useCalendarOptimization';
 import { CalendarEventDialog } from './CalendarEventDialog';
 import { CalendarCreateDialog } from './CalendarCreateDialog';
+import { ResponsiveCalendarGrid } from './ResponsiveCalendarGrid';
+import { CalendarPerformanceMonitor } from './CalendarPerformanceMonitor';
 
 interface SamsungCalendarProps {
   userRole?: 'visitor' | 'student' | 'admin' | 'instructor';
@@ -54,9 +57,9 @@ export function SamsungCalendar({
   const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
 
   const { 
-    events, 
+    events: rawEvents, 
     loading, 
-    getEventsForDate, 
+    error,
     createReservation, 
     markAttendance,
     refreshEvents 
@@ -69,6 +72,9 @@ export function SamsungCalendar({
       end: endOfMonth(addMonths(currentMonth, 2))
     }
   });
+
+  // Use optimized calendar functions
+  const { events, getEventsForDate, eventStats, upcomingEvents } = useCalendarOptimization(rawEvents);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -146,25 +152,28 @@ export function SamsungCalendar({
           <div
             key={`${event.id}-${index}`}
             className={cn(
-              "text-xs p-1 rounded cursor-pointer transition-all duration-200 hover:scale-105",
-              "bg-opacity-10 hover:bg-opacity-20 border-l-2"
+              "text-xs p-1 rounded cursor-pointer transition-all duration-200 hover:scale-[1.02]",
+              "bg-opacity-10 hover:bg-opacity-20 border-l-2 hover:shadow-sm"
             )}
             style={{ 
               backgroundColor: `${getEventTypeColor(event)}15`,
               borderLeftColor: getEventTypeColor(event)
             }}
-            onClick={() => handleEventClick(event)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleEventClick(event);
+            }}
           >
             <div className="font-medium truncate" title={event.title}>
               {event.start_time && (
-                <span className="text-muted-foreground mr-1">
+                <span className="text-muted-foreground mr-1 text-[10px] sm:text-xs">
                   {event.start_time}
                 </span>
               )}
-              {event.title}
+              <span className="text-[10px] sm:text-xs">{event.title}</span>
             </div>
             {event.available_seats !== undefined && (
-              <div className="text-xs text-muted-foreground">
+              <div className="text-[9px] sm:text-xs text-muted-foreground">
                 {event.available_seats} places
               </div>
             )}
@@ -234,90 +243,70 @@ export function SamsungCalendar({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="flex items-center border rounded-lg p-1">
-            <Button
-              variant={viewMode === 'month' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('month')}
-              className="h-7 px-2"
-            >
-              <Grid3x3 className="h-3 w-3 mr-1" />
-              Mois
-            </Button>
-            <Button
-              variant={viewMode === 'agenda' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('agenda')}
-              className="h-7 px-2"
-            >
-              <List className="h-3 w-3 mr-1" />
-              Agenda
-            </Button>
-          </div>
+          <div className="flex items-center gap-2">
+            <CalendarPerformanceMonitor 
+              isLoading={loading} 
+              eventCount={events.length}
+              className="hidden sm:flex"
+            />
+            
+            <div className="flex items-center border rounded-lg p-1">
+              <Button
+                variant={viewMode === 'month' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('month')}
+                className="h-7 px-2"
+              >
+                <Grid3x3 className="h-3 w-3 mr-1" />
+                <span className="hidden sm:inline">Mois</span>
+              </Button>
+              <Button
+                variant={viewMode === 'agenda' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('agenda')}
+                className="h-7 px-2"
+              >
+                <List className="h-3 w-3 mr-1" />
+                <span className="hidden sm:inline">Agenda</span>
+              </Button>
+            </div>
 
-          {userRole === 'admin' && (
-            <Button
-              onClick={handleCreateEvent}
-              size="sm"
-              className="h-8"
-            >
-              <Plus className="h-3 w-3 mr-1" />
-              Créer
-            </Button>
-          )}
-        </div>
+            {userRole === 'admin' && (
+              <Button
+                onClick={handleCreateEvent}
+                size="sm"
+                className="h-8"
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                <span className="hidden sm:inline">Créer</span>
+              </Button>
+            )}
+          </div>
       </div>
 
       {/* Day Labels */}
       <div className="grid grid-cols-7 gap-px bg-border rounded-lg overflow-hidden">
         {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day) => (
-          <div key={day} className="bg-muted p-2 text-center text-sm font-medium text-muted-foreground">
+          <div key={day} className="bg-muted p-1.5 sm:p-2 text-center text-xs sm:text-sm font-medium text-muted-foreground">
             {day}
           </div>
         ))}
       </div>
 
-      {/* Calendar Grid */}
-      <div className="grid grid-cols-7 gap-px bg-border rounded-lg overflow-hidden">
-        {calendarDays.map((date, index) => {
-          const dayEvents = getEventsForDate(date);
-          const isCurrentMonth = isSameMonth(date, currentMonth);
-          const isExpandedDate = expandedDates.has(format(date, 'yyyy-MM-dd'));
-          const hasEvents = dayEvents.length > 0;
-
-          return (
-            <div
-              key={index}
-              className={cn(
-                "bg-card p-2 min-h-[120px] transition-all duration-200",
-                isCurrentMonth ? "opacity-100" : "opacity-40",
-                isToday(date) && "bg-primary/5 ring-1 ring-primary/20",
-                hasEvents && "cursor-pointer hover:bg-muted/30",
-                isExpandedDate && "min-h-[200px]"
-              )}
-              onClick={() => hasEvents && toggleDateExpansion(date)}
-            >
-              <div className={cn(
-                "text-sm font-medium mb-1",
-                isToday(date) ? "text-primary font-bold" : "text-foreground"
-              )}>
-                {format(date, 'd')}
-              </div>
-              
-              {renderDayEvents(date, isExpandedDate)}
-            </div>
-          );
-        })}
-      </div>
+      {/* Responsive Calendar Grid */}
+      <ResponsiveCalendarGrid
+        calendarDays={calendarDays}
+        currentMonth={currentMonth}
+        expandedDates={expandedDates}
+        getEventsForDate={getEventsForDate}
+        toggleDateExpansion={toggleDateExpansion}
+        renderDayEvents={renderDayEvents}
+      />
     </div>
   );
 
   const renderAgendaView = () => {
-    const upcomingEvents = events
-      .filter(event => new Date(event.start_date) >= new Date())
-      .sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())
-      .slice(0, 20);
+    const displayEvents = upcomingEvents.slice(0, 20);
 
     return (
       <div className="space-y-4">
@@ -334,13 +323,13 @@ export function SamsungCalendar({
         </div>
 
         <div className="space-y-2 p-4">
-          {upcomingEvents.length === 0 ? (
+          {displayEvents.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <CalendarIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>Aucun événement à venir</p>
             </div>
           ) : (
-            upcomingEvents.map((event) => (
+            displayEvents.map((event) => (
               <Card 
                 key={event.id} 
                 className="cursor-pointer hover:bg-muted/30 transition-all duration-200 hover:scale-[1.02]"
@@ -420,6 +409,23 @@ export function SamsungCalendar({
                 <div key={i} className="h-20 bg-muted rounded" />
               ))}
             </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className={cn("border-destructive", className)}>
+        <CardContent className="p-6 text-center">
+          <div className="space-y-4">
+            <div className="text-destructive text-sm font-medium">
+              Erreur de chargement du calendrier
+            </div>
+            <Button onClick={refreshEvents} variant="outline" size="sm">
+              Réessayer
+            </Button>
           </div>
         </CardContent>
       </Card>
