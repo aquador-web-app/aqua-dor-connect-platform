@@ -3,62 +3,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { StudentBookingManager } from "./StudentBookingManager";
 import { StudentPayments } from "./StudentPayments";
 import { CreditCard, BookOpen, Bell } from "lucide-react";
-import { useStudentData } from "@/hooks/useStudentData";
-import { ReservationNotificationBell } from "@/components/admin/ReservationNotificationBell";
+import { StudentCalendar } from "@/components/calendar/StudentCalendar";
+import { useToast } from "@/hooks/use-toast";
 
 export function StudentPortalLayout() {
-  const { bookings, payments, loading, refetch } = useStudentData();
+  const { toast } = useToast();
 
   return (
     <div className="space-y-6">
-      {/* Header with Notifications */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Portail Étudiant</h1>
           <p className="text-muted-foreground">Gérez vos cours, réservations et paiements</p>
         </div>
-        <ReservationNotificationBell />
       </div>
 
-      <Tabs defaultValue="bookings" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="bookings" className="flex items-center gap-2">
-            <BookOpen className="h-4 w-4" />
-            Mes Réservations
-          </TabsTrigger>
-          <TabsTrigger value="payments" className="flex items-center gap-2">
-            <CreditCard className="h-4 w-4" />
-            Mes Paiements
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="bookings">
-          <StudentBookingManager 
-            bookings={bookings} 
-            onBookingUpdated={refetch} 
-          />
-        </TabsContent>
-
-        <TabsContent value="payments">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5" />
-                Historique des Paiements
-              </CardTitle>
-              <CardDescription>
-                Consultez l'historique de vos paiements et factures
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <CreditCard className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Historique des paiements disponible bientôt</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {/* Calendar Component */}
+      <StudentCalendar />
     </div>
   );
 }

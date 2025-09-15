@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { AdminNotificationBell } from "@/components/admin/AdminNotificationBell";
 import { AdminNavbar } from "@/components/layout/AdminNavbar";
+import { AdminCalendar } from "@/components/calendar/AdminCalendar";
 import { AdminSidebar } from "@/components/layout/AdminSidebar";
 import { OverviewDashboard } from "@/components/dashboard/OverviewDashboard";
 import { UserManagement } from "@/components/dashboard/UserManagement";
@@ -47,8 +48,10 @@ function AdminPortal() {
         return <UserManagement />;
       case "instructors":
         return <InstructorManagement />;
-      case "courses":
+        case "courses":
         return <CourseManagement />;
+        case "calendar":
+        return <AdminCalendar />;
         case 'products':
           return <ProductManagement />;
         case 'subscriptions':

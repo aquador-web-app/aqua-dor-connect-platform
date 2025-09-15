@@ -109,8 +109,8 @@ export function CalendarSyncDemo() {
                 </div>
               </div>
               <SamsungCalendar 
-                mode="public" 
-                showBookingActions={true}
+                userRole="visitor"
+                showOnlyUserEvents={false}
               />
             </CardContent>
           </Card>
@@ -136,8 +136,8 @@ export function CalendarSyncDemo() {
             </CardHeader>
             <CardContent>
               <SamsungCalendar 
-                mode="student" 
-                showBookingActions={true}
+                userRole="student"
+                showOnlyUserEvents={true}
               />
             </CardContent>
           </Card>
