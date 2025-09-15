@@ -7,7 +7,6 @@ import { OverviewDashboard } from "@/components/dashboard/OverviewDashboard";
 import { UserManagement } from "@/components/dashboard/UserManagement";
 import { InstructorManagement } from "@/components/dashboard/InstructorManagement";
 import { CourseManagement } from "@/components/dashboard/CourseManagement";
-import { EnhancedCalendar } from "@/components/dashboard/EnhancedCalendar";
 import { PaymentOverview } from "@/components/dashboard/PaymentOverview";
 import { AdminPaymentManager } from "@/components/dashboard/AdminPaymentManager";
 import { ContentManager } from "@/components/dashboard/ContentManager";
@@ -15,14 +14,12 @@ import { NotificationManager } from "@/components/dashboard/NotificationManager"
 import { ParentChildManager } from "@/components/dashboard/ParentChildManager";
 import { ReferralDashboard } from "@/components/dashboard/ReferralDashboard";
 import { InstructorAnalytics } from "@/components/dashboard/InstructorAnalytics";
-import { IntelligentCalendar } from "@/components/dashboard/IntelligentCalendar";
-import { UnifiedCalendar } from "@/components/calendar/UnifiedCalendar";
 import { useAuth } from "@/hooks/useAuth";
 import { Toaster } from "@/components/ui/toaster";
 import { ProductManagement } from "@/components/dashboard/ProductManagement";
 import { SubscriptionPlansManagement } from "@/components/dashboard/SubscriptionPlansManagement";
 import { EnhancedBarcodeScanner } from "@/components/dashboard/EnhancedBarcodeScanner";
-import { SimpleAdminReservations } from "@/components/admin/SimpleAdminReservations";
+
 import { DocumentManagement } from "@/components/admin/DocumentManagement";
 import { ReferralManagement } from "@/components/admin/ReferralManagement";
 import { InvoiceManagement } from "@/components/admin/InvoiceManagement";
@@ -103,11 +100,10 @@ function AdminPortal() {
                 <div>
                   <h2 className="text-2xl font-bold">🔄 Gestion des Réservations</h2>
                   <p className="text-muted-foreground">
-                    Gérez les demandes de réservation et confirmez les paiements • Mises à jour temps réel
+                    Fonctionnalité disponible bientôt
                   </p>
                 </div>
               </div>
-            <SimpleAdminReservations />
             </div>
           );
         case "attendance":
@@ -120,16 +116,6 @@ function AdminPortal() {
               <EnhancedBarcodeScanner />
             </div>
           );
-        case "calendar":
-          return (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold">Calendrier et Réservations</h2>
-                <p className="text-muted-foreground">Gérez les sessions de cours et les réservations</p>
-              </div>
-              <UnifiedCalendar mode="admin" showBookingActions={false} maxDaysAhead={365} />
-            </div>
-          );
       case "payments":
         return canManagePayments() ? (
           <div className="space-y-6">
@@ -139,7 +125,6 @@ function AdminPortal() {
                 Confirmez les paiements et gérez les finances • Synchronisation automatique
               </p>
             </div>
-            <SimpleAdminReservations />
             <PaymentOverview />
             <AdminPaymentManager />
           </div>

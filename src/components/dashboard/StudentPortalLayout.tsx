@@ -1,9 +1,8 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { SimpleStudentCalendar } from "./SimpleStudentCalendar";
 import { StudentBookingManager } from "./StudentBookingManager";
 import { StudentPayments } from "./StudentPayments";
-import { Calendar, CreditCard, BookOpen, Bell } from "lucide-react";
+import { CreditCard, BookOpen, Bell } from "lucide-react";
 import { useStudentData } from "@/hooks/useStudentData";
 import { ReservationNotificationBell } from "@/components/admin/ReservationNotificationBell";
 
@@ -21,12 +20,8 @@ export function StudentPortalLayout() {
         <ReservationNotificationBell />
       </div>
 
-      <Tabs defaultValue="calendar" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="calendar" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            Mon Calendrier
-          </TabsTrigger>
+      <Tabs defaultValue="bookings" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="bookings" className="flex items-center gap-2">
             <BookOpen className="h-4 w-4" />
             Mes Réservations
@@ -36,10 +31,6 @@ export function StudentPortalLayout() {
             Mes Paiements
           </TabsTrigger>
         </TabsList>
-
-        <TabsContent value="calendar">
-          <SimpleStudentCalendar />
-        </TabsContent>
 
         <TabsContent value="bookings">
           <StudentBookingManager 
