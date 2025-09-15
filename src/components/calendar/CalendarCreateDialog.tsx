@@ -244,7 +244,6 @@ export function CalendarCreateDialog({
       onClose();
       resetForm();
     } catch (error: any) {
-      console.error('Event creation error:', error);
       toast({
         title: "Erreur de création",
         description: error.message,

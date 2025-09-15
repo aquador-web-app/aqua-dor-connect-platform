@@ -98,39 +98,6 @@ const Header = () => {
             </Button>
           </div>
 
-          {/* Portal Access Buttons - Role-based */}
-          {user && userRole && (
-            <div className="hidden md:flex items-center space-x-2">
-              {(userRole === 'admin' || userRole === 'co_admin') && (
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/admin-portal">
-                    {userRole === 'admin' ? 'Admin Dashboard' : 'Co-Admin Dashboard'}
-                  </Link>
-                </Button>
-              )}
-              {userRole === 'instructor' && (
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/coach-portal">Coach Dashboard</Link>
-                </Button>
-              )}
-              {userRole === 'student' && (
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/student-portal">Student Dashboard</Link>
-                </Button>
-              )}
-              {userRole === 'parent' && (
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/parent-portal">Parent Dashboard</Link>
-                </Button>
-              )}
-              {userRole === 'influencer' && (
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/influencer-portal">Influencer Dashboard</Link>
-                </Button>
-              )}
-            </div>
-          )}
-          
           {/* Login Buttons for non-authenticated users */}
           {!user && (
             <div className="hidden md:flex items-center space-x-2">
@@ -142,6 +109,26 @@ const Header = () => {
               </Button>
               <Button variant="outline" size="sm" asChild>
                 <Link to="/auth">Student</Link>
+              </Button>
+            </div>
+          )}
+          
+          {/* Quick Portal Access for Authenticated Users */}
+          {user && userRole && (
+            <div className="hidden md:flex items-center space-x-2 mr-2">
+              <Button variant="ghost" size="sm" asChild>
+                <Link 
+                  to={
+                    userRole === 'admin' || userRole === 'co_admin' ? '/admin-portal' :
+                    userRole === 'instructor' ? '/coach-portal' :
+                    userRole === 'student' ? '/student-portal' :
+                    userRole === 'parent' ? '/parent-portal' :
+                    userRole === 'influencer' ? '/influencer-portal' : '/'
+                  }
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  Mon Dashboard
+                </Link>
               </Button>
             </div>
           )}

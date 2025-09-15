@@ -357,10 +357,10 @@ export function StudentPayments() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-2 mb-2">
-              <Clock className="h-4 w-4 text-yellow-600" />
+              <Clock className="h-4 w-4 text-accent" />
               <span className="text-sm font-medium">En Attente</span>
             </div>
-            <div className="text-2xl font-bold text-yellow-600">
+            <div className="text-2xl font-bold text-accent">
               {summary.pendingCount}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -372,10 +372,10 @@ export function StudentPayments() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="h-4 w-4 text-red-600" />
+              <AlertTriangle className="h-4 w-4 text-destructive" />
               <span className="text-sm font-medium">Paiements Dus</span>
             </div>
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-2xl font-bold text-destructive">
               {summary.overdueCount}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -387,10 +387,10 @@ export function StudentPayments() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-2 mb-2">
-              <CheckCircle className="h-4 w-4 text-green-600" />
+              <CheckCircle className="h-4 w-4 text-secondary" />
               <span className="text-sm font-medium">Total Payé</span>
             </div>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-secondary">
               ${summary.totalPaid.toLocaleString()}
             </div>
           </CardContent>
@@ -399,15 +399,15 @@ export function StudentPayments() {
 
       {/* Outstanding Balance Alert */}
       {(summary.pendingCount > 0 || summary.overdueCount > 0) && (
-        <Card className="border-l-4 border-l-yellow-500 bg-yellow-50">
+        <Card className="border-l-4 border-l-accent bg-accent/10">
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-yellow-600" />
+              <AlertTriangle className="h-5 w-5 text-accent" />
               <div>
-                <h3 className="font-semibold text-yellow-800">
+                <h3 className="font-semibold text-accent-foreground">
                   Paiements en attente
                 </h3>
-                <p className="text-sm text-yellow-700">
+                <p className="text-sm text-muted-foreground">
                   {summary.pendingCount > 0 && `${summary.pendingCount} paiement(s) en attente ($${summary.totalPending.toFixed(2)})`}
                   {summary.pendingCount > 0 && summary.overdueCount > 0 && ' et '}
                   {summary.overdueCount > 0 && `${summary.overdueCount} paiement(s) en retard ($${summary.totalOverdue.toFixed(2)})`}
@@ -425,7 +425,7 @@ export function StudentPayments() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-yellow-600" />
+              <Clock className="h-5 w-5 text-accent" />
               En Attente
             </CardTitle>
             <CardDescription>

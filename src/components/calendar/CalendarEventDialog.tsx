@@ -74,8 +74,12 @@ export function CalendarEventDialog({
       await onReserve(event.session_id, notes);
       onClose();
       onRefresh();
-    } catch (error) {
-      console.error('Reservation error:', error);
+    } catch (error: any) {
+      toast({
+        title: "Erreur de réservation",
+        description: error.message || "Une erreur s'est produite",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -89,8 +93,12 @@ export function CalendarEventDialog({
       await onMarkAttendance(event.session_id, isPresent);
       onClose();
       onRefresh();
-    } catch (error) {
-      console.error('Attendance error:', error);
+    } catch (error: any) {
+      toast({
+        title: "Erreur de présence",
+        description: error.message || "Une erreur s'est produite",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -99,11 +107,20 @@ export function CalendarEventDialog({
   const getStatusBadge = () => {
     switch (event.status) {
       case 'confirmed':
-        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100"><CheckCircle className="h-3 w-3 mr-1" />Confirmé</Badge>;
+        return <Badge className="bg-secondary text-secondary-foreground">
+          <CheckCircle className="h-3 w-3 mr-1" />
+          Confirmé
+        </Badge>;
       case 'pending':
-        return <Badge variant="secondary"><AlertCircle className="h-3 w-3 mr-1" />En attente</Badge>;
+        return <Badge variant="secondary">
+          <AlertCircle className="h-3 w-3 mr-1" />
+          En attente
+        </Badge>;
       case 'cancelled':
-        return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Annulé</Badge>;
+        return <Badge variant="destructive">
+          <XCircle className="h-3 w-3 mr-1" />
+          Annulé
+        </Badge>;
       default:
         return <Badge variant="outline">{event.status}</Badge>;
     }

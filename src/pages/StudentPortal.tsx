@@ -1,12 +1,13 @@
+import { GradientBackground } from "@/components/ui/gradient-background";
 import { StudentPortalLayout } from "@/components/dashboard/StudentPortalLayout";
 
 const StudentPortal = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/10">
+    <GradientBackground variant="subtle" className="min-h-screen">
       <div className="container py-8">
         <StudentPortalLayout />
       </div>
-    </div>
+    </GradientBackground>
   );
 };
 
