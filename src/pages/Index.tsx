@@ -5,6 +5,7 @@ import FeaturesSection from "@/components/home/FeaturesSection";
 import { RobustClassesPreview } from "@/components/home/RobustClassesPreview";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
 import { DynamicContent } from "@/components/home/DynamicContent";
+import { VisitorCalendar } from "@/components/calendar/VisitorCalendar";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const Index = () => {
@@ -16,6 +17,14 @@ const Index = () => {
       <HeroSection />
       <DynamicContent />
       <FeaturesSection />
+      
+      {/* Calendar Section */}
+      <section className="py-16 px-4">
+        <div className="container mx-auto max-w-6xl">
+          <VisitorCalendar />
+        </div>
+      </section>
+      
       <RobustClassesPreview />
       <TestimonialsSection />
       <Footer />
