@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { format, startOfMonth, endOfMonth, addMonths, isSameDay } from 'date-fns';
+import { format, startOfMonth, endOfMonth, addMonths } from 'date-fns';
 
 export interface CalendarEvent {
   id: string;
@@ -48,8 +48,10 @@ export const useUniversalCalendar = (options: UseUniversalCalendarOptions = {}) 
   const [error, setError] = useState<string | null>(null);
   const { user, profile } = useAuth();
   const { toast } = useToast();
+
+  // Abort + request guard to prevent stuck loading when requests are aborted
   const abortControllerRef = useRef<AbortController | null>(null);
-  const isInitialMount = useRef(true);
+  const requestIdRef = useRef(0);
 
   const {
     userRole = 'visitor',
@@ -60,32 +62,29 @@ export const useUniversalCalendar = (options: UseUniversalCalendarOptions = {}) 
 
   const getDateRange = useCallback(() => {
     if (dateRange) return dateRange;
-    
     const now = new Date();
     const start = startOfMonth(now);
-    const end = endOfMonth(addMonths(now, 3)); // Show 3+ months
+    const end = endOfMonth(addMonths(now, 3)); // next 3 months
     return { start, end };
   }, [dateRange]);
 
   const fetchEvents = useCallback(async () => {
-    // Cancel any existing request
+    // Cancel any in-flight request
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-    
     abortControllerRef.current = new AbortController();
     const signal = abortControllerRef.current.signal;
+    const requestId = ++requestIdRef.current;
 
     try {
-      if (!isInitialMount.current) {
-        setLoading(true);
-      }
+      setLoading(true);
       setError(null);
-      
-      const { start, end } = getDateRange();
-      const events: CalendarEvent[] = [];
 
-      // Fetch class sessions (public events) with error handling
+      const { start, end } = getDateRange();
+      const nextEvents: CalendarEvent[] = [];
+
+      // Fetch public class sessions
       try {
         const { data: sessions, error: sessionsError } = await supabase
           .from('class_sessions')
@@ -119,14 +118,12 @@ export const useUniversalCalendar = (options: UseUniversalCalendarOptions = {}) 
 
         if (sessionsError) throw sessionsError;
 
-        // Transform class sessions to calendar events
-        sessions?.forEach(session => {
+        sessions?.forEach((session) => {
           if (signal.aborted) return;
-          
           const sessionDate = new Date(session.session_date);
           const endTime = new Date(sessionDate.getTime() + (session.duration_minutes || 60) * 60000);
-          
-          events.push({
+
+          nextEvents.push({
             id: session.id,
             title: session.classes.name,
             description: session.classes.description || '',
@@ -147,15 +144,14 @@ export const useUniversalCalendar = (options: UseUniversalCalendarOptions = {}) 
             can_reserve: !showOnlyUserEvents && session.enrolled_students < session.max_participants,
             is_enrolled: false,
             session_id: session.id,
-            class_id: session.class_id
+            class_id: session.class_id,
           });
         });
       } catch (sessionError: any) {
         console.warn('Error fetching sessions:', sessionError);
-        // Continue with other queries even if sessions fail
       }
 
-      // Fetch user reservations/bookings if authenticated
+      // Fetch user bookings if logged in
       if (user && profile && !signal.aborted) {
         try {
           const { data: bookings, error: bookingsError } = await supabase
@@ -185,13 +181,12 @@ export const useUniversalCalendar = (options: UseUniversalCalendarOptions = {}) 
 
           if (bookingsError) throw bookingsError;
 
-          bookings?.forEach(booking => {
+          bookings?.forEach((booking) => {
             if (signal.aborted) return;
-            
             const sessionDate = new Date(booking.class_sessions.session_date);
             const endTime = new Date(sessionDate.getTime() + (booking.class_sessions.duration_minutes || 60) * 60000);
-            
-            events.push({
+
+            nextEvents.push({
               id: `booking-${booking.id}`,
               title: `${booking.class_sessions.classes?.name} (Réservé)`,
               description: booking.notes || '',
@@ -204,110 +199,89 @@ export const useUniversalCalendar = (options: UseUniversalCalendarOptions = {}) 
               class_name: booking.class_sessions.classes?.name,
               level: booking.class_sessions.classes?.level,
               price: booking.class_sessions.classes?.price,
-              color_code: booking.status === 'cancelled' ? 'hsl(var(--destructive))' : 
-                         booking.enrollment_status === 'pending' ? 'hsl(var(--accent))' : 'hsl(var(--secondary))',
+              color_code:
+                booking.status === 'cancelled'
+                  ? 'hsl(var(--destructive))'
+                  : booking.enrollment_status === 'pending'
+                  ? 'hsl(var(--accent))'
+                  : 'hsl(var(--secondary))',
               can_reserve: false,
               is_enrolled: true,
               user_id: profile.id,
               session_id: booking.class_session_id,
-              metadata: { booking_id: booking.id }
+              metadata: { booking_id: booking.id },
             });
           });
         } catch (bookingError: any) {
           console.warn('Error fetching bookings:', bookingError);
-          // Continue even if bookings fail
         }
       }
 
       if (signal.aborted) return;
 
-      // Filter events based on user role and preferences
-      let filteredEvents = events;
-      
+      // Apply filters
+      let filtered = nextEvents;
       if (showOnlyUserEvents && user) {
-        filteredEvents = events.filter(event => 
-          event.user_id === profile?.id || 
-          event.event_type === 'class' // Always show public classes
+        filtered = nextEvents.filter(
+          (event) => event.user_id === profile?.id || event.event_type === 'class'
         );
       }
 
-      if (!signal.aborted) {
-        setEvents(filteredEvents);
+      if (!signal.aborted && requestId === requestIdRef.current) {
+        setEvents(filtered);
       }
     } catch (err: any) {
-      if (signal.aborted) return;
-      
+      if (signal.aborted) return; // ignore aborted errors
       console.error('Error fetching calendar events:', err);
-      setError(err.message || 'Erreur de chargement du calendrier');
-      
-      if (!isInitialMount.current) {
-        toast({
-          title: "Erreur de chargement",
-          description: "Impossible de charger les événements du calendrier",
-          variant: "destructive"
-        });
-      }
+      setError(err?.message || 'Erreur de chargement du calendrier');
+      toast({
+        title: 'Erreur de chargement',
+        description: "Impossible de charger les événements du calendrier",
+        variant: 'destructive',
+      });
     } finally {
-      if (!signal.aborted) {
+      // Only the latest request clears loading
+      if (requestId === requestIdRef.current) {
         setLoading(false);
-        isInitialMount.current = false;
       }
     }
   }, [user, profile, getDateRange, showOnlyUserEvents, toast]);
 
-  // Real-time synchronization with debouncing
+  // Realtime sync with debounce
   useEffect(() => {
     if (!enableRealtime) return;
 
     let timeoutId: NodeJS.Timeout;
-    const debouncedFetchEvents = () => {
+    const debouncedFetch = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
         fetchEvents();
-      }, 1000); // Debounce for 1 second
+      }, 1000);
     };
 
     const channelName = `calendar-sync-${userRole}-${Date.now()}`;
     const channel = supabase
       .channel(channelName)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'class_sessions'
-      }, debouncedFetchEvents)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'bookings'
-      }, debouncedFetchEvents)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'classes'
-      }, debouncedFetchEvents)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'class_sessions' }, debouncedFetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, debouncedFetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'classes' }, debouncedFetch)
       .subscribe();
 
-    // Listen for custom sync events with debouncing
-    const handleCalendarSync = () => {
-      debouncedFetchEvents();
-    };
-
-    window.addEventListener('calendarSync', handleCalendarSync);
+    const handleExternalSync = () => debouncedFetch();
+    window.addEventListener('calendarSync', handleExternalSync);
 
     return () => {
       clearTimeout(timeoutId);
       supabase.removeChannel(channel);
-      window.removeEventListener('calendarSync', handleCalendarSync);
+      window.removeEventListener('calendarSync', handleExternalSync);
     };
   }, [enableRealtime, fetchEvents, userRole]);
 
+  // Initial load + cleanup
   useEffect(() => {
     fetchEvents();
-    
     return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
+      if (abortControllerRef.current) abortControllerRef.current.abort();
     };
   }, [fetchEvents]);
 
@@ -315,101 +289,96 @@ export const useUniversalCalendar = (options: UseUniversalCalendarOptions = {}) 
     fetchEvents();
   }, [fetchEvents]);
 
-  const getEventsForDate = useCallback((date: Date) => {
-    const dateStr = format(date, 'yyyy-MM-dd');
-    return events.filter(event => event.start_date === dateStr);
-  }, [events]);
+  const getEventsForDate = useCallback(
+    (date: Date) => {
+      const dateStr = format(date, 'yyyy-MM-dd');
+      return events.filter((event) => event.start_date === dateStr);
+    },
+    [events]
+  );
 
-  const createReservation = useCallback(async (sessionId: string, notes?: string) => {
-    if (!user || !profile) {
-      throw new Error('Vous devez être connecté pour réserver');
-    }
+  const createReservation = useCallback(
+    async (sessionId: string, notes?: string) => {
+      if (!user || !profile) {
+        throw new Error('Vous devez être connecté pour réserver');
+      }
 
-    try {
-      const { data, error } = await supabase
-        .from('bookings')
-        .insert({
-          user_id: profile.id,
-          class_session_id: sessionId,
-          status: 'confirmed',
-          enrollment_status: 'pending',
-          notes: notes || '',
-          booking_date: new Date().toISOString()
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Create payment record
-      const session = events.find(e => e.session_id === sessionId);
-      if (session?.price) {
-        await supabase
-          .from('payments')
+      try {
+        const { data, error } = await supabase
+          .from('bookings')
           .insert({
+            user_id: profile.id,
+            class_session_id: sessionId,
+            status: 'confirmed',
+            enrollment_status: 'pending',
+            notes: notes || '',
+            booking_date: new Date().toISOString(),
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // Create payment record if price known
+        const session = events.find((e) => e.session_id === sessionId);
+        if (session?.price) {
+          await supabase.from('payments').insert({
             user_id: profile.id,
             booking_id: data.id,
             amount: session.price,
             currency: 'USD',
             status: 'pending',
-            payment_method: 'cash'
+            payment_method: 'cash',
           });
+        }
+
+        toast({
+          title: 'Réservation créée',
+          description: 'Votre réservation a été enregistrée en attente de confirmation',
+        });
+
+        window.dispatchEvent(new CustomEvent('calendarSync'));
+        return data;
+      } catch (error: any) {
+        toast({ title: 'Erreur de réservation', description: error.message, variant: 'destructive' });
+        throw error;
+      }
+    },
+    [user, profile, events, toast]
+  );
+
+  const markAttendance = useCallback(
+    async (sessionId: string, isPresent: boolean = true) => {
+      if (!user || !profile) {
+        throw new Error('Vous devez être connecté pour marquer votre présence');
       }
 
-      toast({
-        title: "Réservation créée",
-        description: "Votre réservation a été enregistrée en attente de confirmation",
-      });
-
-      // Trigger sync
-      window.dispatchEvent(new CustomEvent('calendarSync'));
-      
-      return data;
-    } catch (error: any) {
-      toast({
-        title: "Erreur de réservation",
-        description: error.message,
-        variant: "destructive"
-      });
-      throw error;
-    }
-  }, [user, profile, events, toast]);
-
-  const markAttendance = useCallback(async (sessionId: string, isPresent: boolean = true) => {
-    if (!user || !profile) {
-      throw new Error('Vous devez être connecté pour marquer votre présence');
-    }
-
-    try {
-      const { error } = await supabase
-        .from('attendance')
-        .upsert({
+      try {
+        const { error } = await supabase.from('attendance').upsert({
           student_id: profile.id,
           class_session_id: sessionId,
           present: isPresent,
           status: isPresent ? 'present' : 'absent',
           marked_at: new Date().toISOString(),
           marked_by: profile.id,
-          marked_by_role: 'student'
+          marked_by_role: 'student',
         });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: "Présence enregistrée",
-        description: isPresent ? "Votre présence a été marquée" : "Votre absence a été enregistrée",
-      });
+        toast({
+          title: 'Présence enregistrée',
+          description: isPresent ? 'Votre présence a été marquée' : 'Votre absence a été enregistrée',
+        });
 
-      fetchEvents();
-    } catch (error: any) {
-      toast({
-        title: "Erreur de présence",
-        description: error.message,
-        variant: "destructive"
-      });
-      throw error;
-    }
-  }, [user, profile, toast, fetchEvents]);
+        fetchEvents();
+      } catch (error: any) {
+        toast({ title: 'Erreur de présence', description: error.message, variant: 'destructive' });
+        throw error;
+      }
+    },
+    [user, profile, toast, fetchEvents]
+  );
 
   return {
     events,
@@ -419,6 +388,6 @@ export const useUniversalCalendar = (options: UseUniversalCalendarOptions = {}) 
     getEventsForDate,
     createReservation,
     markAttendance,
-    hasData: events.length > 0
+    hasData: events.length > 0,
   };
 };
